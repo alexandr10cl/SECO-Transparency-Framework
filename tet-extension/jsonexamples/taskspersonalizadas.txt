@@ -1,0 +1,23 @@
+[
+{
+    "id": 1,
+    "title": "Task 1",
+    "description": "Translate the page into Portuguese.",
+    "questions": [
+      { "text": "Could you solve the task?" },
+      { "text": "If not, could you explain why?" },
+      { "text": "What do you think about the page design?" }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Task 2",
+    "description": "Task description.",
+    "questions": [
+      { "text": "Q1?" },
+      { "text": "Q2?" }
+    ]
+}
+]
+
+Esse é o formato de Task que a ferramenta recebe do servidor flask

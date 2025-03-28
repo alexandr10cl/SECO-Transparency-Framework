@@ -1,0 +1,76 @@
+{
+  "username": "Admin",
+  "seco_portal": "https://www.python.org/",
+  "performed_tasks": [
+    {
+      "id": 1,
+      "title": "Task 1",
+      "description": "Translate the page into Portuguese.",
+      "initial_timestamp": "2025-03-25T22:07:53.890Z",
+      "final_timestamp": "2025-03-25T22:08:35.674Z",
+      "answers": [
+        {
+          "question": "Could you solve the task? If not, could you explain why?",
+          "answer": "I couldnt find a way to translate"
+        },
+        {
+          "question": "In your opinion, is the portal's translation system effective?",
+          "answer": "I couldnt find a way to translate"
+        },
+        {
+          "question": "What do you think about the page design?",
+          "answer": "Looks old"
+        }
+      ],
+      "status": "couldntsolve"
+    },
+    {
+      "id": 2,
+      "title": "Task 2",
+      "description": "Find the language documentation.",
+      "initial_timestamp": "2025-03-25T22:08:37.154Z",
+      "final_timestamp": "2025-03-25T22:08:52.050Z",
+      "answers": [
+        {
+          "question": "Could you solve the task? If not, could you explain why?",
+          "answer": "Yes"
+        },
+        {
+          "question": "Q2?",
+          "answer": "It was easy to find"
+        }
+      ],
+      "status": "solved"
+    },
+    {
+      "id": 3,
+      "title": "Task 3",
+      "description": "Task description.",
+      "initial_timestamp": "2025-03-25T22:08:54.882Z",
+      "final_timestamp": "2025-03-25T22:09:05.178Z",
+      "answers": [
+        {
+          "question": "Q1?",
+          "answer": "yes"
+        },
+        {
+          "question": "Q2?",
+          "answer": "yes"
+        }
+      ],
+      "status": "solved"
+    }
+  ],
+  "profile_questionnaire": {
+    "academic_level": "undergraduate ",
+    "sector": "I only study",
+    "seco": "Python",
+    "experience": "1"
+  },
+  "final_questionnaire": {
+    "comments": "The experience with the Python portal was generally positive. It is well-structured and provides useful resources, but some sections could be more intuitive. Initially, I had some difficulty navigating the documentation, but overall, it was a helpful tool.",
+    "emotion": "8"
+  },
+  "startTime": "2025-03-25T22:07:52.219Z",
+  "endTime": "2025-03-25T22:10:08.482Z"
+}
