@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/evaluation.css">
+{% endblock %}
+
+{% block title %}Evaluations{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Evaluations</h1>
+        {% if evaluations %}
+            <div class="card">
+                <div class="card-body"></div>
+                    {% for e in evaluations %}
+                    <div class="eval" id="eval_{{ e.evaluation_id }}">
+                        <p>{{ e.name }}</p> 
+                        <p>{{ e.evaluation_id }}</p>
+                    </div>
+                    {% endfor %}
+                    <a href="{{ url_for('create_evaluation') }}" class="btn btn-evaluation">+</a>
+                </div>
+            </div>
+        {% else %}
+            
+                <p>You don't have any <span id="eval">evaluations</span>. Create one now</p>
+                <a href="{{ url_for('create_evaluation') }}" class="btn btn-evaluation">+</a>
+        {% endif %}
+</div>
+{% endblock %}

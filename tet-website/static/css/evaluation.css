@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --cor-background: #f4f4f4;
+    --cor-principal: rgb(75, 102, 255);
+    --cor-gray: gray;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Montserrat", sans-serif;
+}
+
+body {
+    background-color: var(--cor-background);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+h1 {
+    font-size: 70px;
+    font-weight: 800;
+    margin-top: 20px;
+}
+
+p {
+    font-size: 20px;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+#eval{
+    color: var(--cor-principal);
+}
+
+.btn-evaluation{
+    text-align: center;
+    margin-top: 20px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    font-size: 40px;
+    width: 110px;
+    height: 110px;
+    transition: all 0.4s ease;
+    border-radius: 20px;
+}
+
+.btn-evaluation:hover {
+    background-color: var(--cor-principal);
+    color: var(--cor-background);
+    transform: translateY(-7px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.card {
+    width: 48%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-body {
+    width: 100%;
+}
+
+.card-body input, textarea {
+    width: 100%;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid black;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    border: 1px solid var(--cor-1);
+    color: var(--cor-2);
+    background-color: var(--cor-1);
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    color: var(--cor-1);
+    background-color: var(--cor-2);
+}
+
+.checkbox-group {
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid var(--cor-gray);
+    border-radius: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.form-label {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--cor-1);
+    border-radius: 10px;
+    font-weight: bold;
+    color: var(--cor-2);
+    cursor: pointer;
+    padding: 5px 15px;
+    margin: 0;
+    min-height: 45px;
+}
+
+.checkbox-item label {
+    cursor: pointer;
+    padding: 10px;
+    margin: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-item input[type="checkbox"] {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--cor-2);
+}
+
+.eval {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 10px 0 10px 0;
+    max-height: 250px;
+    min-height: 100px;
+    transition: all 0.4s ease;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    background-color: var(--cor-background);
+    border: 1px solid var(--cor-background);
+    border-radius: 20px;
+}
+
+.eval:hover{
+    border: 1px solid var(--cor-principal);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transform: translateY(-7px);
+    cursor: pointer;
+}

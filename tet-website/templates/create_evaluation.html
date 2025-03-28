@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/evaluation.css">
+{% endblock %}
+
+{% block title %}Create Evaluation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Create Evaluation</h1>
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ url_for('add_evaluation') }}" method="post" class="evaluation-form">
+                <input type="text" name="name" id="name" placeholder="Evaluation Name" required>
+                <div class="mb-3">
+                    <h4 class="form-label">SECO Processes to evaluate</h4>
+                    <div class="checkbox-group">
+                        {% for process in seco_processes %}
+                        <div class="checkbox-item">
+                            <label for="seco_{{ process.seco_process_id }}" title="P{{ process.seco_process_id }}">P{{ process.seco_process_id }}</label>
+                            <input type="checkbox" id="seco_{{ process.seco_process_id }}" 
+                                   name="seco_process_ids" value="{{ process.seco_process_id }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

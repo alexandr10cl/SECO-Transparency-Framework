@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block title %}
+Edit Guideline
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Admin Panel - Edit Guideline</h2>
+    
+    {% if message %}
+    <div class="alert alert-{{ message_type }}" role="alert">
+        {{ message }}
+    </div>
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-header">
+            <h4>Guideline #{{ guideline_edit.guidelineID }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_guideline', id=guideline_edit.guidelineID) }}">
+                <div class="mb-3">
+                    <h4 class="form-label">Title</h4>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ guideline_edit.title }}" required>
+                </div>
+                <div class="mb-3">
+                    <h4 class="form-label">Description</h4>
+                    <textarea class="form-control" id="description" name="description" rows="4" required>{{ guideline_edit.description }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="form-label">SECO Processes</h4>
+                    <div class="checkbox-group">
+                        {% for process in seco_processes %}
+                        <div class="checkbox-item">
+                            <label for="seco_{{ process.seco_process_id }}" title="P{{ process.seco_process_id }}">P{{ process.seco_process_id }}</label>
+                            <input type="checkbox" id="seco_{{ process.seco_process_id }}" 
+                                   name="seco_process_ids" value="{{ process.seco_process_id }}"
+                                   {% if process in guideline_edit.seco_processes %}checked{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="form-label">SECO Dimensions</h4>
+                    <div class="checkbox-group">
+                        {% for dimension in seco_dimensions %}
+                        <div class="checkbox-item">
+                            <label for="seco_{{ dimension.seco_dimension_id }}" title="{{ dimension.name }}">{{ dimension.name }}</label>
+                            <input type="checkbox" id="seco_{{ dimension.seco_dimension_id }}" 
+                                   name="seco_dimension_ids" value="{{ dimension.seco_dimension_id }}"
+                                   {% if dimension in guideline_edit.seco_dimensions %}checked{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="form-label">Conditioning Factors for Transparency</h4>
+                    <div class="checkbox-group">
+                        {% for factor in conditioning_factors %}
+                        <div class="checkbox-item">
+                            <label for="conditioning_{{ factor.conditioning_factor_transp_id }}" title="CF{{ factor.conditioning_factor_transp_id }}">CF{{ factor.conditioning_factor_transp_id }}</label>
+                            <input type="checkbox" id="conditioning_{{ factor.conditioning_factor_transp_id }}" 
+                                   name="conditioning_factor_transp_ids" value="{{ factor.conditioning_factor_transp_id }}"
+                                   {% if factor in guideline_edit.conditioning_factors %}checked{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="form-label">DX Factors</h4>
+                    <div class="checkbox-group">
+                        {% for factor in dx_factors %}
+                        <div class="checkbox-item">
+                            <label for="dx_{{ factor.dx_factor_id }}" title="F{{ factor.dx_factor_id }}">F{{ factor.dx_factor_id }}</label>
+                            <input type="checkbox" id="dx_{{ factor.dx_factor_id }}" 
+                                   name="dx_factor_ids" value="{{ factor.dx_factor_id }}"
+                                   {% if factor in guideline_edit.dx_factors %}checked{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="form-label">Key Success Criteria</h4>
+                    <div class="checkbox-group">
+                        {% for criterion in key_success_criteria %}
+                        <div class="checkbox-item">
+                            <label for="key_success_{{ criterion.key_success_criterion_id }}" title="{{ criterion.title }}">{{ criterion.title }}</label>
+                            <input type="checkbox" id="key_success_{{ criterion.key_success_criterion_id }}" 
+                                   name="key_success_criterion_ids" value="{{ criterion.key_success_criterion_id }}"
+                                   {% if criterion in guideline_edit.key_success_criteria %}checked{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-7">
+                    <button type="submit" class="btn btn-primary">Update Guideline</button>
+                    <a href="{{ url_for('admin_guidelines') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

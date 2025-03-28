@@ -1,0 +1,61 @@
+:root {
+    --cor-1: rgb(75, 102, 255);
+    --cor-2: #f4f4f4;
+    --cor-red: red;
+    --cor-green: green;
+    --cor-black: black;
+}
+
+.signin {
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.signinForm {
+    margin-top: 12%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 25%;
+    width: 35%;
+    gap: 20px;
+}
+
+.signinForm input{
+    width: 50%;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--cor-black);
+}
+
+.btn-submit {
+    border: 1px solid var(--cor-1);
+    color: var(--cor-2);
+    background-color: var(--cor-1);
+    cursor: pointer;
+}
+
+.btn-submit:hover {
+    color: var(--cor-1);
+    background-color: var(--cor-2);
+}
+
+.msg {
+    margin: 0;
+    color: var(--cor-red);
+    font-weight: bold;
+}
+
+.msgR {
+    margin: 0;
+    color: var(--cor-green);
+    font-weight: bold;
+}
+
+.input-error {
+    border: 2px solid red;
+    background-color: #ffe6e6;
+}
