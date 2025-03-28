@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block title %}
+Admin Panel
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Admin Panel</h2>
+    
+    {% if message %}
+    <div class="alert alert-{{ message_type }}" role="alert">
+        {{ message }}
+    </div>
+    {% endif %}
+    
+    <div class="admin-container">
+        <div class="sidebar">
+            <div class="sidebar-item active" data-section="guidelines">Guidelines</div>
+            <div class="sidebar-item" data-section="seco_processes">SECO Processes</div>
+            <div class="sidebar-item" data-section="seco_dimensions">SECO Dimensions</div>
+            <div class="sidebar-item" data-section="conditioning_factors">Conditioning Factors</div>
+            <div class="sidebar-item" data-section="dx_factors">DX Factors</div>
+            <div class="sidebar-item" data-section="key_success_criteria">Key Success Criteria</div>
+        </div>
+        
+        <div class="main-content">
+            <div id="guidelines-section">
+                <div class="cards-container">
+                    <div class="card create-guideline">
+                        <div class="card-header">
+                            <h4>Guideline Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('add_guideline') }}">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="title" name="title" placeholder="Title" required>
+                                </div>
+                                <div class="mb-3">
+                                    <textarea class="form-control" id="description" name="description" placeholder="Description" rows="4" required></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <h4 class="form-label">SECO Processes</h4>
+                                    <div class="checkbox-group">
+                                        {% for process in seco_processes %}
+                                        <div class="checkbox-item">
+                                            <label for="seco_{{ process.seco_process_id }}" title="P{{ process.seco_process_id }}">P{{ process.seco_process_id }}</label>
+                                            <input type="checkbox" id="seco_{{ process.seco_process_id }}" 
+                                                   name="seco_process_ids" value="{{ process.seco_process_id }}">
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h4 class="form-label">SECO Dimensions</h4>
+                                    <div class="checkbox-group">
+                                        {% for dimension in seco_dimensions %}
+                                        <div class="checkbox-item">
+                                            <label for="seco_{{ dimension.seco_dimension_id }}" title="D{{ dimension.seco_dimension_id }}">D{{ dimension.seco_dimension_id }}</label>
+                                            <input type="checkbox" id="seco_{{ dimension.seco_dimension_id }}" 
+                                                   name="seco_dimension_ids" value="{{ dimension.seco_dimension_id }}">
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h4 class="form-label">Conditioning Factors for Transparency</h4>
+                                    <div class="checkbox-group">
+                                        {% for factor in conditioning_factors %}
+                                        <div class="checkbox-item">
+                                            <label for="conditioning_{{ factor.conditioning_factor_transp_id }}" title="CF{{ factor.conditioning_factor_transp_id }}">CF{{ factor.conditioning_factor_transp_id }}</label>
+                                            <input type="checkbox" id="conditioning_{{ factor.conditioning_factor_transp_id }}" 
+                                                   name="conditioning_factor_transp_ids" value="{{ factor.conditioning_factor_transp_id }}">
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h4 class="form-label">DX Factors</h4>
+                                    <div class="checkbox-group">
+                                        {% for factor in dx_factors %}
+                                        <div class="checkbox-item">
+                                            <label for="dx_{{ factor.dx_factor_id }}" title="F{{ factor.dx_factor_id }}">F{{ factor.dx_factor_id }}</label>
+                                            <input type="checkbox" id="dx_{{ factor.dx_factor_id }}" 
+                                                   name="dx_factor_ids" value="{{ factor.dx_factor_id }}">
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h4 class="form-label">Key Success Criteria</h4>
+                                    <div class="checkbox-group">
+                                        <div class="mb-3">
+                                            <div class="criteria-container">
+                                                <input type="text" class="form-control" name="title1" id="1" placeholder="Title" required>
+                                                <textarea class="form-control" name="description1" id="1" placeholder="Description" rows="4" required></textarea>
+                                            </div><br>
+                                            <button type="button" class="btn btn-secondary" onclick="addMoreCriteria()">More Criteria</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-7">
+                                    <button type="submit" class="btn btn-primary">Add Guideline</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card info">
+                        <div class="card-links">
+                            <div class="slct active" id="processes">Processes</div>
+                            <div class="slct" id="dimensions">Dimensions</div>
+                            <div class="slct" id="conditioning_factors">Conditioning Factors</div>
+                            <div class="slct" id="dx_factors">DX Factors</div>
+                            <div class="slct" id="key_success_criteria">Key Success Criteria</div>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped table-info processes">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for process in seco_processes %}
+                                    <tr>
+                                        <td>P{{ process.seco_process_id }}</td>
+                                        <td>{{ process.description }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <table class="table table-striped table-info dimensions">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for dimension in seco_dimensions %}
+                                    <tr>
+                                        <td>D{{ dimension.seco_dimension_id }}</td>
+                                        <td>{{ dimension.name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <table class="table table-striped table-info conditioning_factors">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for factor in conditioning_factors %}
+                                    <tr>
+                                        <td>CF{{ factor.conditioning_factor_transp_id }}</td>
+                                        <td>{{ factor.description }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <table class="table table-striped table-info dx_factors">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for factor in dx_factors %}
+                                    <tr>
+                                        <td>F{{ factor.dx_factor_id }}</td>
+                                        <td>{{ factor.description }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <table class="table table-striped table-info key_success_criteria">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for criterion in key_success_criteria %}
+                                    <tr>
+                                        <td>KSC{{ criterion.key_success_criterion_id }}</td>
+                                        <td>{{ criterion.title }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="card card-table">
+                        <div class="card-header">
+                            <h2>Existing Guidelines</h2>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                        <th>SECO Dimensions</th>
+                                        <th>Key Success Criteria</th>
+                                        <th>Conditioning Factors</th>
+                                        <th>DX Factors</th>
+                                        <th>SECO Processes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for guideline in guidelines %}
+                                    <tr>
+                                        <td>{{ guideline.guidelineID }}</td>
+                                        <td>{{ guideline.title }}</td>
+                                        <td>{{ guideline.description }}</td>
+                                        <td>
+                                            {% for dimension in guideline.seco_dimensions %}
+                                                {{ dimension.name }}{% if not loop.last %} <strong>-</strong> {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for criterion in guideline.key_success_criteria %}
+                                                {{ criterion.title }}{% if not loop.last %} <strong>-</strong> {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for factor in guideline.conditioning_factors %}
+                                                CF{{ factor.conditioning_factor_transp_id }}{% if not loop.last %}, {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for factor in guideline.dx_factors %}
+                                                F{{ factor.dx_factor_id }}{% if not loop.last %}, {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for process in guideline.seco_processes %}
+                                                P{{ process.seco_process_id }}{% if not loop.last %}, {% endif %}
+                                            {% else %}
+                                                -
+                                            {% endfor %}
+                                        </td>
+                                        <td class="actions">
+                                            <a href="{{ url_for('edit_guideline', id=guideline.guidelineID) }}" class="btn btn-sm btn-warning">Edit</a>
+                                            <a href="{{ url_for('delete_guideline', id=guideline.guidelineID) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this guideline?')">Delete</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="seco_processes-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Add New SECO Process</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('add_seco_process') }}">
+                            <div class="mb-3">
+                                <textarea class="form-control" name="description" placeholder="Description" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-7">
+                                <button type="submit" class="btn btn-primary">Add Process</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Existing SECO Processes</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for process in seco_processes %}
+                                <tr>
+                                    <td>P{{ process.seco_process_id }}</td>
+                                    <td>{{ process.description }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_seco_process', id=process.seco_process_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{{ url_for('delete_seco_process', id=process.seco_process_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this SECO process?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="seco_dimensions-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Add New SECO Dimension</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('add_seco_dimension') }}">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" name="name" placeholder="Name" required>
+                            </div>
+                            <div class="mb-7">
+                                <button type="submit" class="btn btn-primary">Add Dimension</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Existing SECO Dimensions</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dimension in seco_dimensions %}
+                                <tr>
+                                    <td>D{{ dimension.seco_dimension_id }}</td>
+                                    <td>{{ dimension.name }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_seco_dimension', id=dimension.seco_dimension_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{{ url_for('delete_seco_dimension', id=dimension.seco_dimension_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this SECO dimension?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="conditioning_factors-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Add New Conditioning Factor</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('add_conditioning_factor') }}">
+                            <div class="mb-3">
+                                <textarea class="form-control" name="description" placeholder="Description" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-7">
+                                <button type="submit" class="btn btn-primary">Add Factor</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Existing Conditioning Factors</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for factor in conditioning_factors %}
+                                <tr>
+                                    <td>CF{{ factor.conditioning_factor_transp_id }}</td>
+                                    <td>{{ factor.description }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_conditioning_factor', id=factor.conditioning_factor_transp_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{{ url_for('delete_conditioning_factor', id=factor.conditioning_factor_transp_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this conditioning factor?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dx_factors-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Add New DX Factor</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('add_dx_factor') }}">
+                            <div class="mb-3">
+                                <textarea class="form-control" name="description" placeholder="Description" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-7">
+                                <button type="submit" class="btn btn-primary">Add Factor</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Existing DX Factors</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for factor in dx_factors %}
+                                <tr>
+                                    <td>F{{ factor.dx_factor_id }}</td>
+                                    <td>{{ factor.description }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_dx_factor', id=factor.dx_factor_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{{ url_for('delete_dx_factor', id=factor.dx_factor_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this DX factor?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="key_success_criteria-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Add New Key Success Criterion</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('add_key_success_criterion') }}">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" name="title" placeholder="Title" required>
+                                <textarea class="form-control" name="description" placeholder="Description" rows="4" required></textarea>
+                                <input type="number" name="guideline_id" id="guideline_id" placeholder="Guideline ID" required>
+                            </div>
+                            <div class="mb-7">
+                                <button type="submit" class="btn btn-primary">Add Criterion</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Existing Key Success Criteria</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for criterion in key_success_criteria %}
+                                <tr>
+                                    <td>KSC{{ criterion.key_success_criterion_id }}</td>
+                                    <td>{{ criterion.title }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_key_success_criterion', id=criterion.key_success_criterion_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{{ url_for('delete_key_success_criterion', id=criterion.key_success_criterion_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this key success criterion?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %} 

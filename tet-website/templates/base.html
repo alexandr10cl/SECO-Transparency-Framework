@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/nav.css">
+    {% block head %}
+    {% endblock %}
+    <title>{% block title %}My WebSite{% endblock %}</title>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo"><a href="{{ url_for('index') }}">Tool</a></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('doc') }}">Documentation</a></li>
+            <li><a href="{{ url_for('about') }}">About</a></li>
+            <li><a href="{{ url_for('guidelines') }}">Guidelines</a></li>
+            {% if 'user_signed_in' in session and session['user_signed_in'] != None %}
+            {% if 'user_type' in session and session['user_type'] != 'admin' %}
+            <li><a href="{{ url_for('evaluations') }}">Evaluations</a></li>
+            {% endif %}
+            {% endif %}
+            {% if 'user_signed_in' in session and session['user_signed_in'] != None %}
+            {% if 'user_type' in session and session['user_type'] == 'admin' %}
+            <li><a href="{{ url_for('admin_guidelines') }}">Admin</a></li>
+            {% endif %}
+            {% endif %}
+        </ul>
+        {% if 'user_signed_in' not in session or session['user_signed_in'] == None %}
+        <div class="auth-buttons">
+            <a href="{{ url_for('signin') }}" class="btn">Sign In</a>
+            <a href="{{ url_for('signup') }}" class="btn btn-register">Sign Up</a>
+        </div>
+        {% else %}
+        <div>
+            <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+        </div>
+        {% endif %}
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    {% block scripts %}{% endblock %}
+    <script src="/static/js/nav.js"></script>
+</body>
+</html>
