@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "version": "0.0.1",
-  "name": "DX-Tracking",
+  "name": "TET-SECO",
   "description": "Ferramenta de análise de transparência",
   "author": "UNIRIO",
   "action": {
-    "default_title": "DX-Tracking"
+    "default_title": "TET-SECO"
   },
   "background": {
     "service_worker": "background.js"

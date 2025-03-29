@@ -1,6 +1,6 @@
 {
   "username": "Admin",
-  "seco_portal": "https://www.python.org/",
+  "evaluation_code": "123456",
   "performed_tasks": [
     {
       "id": 1,
@@ -62,14 +62,14 @@
     }
   ],
   "profile_questionnaire": {
-    "academic_level": "undergraduate ",
-    "sector": "I only study",
-    "seco": "Python",
-    "experience": "1"
+    "academic_level": "graduacao ",
+    "sector": "industria",
+    "previus_experience": "sempre",
+    "years_of_experience": "1"
   },
   "final_questionnaire": {
     "comments": "The experience with the Python portal was generally positive. It is well-structured and provides useful resources, but some sections could be more intuitive. Initially, I had some difficulty navigating the documentation, but overall, it was a helpful tool.",
-    "emotion": "8"
+    "emotion": "5"
   },
   "startTime": "2025-03-25T22:07:52.219Z",
   "endTime": "2025-03-25T22:10:08.482Z"
