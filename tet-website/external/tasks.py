@@ -73,18 +73,31 @@ def get_tasks():
     {
         "id": 2,
         "title": "Task 2",
-        "description": "Find the language documentation.",
+        "description": "Find the portal's official documentation.",
         "questions": [
         { "text": "Could you solve the task? If not, could you explain why?" },
-        { "text": "Q2?" }
+        { "text": "Was it easy to identify where the documentation is located and how to access it? If not, what could be improved?" }
         ]
     },{
         "id": 3,
         "title": "Task 3",
-        "description": "Task description.",
+        "description": "Explore the portal's updates and news section and find a recent piece of information.",
         "questions": [
-        { "text": "Q1?" },
-        { "text": "Q2?" }
+        { "text": "Were you able to easily identify where news and updates are published?" },
+        { "text": "Are the presented information clear and organized in a way that facilitates tracking changes?" }
         ]
     }]
     return jsonify(selected_tasks)
+
+@app.route('/auth_evaluation', methods=['POST'])
+def auth_evaluation():
+    data = request.json  # JSON RECEBIDO DA EXTENSÃO
+    evaluation_code = data.get("code") # Pega o código do JSON
+
+    # Query no db para verificar se o código existe
+    evaluation = Evaluation.query.filter_by(evaluation_id=evaluation_code).first()
+
+    if evaluation: 
+        return jsonify({"message": "Valid"}), 200
+    else:
+        return jsonify({"message": "Invalid"}), 401
