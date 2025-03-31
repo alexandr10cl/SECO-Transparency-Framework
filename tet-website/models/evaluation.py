@@ -12,6 +12,7 @@ class Evaluation(db.Model):
     # Main Rows
     evaluation_id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    seco_portal = db.Column(db.String(100), nullable=False)
     
     # Foreign key to the user table
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
