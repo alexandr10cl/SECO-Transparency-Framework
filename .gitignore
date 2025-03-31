@@ -1,0 +1,29 @@
+tet-website/__pycache__/
+
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment (optioneel)
+venv/
+.venv/
+env/
+
+# VSCode / PyCharm
+.vscode/
+.idea/
+
+
+# Logs en tijdelijke bestanden
+*.log
+*.tmp
+*.temp
+
+# OS bestanden
+.DS_Store
+Thumbs.db
+
+# Git repo binnen project
+.git/
+
