@@ -1,16 +1,16 @@
 from app import db
+from models.enums import AcademicLevel, PreviousExperience, SegmentType
 
 class DeveloperQuestionnaire(db.Model):
     __tablename__ = 'developer_questionnaire'
 
     # Main Rows
     developer_questionnaire_id = db.Column(db.Integer, primary_key=True)
-    academic_level = db.Column(db.String(100), nullable=False)
-    sector = db.Column(db.String(100), nullable=False)
-    seco = db.Column(db.String(100), nullable=False)
-    experience = db.Column(db.Integer, nullable=False)
-    comments = db.Column(db.String(1000), nullable=False)
+    academic_level = db.Column(db.Enum(AcademicLevel), nullable=False)
+    previus_xp = db.Column(db.Enum(PreviousExperience), nullable=False)
     emotion = db.Column(db.Integer, nullable=False)
+    comments = db.Column(db.String(500), nullable=False)
+    segment = db.Column(db.Enum(SegmentType), nullable=False)
 
     # Foreign key to the user table
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
