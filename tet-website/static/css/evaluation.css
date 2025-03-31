@@ -4,6 +4,7 @@
     --cor-background: #f4f4f4;
     --cor-principal: rgb(75, 102, 255);
     --cor-gray: gray;
+    --font-weight--info: 500;
 }
 
 * {
@@ -150,9 +151,9 @@ p {
 }
 
 .eval {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     justify-content: center;
     width: 100%;
     margin: 10px 0 10px 0;
@@ -165,9 +166,50 @@ p {
     border-radius: 20px;
 }
 
+.eval p{
+    padding: 10px;
+}
+
 .eval:hover{
     border: 1px solid var(--cor-principal);
+    background-color: var(--cor-principal);
+    color: var(--cor-background);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     transform: translateY(-7px);
     cursor: pointer;
+}
+
+#eval-name{
+    grid-column: 2;
+    grid-row: 1;
+    text-align: center;
+    font-size: 25px;
+}
+
+#portal{
+    grid-column: 1;
+    grid-row: 2;
+    text-align: center;
+    font-weight: var(--font-weight--info);
+}
+
+#url{
+    grid-column: 1;
+    grid-row: 3;
+    text-align: center;
+    font-weight: var(--font-weight--info);
+}
+
+#pr_label{
+    grid-column: 3;
+    grid-row: 2;
+    text-align: center;
+    font-weight: var(--font-weight--info);
+}
+
+#pr{
+    grid-column: 3;
+    grid-row: 3;
+    text-align: center;
+    font-weight: var(--font-weight--info);
 }
