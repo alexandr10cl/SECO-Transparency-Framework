@@ -66,17 +66,43 @@ document.getElementById("verifyButton").addEventListener("click", function () {
   currentPhase = "initial";
   let authcode = document.getElementById("authcode").value;
 
-  // Verificar no banco se esse código existe, se sim, puxar do banco as tarefas associadas a ele
-  if (authcode === "123456") {
-    // Buscar no banco de dados qual as tarefas associadas a esse código
-    fetchtasks();
-
-    updateDisplay();
-  } else {
-    document.getElementById("errorMessage").style.display = "block";
-  }
+  auth_evaluation(authcode) // Envia o código para autenticação
+    .then((isValid) => {
+      if (isValid) {
+        data_collection.evaluation_code = authcode; // Salva o código de avaliação na variável global
+        fetchtasks();
+        updateDisplay();
+      } else {
+        document.getElementById("errorMessage").style.display = "block";
+      }
+    });
 
 });
+
+function auth_evaluation(code) {
+  return fetch("http://127.0.0.1:5000/auth_evaluation", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ code: code })
+  })
+  .then(response => {
+    console.log("Resposta do servidor:", response);
+    if (!response.ok) {
+      throw new Error("Erro na autenticação");
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log("Mensagem do servidor:", data);
+    return data.message === "Valid";
+  })
+  .catch(error => {
+    console.error("Erro na requisição:", error);
+    return false;
+  });
+}
 
 
 document.addEventListener("DOMContentLoaded", function () {
