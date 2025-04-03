@@ -88,7 +88,8 @@ class SECO_process(db.Model):
     # Relationship with Evaluation
     evaluations = db.relationship('Evaluation',
                                 secondary=evaluation_SECO_process,
-                                backref=db.backref('evaluation_seco_processes', lazy=True))
+                                back_populates='seco_processes',
+                                overlaps='evaluation_seco_processes')
 
 class SECO_dimension(db.Model):
     __tablename__ = 'seco_dimension'
