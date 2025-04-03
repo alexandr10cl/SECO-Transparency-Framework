@@ -18,6 +18,7 @@ from views.pages import *
 from views.auth import *
 from views.admin import *
 from external.tasks import *
+from views import pages, auth  # We gebruiken pages.py voor de API endpoints
 
 # Importing models
 from models import *

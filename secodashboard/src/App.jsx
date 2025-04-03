@@ -1,5 +1,5 @@
 import React from 'react';
-import SECODashboard from './dashboard';
+import SECODashboard from './SECODashboard';
 import './index.css'; // For Tailwind CSS
 
 function App() {
