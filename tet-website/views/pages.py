@@ -19,14 +19,14 @@ def about():
 def guidelines():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
+        is_admin = isAdmin()
     return render_template('guidelines.html', is_admin = is_admin)
 
 @app.route('/seco_dashboard')
 def seco_dashboard():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
+        is_admin = isAdmin()
         is_seco_manager = 'user_type' in session and session['user_type'] == 'seco_manager'
         if is_seco_manager:
             return render_template('dashboard.html', is_admin=is_admin)
