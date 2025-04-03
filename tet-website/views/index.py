@@ -9,7 +9,7 @@ import random as rd
 def index():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
+        is_admin = isAdmin()
         user = User.query.filter_by(email=email).first()
         admins = Admin.query.all()
 
@@ -37,6 +37,8 @@ def add_evaluation():
 
     # getting the form data
     name = request.form.get('name')
+    seco_portal = request.form.get('seco_portal')
+    seco_portal_url = request.form.get('seco_portal_url')
     email = session['user_signed_in']
     user = SECO_MANAGER.query.filter_by(email=email).first()
     user_id = user.user_id
@@ -46,8 +48,6 @@ def add_evaluation():
         evaluation_id = ''.join(rd.choices('0123456789', k=6))
         if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
             break
-
-
 
     # getting the selected SECO_process IDs
     seco_process_ids = request.form.getlist('seco_process_ids')
@@ -60,7 +60,9 @@ def add_evaluation():
     new_evaluation = Evaluation(evaluation_id=evaluation_id,
                                 name=name, 
                                 user_id=user_id, 
-                                seco_processes=seco_processes)
+                                seco_processes=seco_processes,
+                                seco_portal=seco_portal,
+                                seco_portal_url=seco_portal_url)
     
     # adding the new evaluation to the database
     db.session.add(new_evaluation)
@@ -68,3 +70,14 @@ def add_evaluation():
 
     # redirecting to the evaluations page
     return redirect(url_for('evaluations'))
+
+@app.route('/evaluations/<int:id>')
+def evaluation(id):
+    email = session['user_signed_in']
+    user = User.query.filter_by(email=email).first()
+    evaluation = Evaluation.query.get_or_404(id)
+    seco_processes = evaluation.seco_processes
+    collected_data = evaluation.collected_data
+    count_collected_data = len(collected_data)
+
+    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data)
