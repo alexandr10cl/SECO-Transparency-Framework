@@ -1,0 +1,138 @@
+.App {
+  text-align: left;
+  padding: 20px;
+}
+
+/* Dashboard header */
+.dashboard-header {
+  background-color: #1a2233;
+  color: white;
+  padding: 15px 20px;
+  margin: -20px -20px 20px -20px;
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.nav-buttons {
+  margin-left: 20px;
+}
+
+.nav-button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  margin-right: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav-button.active {
+  background-color: #2563eb;
+}
+
+/* Section styles */
+.section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  color: #4361ee;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+/* KPI cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.kpi-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1a2233;
+}
+
+.kpi-target {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Chart styles */
+.chart-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+/* Status indicators */
+.status-warning {
+  color: #f59e0b;
+}
+
+.status-error {
+  color: #ef4444;
+}
+
+.status-success {
+  color: #10b981;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

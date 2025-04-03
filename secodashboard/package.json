@@ -1,0 +1,65 @@
+{
+  "name": "seco-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "http://localhost:5000",
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "lucide-react": "^0.263.1",
+    "mysql2": "^3.14.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "recharts": "^2.15.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "start-api": "cd ../transparency-api && python app.py",
+    "dev": "concurrently \"npm run start\" \"npm run start-api\"",
+    "start-flask": "cd ../transparency-api && python app.py",
+    "start-all": "npm run build && npm run start-flask",
+    "build-for-flask": "react-scripts build && rm -rf ../tet-website/static/dashboard && mv build ../tet-website/static/dashboard",
+    "build-for-flask-win": "react-scripts build && (if exist ..\\tet-website\\static\\dashboard rmdir /s /q ..\\tet-website\\static\\dashboard) && mkdir ..\\tet-website\\static\\dashboard && xcopy /E /I build\\* ..\\tet-website\\static\\dashboard"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "tailwindcss": "^3.4.17"
+  },
+  "homepage": "/static/dashboard",
+  "short_name": "TET-SECO",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
