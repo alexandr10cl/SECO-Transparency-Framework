@@ -61,8 +61,25 @@ p {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+.btn-dash{
+    text-align: center;
+    margin-top: 20px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    font-size: 40px;
+    transition: all 0.4s ease;
+    border-radius: 20px;
+}
+
+.btn-dash:hover{
+    background-color: var(--cor-principal);
+    color: var(--cor-background);
+    transform: translateY(-7px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
 .card {
-    width: 48%;
+    width: 44%;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
@@ -155,10 +172,10 @@ p {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     justify-content: center;
-    width: 100%;
     margin: 10px 0 10px 0;
-    max-height: 250px;
+    width: 100%;
     min-height: 100px;
+    max-height: 250px;
     transition: all 0.4s ease;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
     background-color: var(--cor-background);
@@ -177,6 +194,11 @@ p {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     transform: translateY(-7px);
     cursor: pointer;
+}
+
+.eval:active{
+    transform: translateY(0px);
+    background-color: rgb(151, 166, 255);
 }
 
 #eval-name{
@@ -212,4 +234,38 @@ p {
     grid-row: 3;
     text-align: center;
     font-weight: var(--font-weight--info);
+}
+
+.process-list{
+    padding: 15px;
+}
+
+.info p{
+    font-size: 20px;
+    font-weight: 100;
+    margin-top: 10px;
+    font-weight: var(--font-weight--info);
+}
+
+.back-arrow {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 60px;
+    left: 30px;
+    width: 100px;
+    height: 50px;
+    text-decoration: none;
+    font-size: 18px;
+    color: var(--cor-principal);
+    border-radius: 10px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.back-arrow:hover {
+    transform: scale(1.2);
+    color: var(--cor-background);
+    background-color: var(--cor-principal);
 }

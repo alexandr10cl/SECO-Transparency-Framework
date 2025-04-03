@@ -9,7 +9,7 @@ import random as rd
 def index():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
+        is_admin = isAdmin()
         user = User.query.filter_by(email=email).first()
         admins = Admin.query.all()
 
@@ -70,3 +70,14 @@ def add_evaluation():
 
     # redirecting to the evaluations page
     return redirect(url_for('evaluations'))
+
+@app.route('/evaluations/<int:id>')
+def evaluation(id):
+    email = session['user_signed_in']
+    user = User.query.filter_by(email=email).first()
+    evaluation = Evaluation.query.get_or_404(id)
+    seco_processes = evaluation.seco_processes
+    collected_data = evaluation.collected_data
+    count_collected_data = len(collected_data)
+
+    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data)

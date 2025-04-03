@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash
 from app import app, db
-from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension
+from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task
 from functions import isLogged, isAdmin
 
 # Messages
@@ -21,6 +21,7 @@ def admin_guidelines():
         dx_factors = DX_factor.query.all()
         seco_processes = SECO_process.query.all()
         seco_dimensions = SECO_dimension.query.all()
+        tasks = Task.query.all()
         
         return render_template('admin_guidelines.html', 
                             guidelines=guidelines,
@@ -31,7 +32,8 @@ def admin_guidelines():
                             seco_dimensions=seco_dimensions,
                             message=admin_message, 
                             message_type=message_type,
-                            is_admin=is_admin)
+                            is_admin=is_admin,
+                            tasks=tasks)
     else:
         return redirect(url_for('signin'))
 
@@ -595,6 +597,96 @@ def delete_key_success_criterion(id):
     except Exception as e:
         db.session.rollback()
         admin_message = f'Erro ao excluir critério de sucesso: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/add_task', methods=['POST'])
+def add_task():
+    
+    global admin_message
+    global message_type
+
+    # Get task ID
+    tasks = Task.query.all()
+    if not tasks:
+        task_id = 1
+    else:
+        task_id = tasks[-1].task_id + 1
+
+    # Get form data
+    task_title = request.form.get('title')
+    task_description = request.form.get('description')
+    
+    guidelines_ids = request.form.getlist('guideline_ids')
+
+    if guidelines_ids:
+        guidelines = Guideline.query.filter(Guideline.guidelineID.in_(guidelines_ids)).all()
+
+    try:
+        # Create a new task
+        new_task = Task(title=task_title, description=task_description, task_id=task_id, guidelines=guidelines)
+        # Add the task to the session and commit
+        db.session.add(new_task)
+        db.session.commit()
+        admin_message = 'Task added successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error adding task: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/edit_task/<int:id>')
+def edit_task(id):
+    task = Task.query.get_or_404(id)
+    guidelines = Guideline.query.all()
+    return render_template('admin_edit_task.html', task=task, guidelines=guidelines, message=admin_message, message_type=message_type)
+
+@app.route('/admin/update_task/<int:id>', methods=['POST'])
+def update_task(id):
+    global admin_message
+    global message_type
+    
+    task = Task.query.get_or_404(id)
+    task_title = request.form.get('title')
+    task_description = request.form.get('description')
+    
+    guidelines_ids = request.form.getlist('guideline_ids')
+
+    if guidelines_ids:
+        guidelines = Guideline.query.filter(Guideline.guidelineID.in_(guidelines_ids)).all()
+
+    try:
+        task.title = task_title
+        task.description = task_description
+        task.guidelines = guidelines
+        db.session.commit()
+        admin_message = 'Task updated successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error updating task: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/delete_task/<int:id>')
+def delete_task(id):
+    global admin_message
+    global message_type
+    
+    task = Task.query.get_or_404(id)
+    
+    try:
+        db.session.delete(task)
+        db.session.commit()
+        admin_message = 'Task deleted successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error deleting task: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))

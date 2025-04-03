@@ -25,4 +25,5 @@ class Evaluation(db.Model):
     # Relationship with SECO_process
     seco_processes = db.relationship('SECO_process',
                                     secondary=evaluation_SECO_process,
-                                    backref=db.backref('evaluation_seco_processes', lazy=True))
+                                    back_populates='evaluations',
+                                    overlaps='evaluation_seco_processes')

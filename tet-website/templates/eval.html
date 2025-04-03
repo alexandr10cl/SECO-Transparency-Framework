@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/evaluation.css">
+{% endblock %}
+
+{% block body_class %}evaluation{% endblock %}
+
+{% block title %}{{ evaluation.name}}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+    <h1>{{ evaluation.name }}</h1>
+    <div class="card">
+        <div class="card-header">
+            <h2>Evaluation Details</h2>
+        </div>
+        <div class="card-body">
+            <div class="info">
+                <p><strong>Evaluation code:</strong> {{ evaluation.evaluation_id }}</p>
+                <p><strong>Portal:</strong> {{ evaluation.seco_portal }}</p>
+                <p><strong>URL:</strong> {{ evaluation.seco_portal_url }}</p>
+                <p><strong>Processes:</strong>{% for p in evaluation.seco_processes %} P{{ p.seco_process_id }} {% if not loop.last %}, {% endif %} {%endfor%}</p>
+                <p><strong>Number of collects:</strong> {{ count_collected_data }}</p>
+            </div>
+        </div>
+    </div>
+    <a href="#" class="btn btn-dash">View dashboard</a>
+</div>
+{% endblock %}

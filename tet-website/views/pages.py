@@ -7,19 +7,16 @@ from models import User
 def doc():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
-    return render_template('doc.html', is_admin = is_admin)
+    return render_template('doc.html')
 
 @app.route('/about')
 def about():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
-    return render_template('about.html', is_admin = is_admin)
+    return render_template('about.html')
 
 @app.route('/guidelines')
 def guidelines():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
-    return render_template('guidelines.html', is_admin = is_admin)
+    return render_template('guidelines.html')
