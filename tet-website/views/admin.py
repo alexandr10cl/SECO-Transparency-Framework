@@ -12,7 +12,7 @@ message_type = 'info'
 def admin_guidelines():
     if isLogged():
         email = session['user_signed_in']
-        is_admin = isAdmin(email)
+        is_admin = isAdmin()
         admin_message = ''
         message_type = 'info'
         guidelines = Guideline.query.all()
