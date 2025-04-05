@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash
 from app import app, db
-from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question
+from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question, Example
 from functions import isLogged, isAdmin
 
 # Messages
@@ -23,6 +23,7 @@ def admin_guidelines():
         seco_dimensions = SECO_dimension.query.all()
         tasks = Task.query.all()
         questions = Question.query.all()
+        examples = Example.query.all()
         
         return render_template('admin_guidelines.html', 
                             guidelines=guidelines,
@@ -35,7 +36,8 @@ def admin_guidelines():
                             message_type=message_type,
                             is_admin=is_admin,
                             tasks=tasks,
-                            questions=questions,)
+                            questions=questions,
+                            examples=examples)
     else:
         return redirect(url_for('signin'))
 
@@ -767,6 +769,85 @@ def delete_question(id):
     except Exception as e:
         db.session.rollback()
         admin_message = f'Error deleting question: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/add_example', methods=['POST'])
+def add_example():
+    global admin_message
+    global message_type
+
+    # Get form data
+    description = request.form.get('example')
+    key_success_criterion_id = request.form.get('key_success_criterion_id')
+
+    # get example id
+    examples = Example.query.all()
+    if not examples:
+        example_id = 1
+    else:
+        example_id = examples[-1].example_id + 1
+
+    try:
+        # Create a new example (assuming you have an Example model)
+        new_example = Example(description=description, example_id=example_id, key_success_criterion_id=key_success_criterion_id)
+        
+        # Add the example to the session and commit
+        db.session.add(new_example)
+        db.session.commit()
+        admin_message = 'Example added successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error adding example: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/edit_example/<int:id>')
+def edit_example(id):
+    example = Example.query.get_or_404(id)
+    key_success_criteria = Key_success_criterion.query.all()
+    return render_template('admin_edit_example.html', example=example, key_success_criteria=key_success_criteria, message=admin_message, message_type=message_type)
+
+@app.route('/admin/update_example/<int:id>', methods=['POST'])
+def update_example(id):
+    global admin_message
+    global message_type
+    
+    example = Example.query.get_or_404(id)
+    description = request.form.get('example')
+    key_success_criterion_id = request.form.get('key_success_criterion_id')
+    
+    try:
+        example.description = description
+        example.key_success_criterion_id = key_success_criterion_id
+        db.session.commit()
+        admin_message = 'Example updated successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error updating example: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/delete_example/<int:id>')
+def delete_example(id):
+    global admin_message
+    global message_type
+    
+    example = Example.query.get_or_404(id)
+    
+    try:
+        db.session.delete(example)
+        db.session.commit()
+        admin_message = 'Example deleted successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error deleting example: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
