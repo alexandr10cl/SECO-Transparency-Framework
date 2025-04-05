@@ -78,6 +78,16 @@ def evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
     seco_processes = evaluation.seco_processes
     collected_data = evaluation.collected_data
+    guidelines = []
+    tasks = []
+    for p in seco_processes:
+        for g in p.guidelines:
+            if g not in guidelines:
+                guidelines.append(g)
+                for t in g.related_tasks:
+                    if t not in tasks:
+                        tasks.append(t)
+                
     count_collected_data = len(collected_data)
 
-    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data)
+    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data, guidelines=guidelines, tasks=tasks)

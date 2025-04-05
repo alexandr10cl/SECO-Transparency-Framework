@@ -2,6 +2,8 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/evaluation.css">
+<link rel="stylesheet" href="/static/css/dropdown.css">
+<link rel="stylesheet" href="/static/css/modal.css">
 {% endblock %}
 
 {% block body_class %}evaluation{% endblock %}
@@ -23,9 +25,76 @@
                 <p><strong>URL:</strong> {{ evaluation.seco_portal_url }}</p>
                 <p><strong>Processes:</strong>{% for p in evaluation.seco_processes %} P{{ p.seco_process_id }} {% if not loop.last %}, {% endif %} {%endfor%}</p>
                 <p><strong>Number of collects:</strong> {{ count_collected_data }}</p>
+                <hr class="divider">
+                <div class="dropdownG">
+                    <button class="dropdown-toggle" id="dropdown-toggleG">
+                        <p class="label">Related Guidelines</p>
+                        <p class="arrow" id="arrowG"><</p>
+                    </button>
+                    <ul class="dropdown-menu" id="dropdown-menuG">
+                        {% for g in guidelines %}
+                            <li class="dropdown-itemG"><button id="openModal{{ g.guidelineID }}">{{ g.title }}</button></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <hr class="divider">
+                <div class="dropdownT">
+                    <button class="dropdown-toggle" id="dropdown-toggleT">
+                        <p class="label">Related Tasks</p>
+                        <p class="arrow" id="arrowT"><</p>
+                    </button>
+                    <ul class="dropdown-menu" id="dropdown-menuT">
+                        {% for t in tasks %}
+                            <li class="dropdown-itemT"><button id="openModal{{ t.task_id }}">{{ t.title }}</button></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
     <a href="#" class="btn btn-dash">View dashboard</a>
+
+    {% for g in guidelines %}
+        <div id="modalG{{ g.guidelineID }}" class="modal inv">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modal-titleG{{ g.guidelineID }}">{{ g.title }}</h2>
+                <ul id="modal-descriptionG{{ g.guidelineID }}">
+                    <li><strong>Guideline ID:</strong> {{ g.guidelineID }}</li>
+                    <li><strong>Description:</strong> {{ g.description }}</li>
+                    <li><strong>SECO processes:</strong> 
+                        {% for p in g.seco_processes %} P{{ p.seco_process_id }} {% if not loop.last %}, {% endif %} {%endfor%}
+                    </li>
+                    <li><strong>SECO dimensions:</strong> 
+                        {% for d in g.seco_dimensions %} {{ d.name }} {% if not loop.last %}, {% endif %} {%endfor%}
+                    </li>
+                    <li><strong>Conditioning factors:</strong> 
+                        {% for cf in g.conditioning_factors %} CF{{ cf.conditioning_factor_transp_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
+                    <li><strong>DX factors:</strong> 
+                        {% for dx in g.dx_factors %} DX{{ dx.dx_factor_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
+                    <li><strong>Key Success Criteria:</strong> 
+                        {% for ksc in g.key_success_criteria %} KSC{{ ksc.key_success_criteria_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+    
+    {% for t in tasks %}
+        <div id="modalT{{ t.task_id }}" class="modal inv">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modal-titleT{{ t.task_id }}">{{ t.title }}</h2>
+                <ul id="modal-descriptionT{{ t.task_id }}">
+                    <li><strong>Task ID:</strong> {{ t.task_id }}</li>
+                    <li><strong>Description:</strong> {{ t.description }}</li>
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/eval.js"></script>
 {% endblock %}
