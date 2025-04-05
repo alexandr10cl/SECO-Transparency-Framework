@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from app import app, db
 from functions import isLogged, isAdmin
-from models import User
+from models import User, Guideline
 
 @app.route('/doc')
 def doc():
@@ -23,12 +23,16 @@ def about():
 
 @app.route('/guidelines')
 def guidelines():
+    guidelines = Guideline.query.all()
     if isLogged():
         email = session['user_signed_in']
         is_admin = isAdmin()
-        return render_template('guidelines.html', is_admin = is_admin)
+        return render_template('guidelines.html', 
+                                is_admin = is_admin,
+                                guidelines = guidelines)
 
-    return render_template('guidelines.html')
+    return render_template('guidelines.html', 
+                            guidelines = guidelines)
 
 @app.route('/seco_dashboard')
 def seco_dashboard():

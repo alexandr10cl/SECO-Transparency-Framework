@@ -71,6 +71,48 @@ def add_evaluation():
     # redirecting to the evaluations page
     return redirect(url_for('evaluations'))
 
+@app.route('/evaluations/<int:id>/edit')
+def edit_evaluation(id):
+    email = session['user_signed_in']
+    user = User.query.filter_by(email=email).first()
+    evaluation = Evaluation.query.get_or_404(id)
+    seco_processes = SECO_process.query.all()
+    return render_template('edit_evaluation.html', evaluation=evaluation, user=user, seco_processes=seco_processes)
+
+@app.route('/evaluations/<int:id>/update', methods=['POST'])
+def update_evaluation(id):
+    # getting the form data
+    name = request.form.get('name')
+    seco_portal = request.form.get('seco_portal')
+    seco_portal_url = request.form.get('seco_portal_url')
+    
+    # getting the selected SECO_process IDs
+    seco_process_ids = request.form.getlist('seco_process_ids')
+
+    # getting the selected SECO_process objects
+    if seco_process_ids:
+        seco_processes = SECO_process.query.filter(SECO_process.seco_process_id.in_(seco_process_ids)).all()
+
+    # updating the evaluation object
+    evaluation = Evaluation.query.get_or_404(id)
+    evaluation.name = name
+    evaluation.seco_portal = seco_portal
+    evaluation.seco_portal_url = seco_portal_url
+    evaluation.seco_processes = seco_processes
+    
+    # committing the changes to the database
+    db.session.commit()
+
+    # redirecting to the evaluations page
+    return redirect(url_for('evaluation', id=id))
+
+@app.route('/evaluations/<int:id>/delete')
+def delete_evaluation(id):
+    evaluation = Evaluation.query.get_or_404(id)
+    db.session.delete(evaluation)
+    db.session.commit()
+    return redirect(url_for('evaluations'))
+
 @app.route('/evaluations/<int:id>')
 def evaluation(id):
     email = session['user_signed_in']

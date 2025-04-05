@@ -37,6 +37,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // Open modal for settings
+    document.getElementById("openModalSettings").addEventListener("click", () => {
+        document.getElementById("modalConfig").classList.remove("inv");
+    });
+
     // Close modals when clicking the close button
     closeButtons.forEach(button => {
         button.addEventListener("click", () => {
