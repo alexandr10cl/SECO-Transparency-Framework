@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --cor-1: rgb(75, 102, 255);
+    --cor-2: #f4f4f4;
+    --cor-red: red;
+    --cor-green: green;
+    --cor-black: black;
+    --cor-gray: gray;
+}
+
+.divider{
+    width: 100%;
+    height: 1px;
+    background-color: var(--cor-1);
+    margin: 5px 0 5px 0;
+}
+
+.dropdown{
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.dropdown-toggle{
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    background-color: var(--cor-2);
+    border: none;
+    transition: all 0.4s ease; 
+}
+
+.dropdown-toggle:hover{
+    background-color: var(--cor-1);
+    color: var(--cor-2);
+    border-radius: 5px;
+}
+
+.dropdown-toggle .label{
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.dropdown-toggle .arrow{
+    font-weight: 300;
+    transition: all 0.3s ease;
+}
+
+.dropdown-toggle:hover .arrow{
+    color: var(--cor-2);
+}
+
+.dropdown-menu{
+    padding: 10px;
+    z-index: 1;
+    opacity: 0;
+    max-height: 0;
+    transition: max-height 0.4s ease, opacity 0.2s ease; /* Adicionado para permitir a animação */
+    overflow: hidden; /* Adicionado para permitir a animação */
+}
+
+.dropdown-menu li{
+    list-style: none;
+    padding: 10px;
+    border-radius: 5px;
+    color: var(--cor-1);
+    font-weight: 700;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-menu li button{
+    color: var(--cor-1);
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    text-align: left;
+    font-size: 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.dropdown-menu li:hover button{
+    color: var(--cor-2);
+}
+
+.dropdown-menu li:hover{
+    background-color: var(--cor-1);
+    color: var(--cor-2);
+    cursor: pointer;
+}
+
+.dropdown-menu.show{
+    max-height: 300px;
+    opacity: 1;
+}
+
+.arrow.active{
+    transform: rotate(-90deg);
+}
