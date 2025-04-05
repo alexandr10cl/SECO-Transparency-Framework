@@ -71,9 +71,9 @@
                     <li><strong>Conditioning factors:</strong> 
                         {% for cf in g.conditioning_factors %} CF{{ cf.conditioning_factor_transp_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
                     <li><strong>DX factors:</strong> 
-                        {% for dx in g.dx_factors %} DX{{ dx.dx_factor_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
+                        {% for dx in g.dx_factors %} F{{ dx.dx_factor_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
                     <li><strong>Key Success Criteria:</strong> 
-                        {% for ksc in g.key_success_criteria %} KSC{{ ksc.key_success_criteria_id }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
+                        {% for ksc in g.key_success_criteria %} {{ ksc.title }} {% if not loop.last %}, {% endif %} {%endfor%}</li>
                 </ul>
             </div>
         </div>
