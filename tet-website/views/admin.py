@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash
 from app import app, db
-from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task
+from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question
 from functions import isLogged, isAdmin
 
 # Messages
@@ -22,6 +22,7 @@ def admin_guidelines():
         seco_processes = SECO_process.query.all()
         seco_dimensions = SECO_dimension.query.all()
         tasks = Task.query.all()
+        questions = Question.query.all()
         
         return render_template('admin_guidelines.html', 
                             guidelines=guidelines,
@@ -33,7 +34,8 @@ def admin_guidelines():
                             message=admin_message, 
                             message_type=message_type,
                             is_admin=is_admin,
-                            tasks=tasks)
+                            tasks=tasks,
+                            questions=questions,)
     else:
         return redirect(url_for('signin'))
 
@@ -687,6 +689,84 @@ def delete_task(id):
     except Exception as e:
         db.session.rollback()
         admin_message = f'Error deleting task: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/add_question', methods=['POST'])  # Removido o parêntese extra
+def add_question():
+    global admin_message
+    global message_type
+
+    # Get all questions
+    questions = Question.query.all()
+    if not questions:
+        question_id = 1
+    else:
+        question_id = questions[-1].question_id + 1
+
+    # Get form data
+    question = request.form.get('question')
+    task_id = request.form.get('task_id')
+
+    try:
+        # Create a new question
+        new_question = Question(question_id=question_id, question=question, task_id=task_id)  # Corrigido para usar Question
+        # Add the question to the session and commit
+        db.session.add(new_question)
+        db.session.commit()
+        admin_message = 'Question added successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error adding question: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/edit_question/<int:id>')
+def edit_question(id):
+    question = Question.query.get_or_404(id)
+    tasks = Task.query.all()
+    return render_template('admin_edit_question.html', question=question, tasks=tasks, message=admin_message, message_type=message_type)
+
+@app.route('/admin/update_question/<int:id>', methods=['POST'])
+def update_question(id):
+    global admin_message
+    global message_type
+    
+    question = Question.query.get_or_404(id)
+    question_text = request.form.get('question')
+    task_id = request.form.get('task_id')
+    
+    try:
+        question.question = question_text
+        question.task_id = task_id
+        db.session.commit()
+        admin_message = 'Question updated successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error updating question: {str(e)}'
+        message_type = 'danger'
+    
+    return redirect(url_for('admin_guidelines'))
+
+@app.route('/admin/delete_question/<int:id>')
+def delete_question(id):
+    global admin_message
+    global message_type
+    
+    question = Question.query.get_or_404(id)
+    
+    try:
+        db.session.delete(question)
+        db.session.commit()
+        admin_message = 'Question deleted successfully!'
+        message_type = 'success'
+    except Exception as e:
+        db.session.rollback()
+        admin_message = f'Error deleting question: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
