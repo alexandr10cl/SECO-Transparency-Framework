@@ -6,7 +6,6 @@ class CollectedData(db.Model):
     
     # Main Rows
     collected_data_id = db.Column(db.Integer, primary_key=True)
-    seco_portal = db.Column(db.String(500), nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
 

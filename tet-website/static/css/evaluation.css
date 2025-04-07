@@ -2,7 +2,7 @@
 
 :root {
     --cor-background: #f4f4f4;
-    --cor-principal: rgb(75, 102, 255);
+    --cor-principal: #4b66ff;
     --cor-gray: gray;
     --font-weight--info: 500;
 }
@@ -89,6 +89,7 @@ p {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative; /* Ensure the card is a positioned container */
 }
 
 .card-body {
@@ -173,7 +174,7 @@ p {
     grid-template-rows: repeat(3, 1fr);
     justify-content: center;
     margin: 10px 0 10px 0;
-    width: 100%;
+    width: 770px;
     min-height: 100px;
     max-height: 250px;
     transition: all 0.4s ease;
@@ -268,4 +269,33 @@ p {
     transform: scale(1.2);
     color: var(--cor-background);
     background-color: var(--cor-principal);
+}
+
+.icon{
+    position: absolute; /* Position relative to the card */
+    top: 10px; /* Adjust distance from the top */
+    right: 10px; /* Adjust distance from the right */
+    margin: 0; /* Remove default margin */
+    transition: all 0.3s ease;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.icon:hover{
+    transform: scale(1.2);
+    background-color: var(--cor-principal);
+}
+
+.gear{
+    background-image: url("/static/images/setting_black.png");
+    background-size: cover;
+    background-position: center;
+    width: 30px;
+    height: 30px;
+    transition: all 0.3s ease;
+}
+
+.icon:hover .gear{
+    background-image: url("/static/images/setting_white.png");
 }

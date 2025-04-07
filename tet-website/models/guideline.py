@@ -52,7 +52,8 @@ class Guideline(db.Model):
     # Relationship with SECO_process
     seco_processes = db.relationship('SECO_process',
                                     secondary=guideline_seco_process,
-                                    backref=db.backref('guidelines', lazy=True))
+                                    back_populates='guidelines',
+                                    overlaps='evaluation_seco_processes')
     
     # Relationship with SECO_dimension
     seco_dimensions = db.relationship('SECO_dimension',
@@ -90,6 +91,12 @@ class SECO_process(db.Model):
                                 secondary=evaluation_SECO_process,
                                 back_populates='seco_processes',
                                 overlaps='evaluation_seco_processes')
+    
+    # Relationship with Guideline
+    guidelines = db.relationship('Guideline',
+                                secondary=guideline_seco_process,
+                                back_populates='seco_processes',
+                                overlaps='guideline_seco_process')
 
 class SECO_dimension(db.Model):
     __tablename__ = 'seco_dimension'

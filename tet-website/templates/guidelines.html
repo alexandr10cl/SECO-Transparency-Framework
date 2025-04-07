@@ -1,8 +1,58 @@
 {% extends "base.html" %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/guidelines.css') }}">
+{% endblock %}
+
 {% block title %}Guidelines{% endblock %}
 
 {% block content %}
-    <h1>Welcome to the Guidelines page</h1>
-    <p>This is the content of the guidelines page.</p>
+    <div class="container">
+        <div class="sidebarG">
+            <h2>Guidelines</h2>
+            <ul>
+                {% for g in guidelines %}
+                    <li><a href="#{{ g.guidelineID }}">{{ g.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <h1>Guidelines</h1>
+        <p>Here you will see the already existent guidelines used by our tool</p>
+        {% for g in guidelines %}
+            <div class="guideline" id="guideline{{ g.guidelineID }}">
+                <h2>Guideline {{ g.guidelineID }} {{ g.title }}</h2>
+                <p><strong>Description:</strong> {{ g.description }}</p>
+                <p><strong>Helps in processes:</strong> 
+                    {% for p in g.seco_processes %}
+                        P{{ p.seco_process_id }} {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p><strong>Software Ecosystem Dimension:</strong> 
+                    {% for d in g.seco_dimensions %}
+                        {{ d.name }} {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p><strong>Conditioning Factors for Transparency:</strong> 
+                    {% for cf in g.conditioning_factors %}
+                        CF{{ cf.conditioning_factor_transp_id }} {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p><strong>Developer Experience Factors:</strong> 
+                    {% for dx in g.dx_factors %}
+                        F{{ dx.dx_factor_id }} {% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                {% for ksc in g.key_success_criteria %}
+                    <p><strong>Key Success Criteria {{ ksc.key_success_criteria_id }}:</strong> {{ ksc.title }}</p>
+                    <p>{{ ksc.description }}</p>
+                    {% for e in ksc.examples %}
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<strong>Example {{ e.example_id }}:</strong> 
+                        {{ e.description }}
+                    </p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+
+        {% endfor %}
 {% endblock %}
