@@ -6,7 +6,6 @@ let login_page = document.querySelector(".login_page");
 
 // Variáveis globais
 let data_collection = {
-  "username" : "Admin",
   "evaluation_code" : "123456",
   "performed_tasks" : [],
   "profile_questionnaire" : {},
@@ -70,7 +69,8 @@ document.getElementById("verifyButton").addEventListener("click", function () {
     .then((isValid) => {
       if (isValid) {
         data_collection.evaluation_code = authcode; // Salva o código de avaliação na variável global
-        fetchtasks();
+
+        fetchtasks(authcode); // Puxa as tasks do servidor
         updateDisplay();
       } else {
         document.getElementById("errorMessage").style.display = "block";
@@ -113,8 +113,14 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Fetch tasks
-function fetchtasks() {
-  fetch("http://127.0.0.1:5000/gettasks")
+function fetchtasks(code) {
+  fetch("http://127.0.0.1:5000/load_tasks", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ code: code })
+  })
     .then(response => response.json())
     .then(tasks => {
       const container = document.querySelector("#taskscontainer"); // Puxa o container que guarda as tasks no html
@@ -170,7 +176,7 @@ function fetchtasks() {
         });
         document.getElementById(`couldntSolveTask${task.id}Button`).addEventListener("click", () => {
           currentPhase = "review";
-          currentTaskStatus = "couldntsolve";
+          currentTaskStatus = "unsolved";
           updateDisplay();
         });
 
@@ -191,7 +197,8 @@ function fetchtasks() {
           const answers = [];
           inputs.forEach((input, index) => {
             answers.push({
-              question: task.questions[index].text,
+              question_id: task.questions[index].question_id,
+              question_text: task.questions[index].text,
               answer: input.value
             });
           });
