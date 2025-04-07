@@ -28,6 +28,7 @@ Admin Panel
             <div class="sidebar-item" data-section="key_success_criteria">Key Success Criteria</div>
             <div class="sidebar-item" data-section="tasks">Tasks</div>
             <div class="sidebar-item" data-section="questions">Questions</div>
+            <div class="sidebar-item" data-section="examples">Examples</div>
         </div>
         
         <div class="main-content">
@@ -624,6 +625,51 @@ Admin Panel
                                     <td class="actions">
                                         <a href="{{ url_for('edit_question', id=q.question_id) }}" class="btn btn-sm btn-warning">Edit</a>
                                         <a href="{{ url_for('delete_question', id=q.question_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this question?')">Delete</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="examples-section" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Add New Example</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('add_example') }}" method="post">
+                            <div class="mb-3">
+                                <textarea class="form-control" name="example" placeholder="Example" rows="4" required></textarea>
+                                <input type="number" class="form-control" name="key_success_criterion_id" placeholder="Key Success Criterion ID" required>
+                            </div>
+                            <div class="mb-7">
+                                <button type="submit" class="btn btn-primary">Add Example</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Existing Examples</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Example</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in examples %}
+                                <tr>
+                                    <td>E{{ e.example_id }}</td>
+                                    <td>{{ e.description }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_example', id=e.example_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                        <a href="{{ url_for('delete_example', id=e.example_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this example?')">Delete</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
