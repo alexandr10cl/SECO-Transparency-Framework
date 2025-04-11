@@ -10,8 +10,8 @@ class PerformedTaskStatus(Enum):
     UNSOLVED = 'unsolved'
 
 class NavigationType(Enum):
-    PAGE_NAVIGATION = 'page_navigation'
-    TAB_SWITCH = 'tab_switch'
+    PAGE_NAVIGATION = 'pageNavigation'
+    TAB_SWITCH = 'tabSwitch'
 
 class AcademicLevel(Enum):
     HIGH_SCHOOL = 'high_school'
