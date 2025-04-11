@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ScatterChart, Scatter, ZAxis, Cell, Treemap, LabelList } from 'recharts';
-import { Info, FileText, Users, Settings, CheckCircle, AlertTriangle, XCircle, Search, Globe, BookOpen, Code, Shield, Zap, Clock, Activity, Target, Eye, Lightbulb, ChevronRight, ChevronDown } from 'lucide-react';
+import { Info, FileText, Users, Settings, CheckCircle, AlertTriangle, XCircle, Search, Globe, BookOpen, Code, Shield, Zap, Clock, Activity, Target, Eye, Lightbulb } from 'lucide-react';
 import { PieChart, Pie, ReferenceLine } from 'recharts';
 import { fetchEvaluationData, fetchGuidelineData, testDatabaseConnection } from './api/evaluation';
+import HeatmapVisualization from './components/HeatmapVisualization';
 // Import the troubleshooter functions
 import { runDiagnostics } from './api/databaseTroubleshooter';
 
@@ -22,9 +23,6 @@ const SECODashboard = () => {
     interactionTypes: [],
     heatmapData: []
   });
-  // New state variables
-  const [guidelineViewTab, setGuidelineViewTab] = useState('overall'); // 'overall' | 'tasks' | 'sustainability'
-  const [evaluationTab, setEvaluationTab] = useState('dissatisfaction'); // 'dissatisfaction' | 'classification'
   
   // Track expanded dimensions for the dropdowns
   const [expandedDimensions, setExpandedDimensions] = useState({
@@ -110,11 +108,7 @@ const SECODashboard = () => {
         { id: '3.1.2', name: 'Online availability', status: 'completed', notes: 'Uptime monitoring shows 99.5%+ availability' },
         { id: '3.1.3', name: 'Availability for multiple devices', status: 'partial', notes: 'Mobile responsiveness needs improvement' }
       ],
-      actionItems: [7],
-      dissatisfactors: [
-        { issue: 'Mobile layout issues', severity: 'medium', impact: 'Users on mobile devices have difficulty accessing some features' },
-        { issue: 'Screen reader compatibility', severity: 'high', impact: 'Vision-impaired users cannot navigate effectively' }
-      ]
+      actionItems: [7]
     },
     { 
       id: 'G2', 
@@ -130,12 +124,7 @@ const SECODashboard = () => {
         { id: '3.2.2', name: 'Helps with motor limitations', status: 'not-started', notes: 'No keyboard navigation implemented' },
         { id: '3.2.3', name: 'Helps with hearing impairments', status: 'partial', notes: 'Some videos lack captions' }
       ],
-      actionItems: [1],
-      dissatisfactors: [
-        { issue: 'Keyboard navigation missing', severity: 'high', impact: 'Users with motor impairments cannot use the platform' },
-        { issue: 'Limited screen reader support', severity: 'high', impact: 'Vision-impaired users have poor experience' },
-        { issue: 'Missing video captions', severity: 'medium', impact: 'Hearing-impaired users miss important content' }
-      ]
+      actionItems: [1]
     },
     { 
       id: 'G3', 
@@ -151,11 +140,7 @@ const SECODashboard = () => {
         { id: '3.3.2', name: 'Quality of translations', status: 'partial', notes: 'Some translations need review' },
         { id: '3.3.3', name: 'Language switching ease', status: 'partial', notes: 'UI for switching languages could be improved' }
       ],
-      actionItems: [2],
-      dissatisfactors: [
-        { issue: 'Limited language options', severity: 'high', impact: 'Non-English/Spanish speakers cannot use the platform effectively' },
-        { issue: 'Translation quality issues', severity: 'medium', impact: 'Some technical terms are incorrectly translated' }
-      ]
+      actionItems: [2]
     },
     { 
       id: 'G4', 
@@ -171,11 +156,7 @@ const SECODashboard = () => {
         { id: '1.3.2', name: 'Information organization', status: 'partial', notes: 'Some categories are confusing' },
         { id: '1.3.3', name: 'Quick access to common resources', status: 'partial', notes: 'Frequently used resources need better visibility' }
       ],
-      actionItems: [3],
-      dissatisfactors: [
-        { issue: 'Poor search results', severity: 'high', impact: 'Developers spend excessive time searching for information' },
-        { issue: 'Confusing information architecture', severity: 'medium', impact: 'Navigation between related topics is difficult' }
-      ]
+      actionItems: [3]
     },
     { 
       id: 'G5', 
@@ -191,11 +172,7 @@ const SECODashboard = () => {
         { id: '2.1.2', name: 'Clear and concise language', status: 'completed', notes: 'Content is generally clear and readable' },
         { id: '2.1.3', name: 'Comprehensive information', status: 'partial', notes: 'Some advanced topics lack detail' }
       ],
-      actionItems: [5, 6],
-      dissatisfactors: [
-        { issue: 'Outdated documentation', severity: 'high', impact: 'Developers waste time with deprecated methods' },
-        { issue: 'Incomplete advanced topics', severity: 'medium', impact: 'Advanced use cases require external resources' }
-      ]
+      actionItems: [5, 6]
     },
     { 
       id: 'G6', 
@@ -211,11 +188,7 @@ const SECODashboard = () => {
         { id: '2.2.2', name: 'Various approaches demonstrated', status: 'not-started', notes: 'Only one approach is usually shown' },
         { id: '2.2.3', name: 'Adaptable code patterns', status: 'partial', notes: 'Some flexibility in code patterns exists' }
       ],
-      actionItems: [4],
-      dissatisfactors: [
-        { issue: 'Too prescriptive examples', severity: 'medium', impact: 'Developers feel forced into one coding style' },
-        { issue: 'Limited implementation variety', severity: 'medium', impact: 'Solutions do not fit various architectural patterns' }
-      ]
+      actionItems: [4]
     },
     { 
       id: 'G7', 
@@ -231,11 +204,7 @@ const SECODashboard = () => {
         { id: '4.1.2', name: 'Cost calculator availability', status: 'not-started', notes: 'No calculator available for custom configurations' },
         { id: '4.1.3', name: 'Transparent fee structure', status: 'completed', notes: 'All fees are clearly documented' }
       ],
-      actionItems: [6],
-      dissatisfactors: [
-        { issue: 'Hidden addon costs', severity: 'high', impact: 'Budget planning is difficult with unexpected costs' },
-        { issue: 'No cost calculator', severity: 'medium', impact: 'Custom configurations require manual calculations' }
-      ]
+      actionItems: [6]
     },
     { 
       id: 'G8', 
@@ -251,11 +220,7 @@ const SECODashboard = () => {
         { id: '5.1.2', name: 'Energy efficiency metrics', status: 'partial', notes: 'Limited data on energy usage' },
         { id: '5.1.3', name: 'Sustainability roadmap', status: 'not-started', notes: 'No published environmental goals' }
       ],
-      actionItems: [],
-      dissatisfactors: [
-        { issue: 'No carbon metrics', severity: 'high', impact: 'Cannot track environmental cost of using platform' },
-        { issue: 'Lack of sustainability roadmap', severity: 'medium', impact: 'No visibility into future environmental improvements' }
-      ]
+      actionItems: []
     }
   ];
 
@@ -431,20 +396,188 @@ const SECODashboard = () => {
     setSelectedGuideline(guidelineId);
   };
 
-  // Calculate percentages for guideline status
-  const calculateGuidelineStatusPercentages = (guideline) => {
-    if (!guideline) return { completed: 0, partial: 0, notStarted: 0 };
-    
-    const total = guideline.successCriteria.length;
-    const completed = guideline.successCriteria.filter(c => c.status === 'completed').length;
-    const partial = guideline.successCriteria.filter(c => c.status === 'partial').length;
-    const notStarted = total - completed - partial;
-    
-    return {
-      completed: Math.round((completed / total) * 100),
-      partial: Math.round((partial / total) * 100),
-      notStarted: Math.round((notStarted / total) * 100)
+  // Update the guideline details section to use selectedGuidelineData
+  const renderGuidelineDetails = () => {
+    if (!selectedGuideline || !selectedGuidelineData) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full text-gray-400 py-10">
+          <FileText size={48} />
+          <p className="mt-2">Select a guideline to view details</p>
+          {(selectedFactor || selectedDimension) && (
+            <p className="mt-1 text-sm text-blue-500">
+              {selectedFactor ? `Showing guidelines related to ${selectedFactor}` : `Showing ${selectedDimension} guidelines`}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    const guideline = guidelinesData.find(g => g.id === selectedGuideline);
+    if (!guideline) return null;
+
+    return (
+      <div>
+        {/* Existing guideline details rendering code */}
+        {/* Add new sections for evaluation data */}
+        {selectedGuidelineData.task_performance && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Task Performance</h3>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={selectedGuidelineData.task_performance}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 60, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="task_name" type="category" width={120} />
+                  <Tooltip />
+                  <Bar dataKey="avg_time_seconds" fill="#3b82f6" name="Average Time (s)">
+                    <LabelList dataKey="avg_time_seconds" position="right" />
+                  </Bar>
+                  <ReferenceLine
+                    x={60}
+                    stroke="#ef4444"
+                    strokeDasharray="3 3"
+                    label={{ value: 'Target Time', position: 'top' }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {selectedGuidelineData.feedback_summary && (
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">User Feedback</h3>
+            <div className="space-y-2">
+              {selectedGuidelineData.feedback_summary.map((feedback, index) => (
+                <div key={index} className="bg-gray-50 p-3 rounded">
+                  <div className="font-medium text-sm">{feedback.question}</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    {feedback.answer} (Mentioned by {feedback.count} users)
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Add these state variables 
+  const [dbTestResult, setDbTestResult] = useState(null);
+  const [isTestingDb, setIsTestingDb] = useState(false);
+  const [diagnosticResults, setDiagnosticResults] = useState(null);
+  
+  // Add a function to run diagnostics
+  const runConnectionDiagnostics = async () => {
+    setIsTestingDb(true);
+    try {
+      const results = await runDiagnostics();
+      setDiagnosticResults(results);
+      console.log("Diagnostic results:", results);
+    } catch (error) {
+      console.error("Error running diagnostics:", error);
+    } finally {
+      setIsTestingDb(false);
+    }
+  };
+  
+  // Add this new useEffect for the database test
+  useEffect(() => {
+    const runDatabaseTest = async () => {
+      setIsTestingDb(true);
+      try {
+        const result = await testDatabaseConnection();
+        setDbTestResult(result);
+      } catch (error) {
+        setDbTestResult({
+          success: false,
+          error: error.message
+        });
+      } finally {
+        setIsTestingDb(false);
+      }
     };
+    
+    runDatabaseTest();
+  }, []);
+  
+  // Update your database test UI to show more helpful information:
+  const renderDatabaseTestResult = () => {
+    return (
+      <div className="mb-4 bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium">Database Connection Status</h3>
+          <div className="space-x-2">
+            <button 
+              className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              onClick={async () => await testDatabaseConnection()}
+              disabled={isTestingDb}
+            >
+              {isTestingDb ? 'Testing...' : 'Test Connection'}
+            </button>
+            <button 
+              className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+              onClick={runConnectionDiagnostics}
+              disabled={isTestingDb}
+            >
+              Diagnose Issues
+            </button>
+          </div>
+        </div>
+        
+        {dbTestResult && (
+          <div className="mt-2">
+            <div className="flex items-center">
+              <div className={`w-3 h-3 rounded-full mr-2 ${dbTestResult.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-sm font-medium">Connection Status: {dbTestResult.success ? 'Connected' : 'Failed'}</span>
+            </div>
+            
+            {!dbTestResult.success && (
+              <div className="mt-1 text-sm text-red-600">
+                Error: {dbTestResult.error}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Diagnostic Results Display */}
+        {diagnosticResults && (
+          <div className="mt-3 pt-3 border-t border-gray-200 text-sm">
+            <h4 className="font-medium">Diagnostic Results:</h4>
+            
+            <div className="mt-2 space-y-2">
+              <div className="flex items-center">
+                <div className={`w-2 h-2 rounded-full mr-2 ${diagnosticResults.apiConnection.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span>API Server: {diagnosticResults.apiConnection.message}</span>
+              </div>
+              
+              {diagnosticResults.dbConnection && (
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full mr-2 ${diagnosticResults.dbConnection.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span>Database: {diagnosticResults.dbConnection.message}</span>
+                </div>
+              )}
+            </div>
+            
+            {diagnosticResults.recommendations.length > 0 && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                <div className="font-medium">Recommendations:</div>
+                <ul className="mt-1 space-y-1 pl-5 list-disc text-xs">
+                  {diagnosticResults.recommendations.map((rec, i) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
   
   // Then add this component right after the header in your JSX return
@@ -476,6 +609,38 @@ const SECODashboard = () => {
           >
             <FileText size={16} className="mr-1" /> Guidelines
           </button>
+          <button 
+            className={`px-3 py-1 rounded flex items-center ${activeTab === 'hotspots' ? 'bg-blue-600' : 'bg-gray-700'}`}
+            onClick={() => setActiveTab('hotspots')}
+          >
+            <Zap size={16} className="mr-1" /> Hotspots
+          </button>
+        </div>
+      </div>
+      
+      {/* Add the database test result here */}
+      {renderDatabaseTestResult()}
+      
+      <div className="mb-4 flex justify-between items-center">
+        <div className="text-sm text-gray-500">Last updated: March 6, 2025</div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center">
+            <span className="text-sm mr-2">Timeframe:</span>
+            <select 
+              className="bg-white border rounded px-2 py-1 text-sm"
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+            >
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+            </select>
+          </div>
+          <div className="flex items-center bg-white px-3 py-1 rounded border">
+            <Eye size={14} className="mr-1 text-blue-500" />
+            <span className="text-sm">KPI Achievement Rate: </span>
+            <span className="ml-1 font-bold text-yellow-600">66%</span>
+          </div>
         </div>
       </div>
       
@@ -571,9 +736,69 @@ const SECODashboard = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-white p-4 rounded-lg shadow">
+              <h2 className="text-lg font-semibold mb-4">Guidelines Status Summary</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: 'Technical', completed: 3, partial: 8, notStarted: 3 },
+                      { name: 'Social', completed: 1, partial: 3, notStarted: 2 },
+                      { name: 'Economic', completed: 1, partial: 2, notStarted: 1 },
+                      { name: 'Environmental', completed: 0, partial: 2, notStarted: 4 }
+                    ]}
+                    layout="vertical"
+                    margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="name" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="completed" stackId="a" name="Completed" fill="#10b981" />
+                    <Bar dataKey="partial" stackId="a" name="Partial" fill="#f59e0b" />
+                    <Bar dataKey="notStarted" stackId="a" name="Not Started" fill="#9ca3af" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-lg shadow">
+              <h2 className="text-lg font-semibold mb-4">Conditioning Factors</h2>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {conditioningFactors.map(factor => (
+                  <div 
+                    key={factor.id} 
+                    className="border rounded p-3 cursor-pointer hover:bg-gray-50"
+                    onClick={() => {
+                      setSelectedFactor(factor.id);
+                      setActiveTab('guidelines');
+                    }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">{factor.id}: {factor.name}</div>
+                      <div className={`px-2 py-1 text-xs rounded-full ${
+                        factor.status === 'advanced' ? 'bg-green-100 text-green-800' :
+                        factor.status === 'established' ? 'bg-green-100 text-green-700' :
+                        factor.status === 'developing' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {getFactorStatusText(factor.status)}
+                      </div>
+                    </div>
+                    <div className="mt-2 flex space-x-1">
+                      <div className={`h-1.5 w-1/4 rounded-l ${factor.status === 'initial' || factor.status === 'developing' || factor.status === 'established' || factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                      <div className={`h-1.5 w-1/4 ${factor.status === 'developing' || factor.status === 'established' || factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                      <div className={`h-1.5 w-1/4 ${factor.status === 'established' || factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                      <div className={`h-1.5 w-1/4 rounded-r ${factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-4 rounded-lg shadow col-span-2">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Overall Transparency Status</h2>
@@ -623,6 +848,33 @@ const SECODashboard = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-4 rounded-lg shadow">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Transparency Hotspots</h2>
+                <button 
+                  className="text-xs text-blue-600 hover:underline"
+                  onClick={() => setActiveTab('hotspots')}
+                >
+                  View all
+                </button>
+              </div>
+              <div className="space-y-2">
+                {kpiData.flatMap(kpi => 
+                  kpi.hotspots.filter(h => h.severity === 'high')
+                ).slice(0, 4).map((hotspot, index) => (
+                  <div key={index} className="border rounded p-2 flex justify-between items-center">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                      <span className="text-sm">{hotspot.area}</span>
+                    </div>
+                    <div className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      {hotspot.time} min avg
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -781,70 +1033,61 @@ const SECODashboard = () => {
               </div>
             )}
             
-            <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]">
+            <div className="space-y-2">
               {getFilteredGuidelines().map(guideline => {
                 const guidelineStatus = getGuidelineStatus(guideline);
-                const isSelected = selectedGuideline === guideline.id;
                 return (
                   <div 
                     key={guideline.id} 
-                    className={`border p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition ${isSelected ? 'border-blue-500 bg-blue-50' : ''}`}
+                    className={`border p-3 rounded cursor-pointer hover:bg-gray-50 transition ${selectedGuideline === guideline.id ? 'border-blue-500 bg-blue-50' : ''}`}
                     onClick={() => setSelectedGuideline(guideline.id)}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between items-center">
                       <div className="flex items-center">
-                        <div className="text-blue-600 mr-2">
-                          {guideline.id === 'G1' && <Globe size={16} />}
-                          {guideline.id === 'G2' && <Users size={16} />}
-                          {guideline.id === 'G3' && <Globe size={16} />}
-                          {guideline.id === 'G4' && <Search size={16} />}
-                          {guideline.id === 'G5' && <BookOpen size={16} />}
-                          {guideline.id === 'G6' && <Code size={16} />}
-                          {guideline.id === 'G7' && <Activity size={16} />}
-                          {guideline.id === 'G8' && <Shield size={16} />}
+                        {guideline.id === 'G1' && <Globe size={16} className="text-blue-500 mr-2" />}
+                        {guideline.id === 'G2' && <Users size={16} className="text-green-500 mr-2" />}
+                        {guideline.id === 'G3' && <Globe size={16} className="text-purple-500 mr-2" />}
+                        {guideline.id === 'G4' && <Search size={16} className="text-yellow-500 mr-2" />}
+                        {guideline.id === 'G5' && <BookOpen size={16} className="text-red-500 mr-2" />}
+                        {guideline.id === 'G6' && <Code size={16} className="text-indigo-500 mr-2" />}
+                        <span className="font-medium">{guideline.id}: {guideline.name}</span>
                       </div>
-                        <div>
                       <div className="flex items-center">
-                            <span className="font-medium text-sm">{guideline.id}: {guideline.name}</span>
+                        <div className="flex items-center mr-1">
+                          <span className={`mr-1 flex h-5 w-5 items-center justify-center rounded-full ${
+                            guidelineStatus === 'completed' ? 'bg-green-100' : 
+                            guidelineStatus === 'partial' ? 'bg-yellow-100' : 'bg-gray-100'
+                          }`}>
+                            {getStatusIcon(guidelineStatus)}
+                          </span>
+                          <span className="text-xs">
+                            {guideline.successCriteria.filter(c => c.status === 'completed').length}/{guideline.successCriteria.length}
+                          </span>
                         </div>
-                          <div className="flex mt-1 space-x-1">
-                            {guideline.conditioningFactors.slice(0, 3).map(cf => (
+                        {selectedGuideline === guideline.id ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-1 flex space-x-1">
+                      {guideline.conditioningFactors.map(cf => (
                         <span 
                           key={cf} 
-                                className="text-xs bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded"
+                          className="text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded cursor-pointer hover:bg-green-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFactor(cf);
+                          }}
                         >
                           {cf}
                         </span>
                       ))}
-                            {guideline.conditioningFactors.length > 3 && (
-                              <span className="text-xs bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded">
-                                +{guideline.conditioningFactors.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="mr-2 flex items-center">
-                          <span className="text-yellow-500 mr-1">
-                            {guideline.id === 'G1' && "2/3"}
-                            {guideline.id === 'G2' && "0/3"}
-                            {guideline.id === 'G3' && "0/3"}
-                            {guideline.id === 'G4' && "0/3"}
-                            {guideline.id === 'G5' && "1/3"}
-                            {guideline.id === 'G6' && "0/3"}
-                            {guideline.id === 'G7' && "1/3"}
-                            {guideline.id === 'G8' && "0/3"}
-                          </span>
-                        </div>
-                        <div>
-                          {isSelected ? (
-                            <ChevronDown className="h-4 w-4 text-blue-500" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-gray-400" />
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 );
@@ -852,169 +1095,217 @@ const SECODashboard = () => {
             </div>
           </div>
           
-          {/* Guideline Detail Panel */}
-          <div className="col-span-2 bg-white p-4 rounded-lg shadow">
-            {!selectedGuideline ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 py-10">
-                <FileText size={48} />
-                <p className="mt-2">Select a guideline to view details</p>
-                {(selectedFactor || selectedDimension) && (
-                  <p className="mt-1 text-sm text-blue-500">
-                    {selectedFactor ? `Showing guidelines related to ${selectedFactor}` : `Showing ${selectedDimension} guidelines`}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="flex h-full">
-                {/* MAIN CONTENT */}
-                <div className="flex-grow flex flex-col">
-                  <h2 className="text-xl font-bold mb-4">GUIDELINE OVERALL STATUS</h2>
-                  
-                  {/* TAB BAR */}
-                  <div className="flex border rounded-lg overflow-hidden mb-6">
-                    {['overall', 'tasks', 'sustainability'].map(t => (
-                      <button
-                        key={t}
-                        onClick={() => setGuidelineViewTab(t)}
-                        className={`flex-1 px-6 py-3 text-sm font-medium ${
-                          guidelineViewTab === t 
-                            ? 'bg-white border-b-2 border-blue-600 text-blue-600' 
-                            : 'bg-gray-50 text-gray-600'
-                        }`}
-                      >
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                      </button>
-                    ))}
+          {/* Guideline Details */}
+          <div className="bg-white p-4 rounded-lg shadow col-span-2">
+            {renderGuidelineDetails()}
+          </div>
+        </div>
+      )}
+      
+      {activeTab === 'factors' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Conditioning Factors */}
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h2 className="text-lg font-semibold text-green-600 mb-4">Conditioning Factors for Transparency</h2>
+            <p className="text-sm text-gray-600 mb-3">
+              These factors influence transparency in the SECO. They represent conditions that enable or limit transparency.
+              Rather than percentages, they reflect qualitative maturity levels of the ecosystem.
+            </p>
+            <div className="space-y-4">
+              {conditioningFactors.map(factor => (
+                <div key={factor.id} className="border rounded p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="font-medium">{factor.id}: {factor.name}</div>
+                    <div className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      factor.status === 'advanced' ? 'bg-green-100 text-green-800' :
+                      factor.status === 'established' ? 'bg-green-100 text-green-700' :
+                      factor.status === 'developing' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {getFactorStatusText(factor.status)}
                     </div>
-                  
-                  {/* CONTENT AREA */}
-                  <div className="flex-grow overflow-y-auto">
-                    {guidelineViewTab === 'overall' && (
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* TOP ROW */}
-                        {/* — EVALUATION CARD — */}
-                        <div className="border rounded-lg">
-                          <div className="p-4">
-                            <h3 className="font-semibold uppercase text-sm mb-4">Evaluation</h3>
-                            
-                            <div className="flex border-b mb-4">
-                              {['dissatisfaction', 'classification'].map(t => (
-                      <button 
-                                  key={t} 
-                                  onClick={() => setEvaluationTab(t)}
-                                  className={`flex-1 py-2 text-sm ${
-                                    evaluationTab === t 
-                                      ? 'text-blue-600 border-b-2 border-blue-600' 
-                                      : 'text-gray-500'
-                                  }`}
-                                >
-                                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                      </button>
-                              ))}
-                    </div>
-                            
-                            {evaluationTab === 'dissatisfaction' && (
-                              <div className="space-y-4">
-                                <div className="pb-3">
-                                  <div className="flex justify-between items-center">
-                                    <div className="font-medium">Poor search results</div>
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">
-                                      high
-                                    </span>
-                    </div>
-                                  <p className="text-xs text-gray-600 mt-1">Developers spend excessive time searching for information</p>
                   </div>
-                                <div>
-                                  <div className="flex justify-between items-center">
-                                    <div className="font-medium">Confusing information architecture</div>
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
-                                      medium
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-gray-600 mt-1">Navigation between related topics is difficult</p>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {evaluationTab === 'classification' && (
-                              <div className="space-y-3">
-                                {(() => {
-                                  const guideline = guidelinesData.find(g => g.id === selectedGuideline);
-                                  return guideline?.successCriteria?.map((criteria, index) => (
-                                    <div key={index} className="flex items-center justify-between border-b pb-3 last:border-b-0">
-                                      <div className="flex items-center">
-                                        {getStatusIcon(criteria.status)}
-                                        <span className="ml-2">{criteria.name}</span>
-                                      </div>
-                                      <span className={`text-xs px-2 py-0.5 rounded ${
-                                        criteria.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                        criteria.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {getStatusText(criteria.status)}
-                                      </span>
-                                    </div>
-                                  )) || <div className="text-sm text-gray-400 italic">No classification data available</div>
-                                })()}
+                  <p className="text-sm text-gray-600 mb-2">{factor.description}</p>
+                  
+                  {/* Maturity level indicator */}
+                  <div className="flex items-center mb-2">
+                    <div className="flex-grow grid grid-cols-4 gap-1">
+                      <div className={`h-1.5 rounded-l ${factor.status === 'initial' || factor.status === 'developing' || factor.status === 'established' || factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                      <div className={`h-1.5 ${factor.status === 'developing' || factor.status === 'established' || factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                      <div className={`h-1.5 ${factor.status === 'established' || factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                      <div className={`h-1.5 rounded-r ${factor.status === 'advanced' ? getFactorStatusColor(factor.status) : 'bg-gray-300'}`}></div>
+                    </div>
+                    <div className="ml-2">
+                      <span className="text-xs">
+                        {factor.status === 'initial' ? 'Initial' : 
+                         factor.status === 'developing' ? 'Developing' : 
+                         factor.status === 'established' ? 'Established' : 'Advanced'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Related guidelines */}
+                  <div className="mt-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-gray-500">Related Guidelines:</span>
+                      <button 
+                        className="text-xs text-blue-600 hover:underline flex items-center"
+                        onClick={() => {
+                          setSelectedFactor(factor.id);
+                          setActiveTab('guidelines');
+                        }}
+                      >
+                        View <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {guidelinesData
+                        .filter(g => g.conditioningFactors.includes(factor.id))
+                        .map(g => (
+                          <span key={g.id} className="text-xs bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded">{g.id}</span>
+                        ))
+                      }
+                    </div>
+                  </div>
+                  
+                  {/* Development recommendations for non-advanced factors */}
+                  {factor.status !== 'advanced' && (
+                    <div className="mt-2 text-xs bg-blue-50 p-2 rounded">
+                      <div className="font-medium text-blue-700">Development recommendations:</div>
+                      <ul className="mt-1 space-y-1 pl-4 list-disc">
+                        {factor.id === 'CF1' && (
+                          <>
+                            <li>Implement structured communication channels</li>
+                            <li>Reduce response time to developer queries</li>
+                          </>
+                        )}
+                        {factor.id === 'CF2' && (
+                          <>
+                            <li>Improve search functionality and organization</li>
+                            <li>Enhance accessibility for developers with disabilities</li>
+                          </>
+                        )}
+                        {factor.id === 'CF3' && (
+                          <>
+                            <li>Create improved onboarding and learning materials</li>
+                            <li>Simplify complex documentation sections</li>
+                          </>
+                        )}
+                        {factor.id === 'CF5' && (
+                          <>
+                            <li>Improve UI/UX of documentation interfaces</li>
+                            <li>Add contextual navigation elements</li>
+                          </>
+                        )}
+                        {factor.id === 'CF6' && (
+                          <>
+                            <li>Implement audit logs for platform changes</li>
+                            <li>Add version history for documentation</li>
+                          </>
+                        )}
+                        {factor.id === 'CF7' && (
+                          <>
+                            <li>Implement project timeline visualization tools</li>
+                            <li>Add roadmap and deprecation tracking</li>
+                          </>
+                        )}
+                      </ul>
                     </div>
                   )}
                 </div>
+              ))}
             </div>
-                        
-                        {/* TRANSPARENCY CARD */}
-                        <div className="border rounded-lg p-4">
-                          <h3 className="font-semibold uppercase text-sm mb-4">Transparency</h3>
-                          <button className="text-blue-600 text-sm flex items-center">
-                            KSF <span className="ml-1">›</span>
-                          </button>
           </div>
           
-                        {/* BOTTOM ROW */}
-                        {/* — DX CARD — */}
-                        <div className="border rounded-lg p-4">
-                          <h3 className="font-semibold uppercase text-sm mb-2">DX</h3>
-                          <p className="text-xs text-gray-500 mb-2">Sentiment</p>
-                          <span className="inline-block px-3 py-1 rounded-full bg-gray-200 text-blue-600 text-sm">Happy</span>
-                          
-                          {/* word cloud placeholder */}
-                          <div className="my-6 h-20 flex items-center justify-center text-gray-400 italic">
-                            word cloud
-                          </div>
-                          
-                          <div className="flex justify-between text-xs mt-4">
-                            <span className="text-blue-600">Happy</span>
-                            <button className="text-blue-600">Action ›</button>
+          {/* Developer Experience Factors */}
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h2 className="text-lg font-semibold text-purple-600 mb-4">Developer Experience Factors</h2>
+            <p className="text-sm text-gray-600 mb-3">
+              These factors represent the developer experience aspects that influence SECO transparency.
+              They reflect qualitative aspects of the ecosystem that impact how developers interact with the platform.
+            </p>
+            
+            {/* Group factors by category */}
+            {['Common Technological Platform', 'Projects and Applications', 'Community Interaction', 'Expectations and Value'].map(group => (
+              <div key={group} className="mb-4">
+                <h3 className="font-medium text-sm text-gray-600 mb-2">{group}</h3>
+                <div className="space-y-3">
+                  {devExpFactors.filter(f => f.group === group).map(factor => (
+                    <div key={factor.id} className="border rounded p-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <div className="text-sm font-medium">{factor.id}: {factor.name}</div>
+                        <div className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                          factor.dimension === 'Technical' ? 'bg-blue-100 text-blue-800' : 
+                          factor.dimension === 'Social' ? 'bg-green-100 text-green-800' : 
+                          factor.dimension === 'Organizational' ? 'bg-purple-100 text-purple-800' : 
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {factor.dimension}
                         </div>
                       </div>
                       
-                        {/* SUSTAINABILITY CARD */}
-                        <div className="border rounded-lg p-4">
-                          <h3 className="font-semibold uppercase text-sm mb-4">Sustainability</h3>
-                          <button className="text-blue-600 text-sm flex items-center">
-                            Action <span className="ml-1">›</span>
-                          </button>
-                          <div className="mt-8 text-xs text-gray-400 text-center italic">
-                            Sustainability metrics will appear here
+                      {/* Maturity indication */}
+                      <div className="flex items-center mb-2">
+                        <div className="flex-grow flex space-x-1">
+                          <div className={`h-1.5 w-1/4 rounded-l ${factor.status === 'initial' || factor.status === 'developing' || factor.status === 'established' ? 
+                            (factor.dimension === 'Technical' ? 'bg-blue-400' : 
+                             factor.dimension === 'Social' ? 'bg-green-400' : 
+                             factor.dimension === 'Organizational' ? 'bg-purple-400' : 'bg-yellow-400') : 'bg-gray-300'}`}></div>
+                          <div className={`h-1.5 w-1/4 ${factor.status === 'developing' || factor.status === 'established' ? 
+                            (factor.dimension === 'Technical' ? 'bg-blue-400' : 
+                             factor.dimension === 'Social' ? 'bg-green-400' : 
+                             factor.dimension === 'Organizational' ? 'bg-purple-400' : 'bg-yellow-400') : 'bg-gray-300'}`}></div>
+                          <div className={`h-1.5 w-1/4 ${factor.status === 'established' ? 
+                            (factor.dimension === 'Technical' ? 'bg-blue-400' : 
+                             factor.dimension === 'Social' ? 'bg-green-400' : 
+                             factor.dimension === 'Organizational' ? 'bg-purple-400' : 'bg-yellow-400') : 'bg-gray-300'}`}></div>
+                          <div className={`h-1.5 w-1/4 rounded-r bg-gray-300`}></div>
                         </div>
+                        <div className="ml-2">
+                          <span className="text-xs">
+                            {factor.status === 'initial' ? 'Initial' : 
+                             factor.status === 'developing' ? 'Developing' : 
+                             factor.status === 'established' ? 'Established' : 'Advanced'}
+                          </span>
                         </div>
                       </div>
-                    )}
-                    
-                    {guidelineViewTab === 'tasks' && (
-                      <div className="h-60 flex items-center justify-center text-sm text-gray-500 border rounded-lg">
-                        TODO: tasks view
+                      
+                      {/* Show related guidelines */}
+                      <div className="mt-1">
+                        <div className="flex flex-wrap gap-1">
+                          {guidelinesData
+                            .filter(g => g.devExpFactors.includes(factor.id))
+                            .map(g => (
+                              <span 
+                                key={g.id} 
+                                className="text-xs bg-gray-100 text-gray-800 px-1 rounded cursor-pointer hover:bg-gray-200"
+                                onClick={() => {
+                                  setSelectedGuideline(g.id);
+                                  setActiveTab('guidelines');
+                                }}
+                              >
+                                {g.id}
+                              </span>
+                            ))
+                          }
                         </div>
-                    )}
-                    
-                    {guidelineViewTab === 'sustainability' && (
-                      <div className="h-60 flex items-center justify-center text-sm text-gray-500 border rounded-lg">
-                        TODO: sustainability view
                       </div>
-                    )}
                     </div>
+                  ))}
                 </div>
               </div>
-            )}
+            ))}
+            
+            <div className="mt-4 p-3 bg-gray-50 rounded border text-sm">
+              <p className="font-medium">Note on measurement approach:</p>
+              <p className="text-xs text-gray-600 mt-1">
+                Developer experience factors are assessed through qualitative methods including developer surveys, 
+                interviews, and usage analytics. These factors influence transparency but are measured by maturity 
+                level rather than percentages, using a four-tier scale: Initial, Developing, Established, and Advanced.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -1176,6 +1467,195 @@ const SECODashboard = () => {
           </div>
         </div>
       </div>
+      
+      {activeTab === 'hotspots' && (
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h2 className="text-lg font-semibold mb-4">Transparency Hotspots Analysis</h2>
+            
+            {isLoadingEvaluation ? (
+              <div className="flex justify-center items-center h-40">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <>
+                {/* Task Completion Times */}
+                <div className="mb-6">
+                  <h3 className="text-md font-medium mb-3">Task Completion Analysis</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={evaluationData.taskCompletionTimes || []}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="task_name" />
+                        <YAxis label={{ value: 'Time (seconds)', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="avg_time_seconds" name="Average Time (s)" fill="#3b82f6" />
+                        <ReferenceLine y={60} stroke="red" strokeDasharray="3 3" label="Target Time" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Interaction Types */}
+                <div className="mb-6">
+                  <h3 className="text-md font-medium mb-3">Interaction Frequency Analysis</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={evaluationData.interactionTypes || []}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="count"
+                            nameKey="type"
+                            label={({type, count}) => `${type}: ${count}`}
+                          >
+                            {(evaluationData.interactionTypes || []).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][index % 4]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={evaluationData.interactionTypes || []}
+                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="type" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="count" name="Frequency" fill="#10b981" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Heatmap Visualization */}
+                <div className="mb-6">
+                  <h3 className="text-md font-medium mb-3">User Interaction Heatmap</h3>
+                  <div className="bg-gray-100 p-4 rounded-lg">
+                    <HeatmapVisualization 
+                      data={evaluationData.heatmapData || []} 
+                      width={800} 
+                      height={400}
+                    />
+                    <div className="text-sm text-center mt-2 text-gray-600">
+                      Heatmap showing click concentrations in the user interface
+                    </div>
+                  </div>
+                </div>
+
+                {/* User Responses Section */}
+                {evaluationData.userResponses && evaluationData.userResponses.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-md font-medium mb-3">User Feedback Analysis</h3>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {evaluationData.userResponses.map((user, index) => (
+                        <div key={index} className="border rounded-lg p-3">
+                          <div className="flex justify-between">
+                            <div className="font-medium">{user.username || `User ${user.id}`}</div>
+                            <div className="text-sm text-gray-500">{user.seco_portal || 'Portal User'}</div>
+                          </div>
+                          
+                          <div className="mt-2 space-y-2">
+                            {user.tasks && user.tasks.map((task, taskIndex) => (
+                              <div key={taskIndex} className="bg-gray-50 p-2 rounded">
+                                <div className="flex justify-between items-center text-sm">
+                                  <div className="font-medium">{task.title}</div>
+                                  <div className="text-blue-600">{task.duration_seconds}s</div>
+                                </div>
+                                
+                                {task.answers && task.answers.length > 0 && (
+                                  <div className="mt-1 space-y-1">
+                                    {task.answers.map((answer, answerIndex) => (
+                                      <div key={answerIndex} className="text-xs">
+                                        <span className="text-gray-700">{answer.question}:</span> 
+                                        <span className="ml-1">{answer.answer}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation Flows Section */}
+                {evaluationData.navigationFlows && evaluationData.navigationFlows.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-md font-medium mb-3">User Navigation Patterns</h3>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {evaluationData.navigationFlows.map((flow, index) => (
+                        <div key={index} className="border rounded-lg p-3">
+                          <div className="font-medium mb-2">User {flow.user_id} Navigation Path</div>
+                          <div className="flex items-center overflow-x-auto pb-2">
+                            {flow.path.map((step, stepIndex) => (
+                              <div key={stepIndex} className="flex items-center min-w-max">
+                                <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 text-xs">
+                                  <div className="font-medium truncate max-w-xs" title={step.title}>
+                                    {step.title || 'Unnamed Page'}
+                                  </div>
+                                  <div className="text-gray-500 text-xs truncate max-w-xs" title={step.url}>
+                                    {step.url}
+                                  </div>
+                                </div>
+                                {stepIndex < flow.path.length - 1 && (
+                                  <svg className="h-5 w-5 text-gray-400 mx-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Analysis Summary */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="font-medium flex items-center text-blue-800">
+                    <Lightbulb size={18} className="mr-2" />
+                    Evaluation Analysis Summary
+                  </h3>
+                  <p className="mt-2 text-sm">
+                    Based on the data above, the main transparency hotspots are:
+                  </p>
+                  <ul className="mt-1 space-y-1 list-disc list-inside text-sm">
+                    <li>Users spend significantly more time than expected when searching for language documentation</li>
+                    <li>Click interactions are concentrated in specific areas that may need redesign</li>
+                    <li>Navigation patterns show users often revisit the same pages, indicating possible confusion</li>
+                  </ul>
+                  <div className="mt-3 pt-2 border-t border-blue-200 text-sm font-medium text-blue-800">
+                    Recommendation: Focus on improving Guidelines G3 and G4 implementation with emphasis on search functionality and language documentation access.
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

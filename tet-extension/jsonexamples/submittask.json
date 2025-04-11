@@ -1,0 +1,124 @@
+{
+  "evaluation_code": "17930",
+  "performed_tasks": [
+    {
+      "id": 6,
+      "title": "Task 1",
+      "description": "Translate the page into Portuguese.",
+      "initial_timestamp": "2025-04-07T18:45:39.352Z",
+      "final_timestamp": "2025-04-07T18:45:48.384Z",
+      "answers": [
+        {
+          "question_id": 1,
+          "question_text": "Could you solve the task? If not, could you explain why?",
+          "answer": "r1"
+        },
+        {
+          "question_id": 4,
+          "question_text": "In your opinion, is the portal's translation system effective?",
+          "answer": "r2"
+        },
+        {
+          "question_id": 5,
+          "question_text": "What do you think about the page design?",
+          "answer": "r3"
+        }
+      ],
+      "status": "couldntsolve"
+    },
+    {
+      "id": 7,
+      "title": "Task 2",
+      "description": "Find the portal's official documentation.",
+      "initial_timestamp": "2025-04-07T18:45:49.144Z",
+      "final_timestamp": "2025-04-07T18:45:54.808Z",
+      "answers": [
+        {
+          "question_id": 2,
+          "question_text": "Could you solve the task? If not, could you explain why?",
+          "answer": "r4"
+        },
+        {
+          "question_id": 6,
+          "question_text": "Was it easy to identify where the documentation is located and how to access it? If not, what could be improved?",
+          "answer": "r5"
+        }
+      ],
+      "status": "couldntsolve"
+    },
+    {
+      "id": 8,
+      "title": "Task 3",
+      "description": "Explore the portal's updates and news section and find a recent piece of information.",
+      "initial_timestamp": "2025-04-07T18:45:58.936Z",
+      "final_timestamp": "2025-04-07T18:46:14.776Z",
+      "answers": [
+        {
+          "question_id": 3,
+          "question_text": "Could you solve the task? If not, could you explain why?",
+          "answer": "r6"
+        },
+        {
+          "question_id": 7,
+          "question_text": "Were you able to easily identify where news and updates are published?",
+          "answer": "r7"
+        },
+        {
+          "question_id": 8,
+          "question_text": "Are the presented information clear and organized in a way that facilitates tracking changes?",
+          "answer": "r8"
+        }
+      ],
+      "status": "couldntsolve"
+    }
+  ],
+  "profile_questionnaire": {
+    "academic_level": "graduacao",
+    "segment": "industria",
+    "previus_experience": "raramente",
+    "years_of_experience": "1"
+  },
+  "final_questionnaire": {
+    "comments": "",
+    "emotion": "3"
+  },
+  "navigation": [
+    {
+      "action": "pageNavigation",
+      "title": "Portal do Aluno – BSI – UNIRIO",
+      "url": "https://bsi.uniriotec.br/portal-do-aluno/",
+      "timestamp": "2025-04-07T18:45:46.649Z",
+      "taskId": 6
+    },
+    {
+      "action": "pageNavigation",
+      "title": "Professores – BSI – UNIRIO",
+      "url": "https://bsi.uniriotec.br/professores/",
+      "timestamp": "2025-04-07T18:45:54.207Z",
+      "taskId": 7
+    },
+    {
+      "action": "pageNavigation",
+      "title": "Mídias – BSI – UNIRIO",
+      "url": "https://bsi.uniriotec.br/midias/",
+      "timestamp": "2025-04-07T18:45:57.035Z",
+      "taskId": 8
+    },
+    {
+      "action": "pageNavigation",
+      "title": "Notícias – BSI – UNIRIO",
+      "url": "https://bsi.uniriotec.br/noticias/",
+      "timestamp": "2025-04-07T18:46:02.604Z",
+      "taskId": 8
+    },
+    {
+      "action": "pageNavigation",
+      "title": "Colação de grau – BSI – UNIRIO",
+      "url": "https://bsi.uniriotec.br/2022/11/03/colacao-de-grau-3/",
+      "timestamp": "2025-04-07T18:46:05.312Z",
+      "taskId": 8
+    }
+  ],
+  "startTime": "2025-04-07T18:45:38.512Z",
+  "endTime": "2025-04-07T18:46:16.464Z"
+}
