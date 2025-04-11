@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
+{% endblock %}
+
+{% block title %}Edit SECO Process P{{ seco_process.seco_process_id }}{% endblock %}
+
+{% block content %}
+<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<div class="container">
+    <div id="seco_processes-section"">
+        <div class="card">
+            <div class="card-header">
+                <h4>Edit SECO Process P{{ seco_process.seco_process_id }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_seco_process', id=seco_process.seco_process_id) }}">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ seco_process.description }}</textarea>
+                    </div>
+                    <div class="mb-7">
+                        <button type="submit" class="btn btn-primary">Update Process</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

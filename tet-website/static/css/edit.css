@@ -1,0 +1,39 @@
+:root {
+    --cor-background: #f4f4f4;
+    --cor-principal: #4b66ff;
+    --cor-gray: gray;
+    --font-weight--info: 500;
+}
+
+.container{
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
+}
+
+.card{
+    width: 600px;
+}
+
+.back-arrow {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    top: 60px;
+    left: 30px;
+    width: 100px;
+    height: 50px;
+    text-decoration: none;
+    font-size: 18px;
+    color: var(--cor-principal);
+    border-radius: 10px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.back-arrow:hover {
+    transform: scale(1.2);
+    color: var(--cor-background);
+    background-color: var(--cor-principal);
+}

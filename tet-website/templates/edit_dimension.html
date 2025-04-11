@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
+{% endblock %}
+
+{% block title %}Edit SECO Dimension D{{ seco_dimension.seco_dimension_id }}{% endblock %}
+
+{% block content %}
+<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<div class="container">
+    <div id="seco_dimension-section"">
+        <div class="card">
+            <div class="card-header">
+                <h4>Edit SECO Dimension D{{ seco_dimension.seco_dimension_id }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_seco_dimension', id=seco_dimension.seco_dimension_id) }}">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" name="name" placeholder="Name" required value="{{ seco_dimension.name }}">
+                    </div>
+                    <div class="mb-7">
+                        <button type="submit" class="btn btn-primary">Update Dimension</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -12,14 +12,14 @@
             <h2>Guidelines</h2>
             <ul>
                 {% for g in guidelines %}
-                    <li><a href="#{{ g.guidelineID }}">{{ g.title }}</a></li>
+                    <li><a href="#guideline{{ g.guidelineID }}">{{ g.title }}</a></li>
                 {% endfor %}
             </ul>
         </div>
-        <h1>Guidelines</h1>
-        <p>Here you will see the already existent guidelines used by our tool</p>
+        <h1 class="title">Guidelines</h1>
         {% for g in guidelines %}
             <div class="guideline" id="guideline{{ g.guidelineID }}">
+                <span style="display: block; height: 70px; margin-top: -70px;" id="guideline{{ g.guidelineID }}"></span>
                 <h2>Guideline {{ g.guidelineID }} {{ g.title }}</h2>
                 <p><strong>Description:</strong> {{ g.description }}</p>
                 <p><strong>Helps in processes:</strong> 
@@ -46,7 +46,7 @@
                     <p><strong>Key Success Criteria {{ ksc.key_success_criteria_id }}:</strong> {{ ksc.title }}</p>
                     <p>{{ ksc.description }}</p>
                     {% for e in ksc.examples %}
-                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<strong>Example {{ e.example_id }}:</strong> 
+                    <p class="example"><strong>Example {{ e.example_id }}:</strong> 
                         {{ e.description }}
                     </p>
                     {% endfor %}
@@ -55,4 +55,8 @@
 
 
         {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/guidelines.js') }}"></script>
 {% endblock %}

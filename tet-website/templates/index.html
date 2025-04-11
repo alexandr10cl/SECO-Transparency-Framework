@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 
+{% block head %}
+    
+{% endblock %}
+
 {% block title %}Página principal{% endblock %}
 
 {% block content %}
     {% if 'user_signed_in' not in session or session['user_signed_in'] == None %}
+    <br><br><br>
         <h1>Welcome to the Home page</h1>
         <p>This is the content of the home page.</p>
         <p>These are the admin accounts</p>
@@ -13,6 +18,7 @@
             {% endfor %}
         </ul>
     {% else %}
+    <br><br><br>
         <h1>Welcome {% if 'user_type' in session and session['user_type'] == 'admin' %}admin {% endif %}{{ username }}!</h1>
         <p>This is the content of the logged home page</p>
         <p>These are the admin accounts</p>

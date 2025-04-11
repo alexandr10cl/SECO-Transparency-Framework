@@ -25,7 +25,9 @@ body {
     align-items: center;
     background-color: var(--cor-1);
     color: var(--cor-2);
-    position: relative;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
 }
 
 .logo {

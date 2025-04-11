@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
+{% endblock %}
+
+{% block title %}Edit Task T{{ task.task_id }}{% endblock %}
+
+{% block content %}
+<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<div class="container">
+    <div id="tasks-section">
+        <div class="card">
+            <div class="card-header">
+                <h4>Edit Task T{{ task.task_id }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_task', id=task.task_id) }}">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" name="title" placeholder="Title" required value="{{ task.title }}">
+                        <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ task.description }}</textarea>
+                        <div class="mb-3">
+                            <h4 class="form-label">Related guidelines</h4>
+                            <div class="checkbox-group">
+                                {% for guideline in guidelines %}
+                                <div class="checkbox-item">
+                                    <label for="guideline_{{ guideline.guidelineID }}" title="G{{ guideline.guidelineID }}">G{{ guideline.guidelineID }}</label>
+                                    <input type="checkbox" id="guideline_{{ guideline.guidelineID }}" name="guideline_ids" value="{{ guideline.guidelineID }}" {% if guideline.guidelineID in guideline_ids %} checked {% endif %}>
+                                    
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-7">
+                        <button type="submit" class="btn btn-primary">Update Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

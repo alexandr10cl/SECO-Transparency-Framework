@@ -245,7 +245,7 @@ def add_seco_process():
 @app.route('/admin/edit_seco_process/<int:id>')
 def edit_seco_process(id):
     seco_process = SECO_process.query.get_or_404(id)
-    return render_template('admin_edit_seco_process.html',
+    return render_template('edit_seco_process.html',
                             seco_process=seco_process,
                             message=admin_message,
                             message_type=message_type)
@@ -323,7 +323,7 @@ def add_seco_dimension():
 @app.route('/admin/edit_seco_dimension/<int:id>')
 def edit_seco_dimension(id):
     seco_dimension = SECO_dimension.query.get_or_404(id)
-    return render_template('admin_edit_seco_dimension.html',
+    return render_template('edit_dimension.html',
                             seco_dimension=seco_dimension,
                             message=admin_message,
                             message_type=message_type)
@@ -401,8 +401,8 @@ def add_conditioning_factor():
 @app.route('/admin/edit_conditioning_factor/<int:id>')
 def edit_conditioning_factor(id):
     conditioning_factor = Conditioning_factor_transp.query.get_or_404(id)
-    return render_template('admin_edit_conditioning_factor.html',
-                            conditioning_factor=conditioning_factor,
+    return render_template('edit_conditioning_factor.html',
+                            factor=conditioning_factor,
                             message=admin_message,
                             message_type=message_type)
 
@@ -479,7 +479,7 @@ def add_dx_factor():
 @app.route('/admin/edit_dx_factor/<int:id>')
 def edit_dx_factor(id):
     dx_factor = DX_factor.query.get_or_404(id)
-    return render_template('admin_edit_dx_factor.html',
+    return render_template('edit_dx_factor.html',
                             dx_factor=dx_factor,
                             message=admin_message,
                             message_type=message_type)
@@ -559,8 +559,8 @@ def add_key_success_criterion():
 @app.route('/admin/edit_key_success_criterion/<int:id>')
 def edit_key_success_criterion(id):
     key_success_criterion = Key_success_criterion.query.get_or_404(id)
-    return render_template('admin_edit_key_success_criterion.html',
-                            key_success_criterion=key_success_criterion,
+    return render_template('edit_key_success_criterion.html',
+                            criterion=key_success_criterion,
                             message=admin_message,
                             message_type=message_type)
 
@@ -572,9 +572,11 @@ def update_key_success_criterion(id):
     
     key_success_criterion = Key_success_criterion.query.get_or_404(id)
     title = request.form.get('title')
+    description = request.form.get('description')
     
     try:
         key_success_criterion.title = title
+        key_success_criterion.description = description
         db.session.commit()
         admin_message = 'Critério de sucesso atualizado com sucesso!'
         message_type = 'success'
@@ -594,6 +596,12 @@ def delete_key_success_criterion(id):
     key_success_criterion = Key_success_criterion.query.get_or_404(id)
     
     try:
+        
+        examples = Example.query.filter_by(key_success_criterion_id=id).all()
+        
+        for ex in examples:
+            db.session.delete(ex)
+        
         db.session.delete(key_success_criterion)
         db.session.commit()
         admin_message = 'Critério de sucesso excluído com sucesso!'
@@ -646,7 +654,8 @@ def add_task():
 def edit_task(id):
     task = Task.query.get_or_404(id)
     guidelines = Guideline.query.all()
-    return render_template('admin_edit_task.html', task=task, guidelines=guidelines, message=admin_message, message_type=message_type)
+    guideline_ids = [guideline.guidelineID for guideline in task.guidelines]
+    return render_template('edit_task.html', task=task, guidelines=guidelines, message=admin_message, message_type=message_type, guideline_ids=guideline_ids)
 
 @app.route('/admin/update_task/<int:id>', methods=['POST'])
 def update_task(id):
@@ -682,16 +691,31 @@ def delete_task(id):
     global message_type
     
     task = Task.query.get_or_404(id)
+    tasks = Task.query.all()
     
     try:
+        
+        questions = Question.query.filter_by(task_id=id).all()
+        
+        for q in questions:
+            db.session.delete(q)
+        
         db.session.delete(task)
         db.session.commit()
+        
+        print('deleted')
+        
         admin_message = 'Task deleted successfully!'
         message_type = 'success'
+        
     except Exception as e:
         db.session.rollback()
         admin_message = f'Error deleting task: {str(e)}'
         message_type = 'danger'
+        
+        print(e)
+        print('error')
+        
     
     return redirect(url_for('admin_guidelines'))
 
@@ -730,7 +754,7 @@ def add_question():
 def edit_question(id):
     question = Question.query.get_or_404(id)
     tasks = Task.query.all()
-    return render_template('admin_edit_question.html', question=question, tasks=tasks, message=admin_message, message_type=message_type)
+    return render_template('edit_question.html', question=question, tasks=tasks, message=admin_message, message_type=message_type)
 
 @app.route('/admin/update_question/<int:id>', methods=['POST'])
 def update_question(id):
@@ -809,7 +833,7 @@ def add_example():
 def edit_example(id):
     example = Example.query.get_or_404(id)
     key_success_criteria = Key_success_criterion.query.all()
-    return render_template('admin_edit_example.html', example=example, key_success_criteria=key_success_criteria, message=admin_message, message_type=message_type)
+    return render_template('edit_example.html', example=example, key_success_criteria=key_success_criteria, message=admin_message, message_type=message_type)
 
 @app.route('/admin/update_example/<int:id>', methods=['POST'])
 def update_example(id):
@@ -818,11 +842,9 @@ def update_example(id):
     
     example = Example.query.get_or_404(id)
     description = request.form.get('example')
-    key_success_criterion_id = request.form.get('key_success_criterion_id')
     
     try:
         example.description = description
-        example.key_success_criterion_id = key_success_criterion_id
         db.session.commit()
         admin_message = 'Example updated successfully!'
         message_type = 'success'
