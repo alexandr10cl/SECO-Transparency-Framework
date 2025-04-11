@@ -1,12 +1,18 @@
-SECRET_KEY = 'LabESC'
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 SQLALCHEMY_DATABASE_URI = \
     '{SGBD}://{user}:{passw}@{server}/{database}'.format(
-        SGBD = 'mysql+mysqlconnector',
-        user = 'Unirio_admin',
-        passw = 'Unirio2025!',
-        server = 'transparancy.crigq2wai5zc.sa-east-1.rds.amazonaws.com',
-        database = 'tool_portal'
+        SGBD = os.getenv('SGBD'),
+        user = os.getenv('USER'),
+        passw = os.getenv('PASSW'),
+        server = os.getenv('SERVER'),
+        database = os.getenv('DATABASE')
     )
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False

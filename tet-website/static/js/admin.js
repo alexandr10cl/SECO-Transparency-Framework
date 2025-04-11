@@ -86,3 +86,15 @@ function addMoreCriteria() {
     newCriteria.style.marginTop = '10px';
     criteriaContainer.parentNode.insertBefore(newCriteria, criteriaContainer.nextSibling);
 }
+
+function handleCheckboxSelection(checkbox) {
+    // Seleciona todos os checkboxes com o mesmo nome
+    const checkboxes = document.querySelectorAll(`input[name="${checkbox.name}"]`);
+    
+    // Desmarca todos os outros checkboxes
+    checkboxes.forEach(cb => {
+        if (cb !== checkbox) {
+            cb.checked = false;
+        }
+    });
+}

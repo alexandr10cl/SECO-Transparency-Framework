@@ -1,8 +1,114 @@
 {% extends "base.html" %}
 
+{% block head %}
+    <link rel="stylesheet" href="/static/css/about.css">
+{% endblock %}
+
 {% block title %}About{% endblock %}
 
 {% block content %}
-    <h1>Welcome to the About page</h1>
-    <p>This is the content of the about page.</p>
+<br><br><br>
+<div class="container">
+    <h1 class="title">About</h1>
+    <div class="cards">
+        <div class="card-full" id="camilo">
+            <img src="/static/images/camilo.jpeg" alt="Camilo" class="image">
+            <div class="card">
+                <h4 class="nm">Camilo Lima</h4>
+                <p class="gd">Graduation student</p>
+                <p class="fd">FullStack Developer</p>
+                <p class="useful-links"><strong>Useful links</strong></p>
+                <a class="link1 link" href="">
+                    <img class="icon" src="/static/images/linkedin.png" alt="Linkedin Camilo">
+                    <div class="tooltip">
+                        <span class="tooltip-text">Linkedin</span>
+                    </div>
+                </a>
+                <a class="link2 link" href="">
+                    <img class="icon" src="/static/images/lattes.png" alt="Curriculum Lattes Camilo">
+                    <div class="tooltip"><span class="tooltip-text">Curriculum Lattes</span></div>
+                </a>
+                <a class="link3 link" href="">
+                    <img class="icon" src="/static/images/github.png" alt="GitHub Camilo">
+                    <div class="tooltip"><span class="tooltip-text">GitHub</span></div>
+                </a>
+            </div>
+        </div>
+        <div class="card-full" id="rodrigo">
+            <img src="/static/images/rodrigo.jpeg" alt="Rodrigo" class="image">
+            <div class="card">
+                <h4>Rodrigo Zacarias</h4>
+                <p class="gd">PhD Student</p>
+                <p class="fd">Researcher</p>
+                <p class="useful-links"><strong>Useful links</strong></p>
+                <a class="link1 link" href="https://br.linkedin.com/in/rodrigozacarias">
+                    <img class="icon" src="/static/images/linkedin.png" alt="Linkedin Rodrigo">
+                    <div class="tooltip">
+                        <span class="tooltip-text">Linkedin</span>
+                    </div>
+                </a>
+                <a class="link2 link" href="http://lattes.cnpq.br/4503161633600385">
+                    <img class="icon" src="/static/images/lattes.png" alt="Curriculum Lattes Rodrigo">
+                    <div class="tooltip"><span class="tooltip-text">Curriculum Lattes</span></div>
+                </a>
+                <a class="link3 link" href="https://github.com/rodrigozacarias">
+                    <img class="icon" src="/static/images/github.png" alt="GitHub Rodrigo">
+                    <div class="tooltip"><span class="tooltip-text">GitHub</span></div>
+                </a>
+            </div>
+        </div>
+        <div class="card-full" id="alexandre">
+            <img src="/static/images/alexandre.jpeg" alt="Alexandre" class="image">
+            <div class="card">
+                <h4>Alexandre Vidal</h4>
+                <p class="gd">Graduation student</p>
+                <p class="fd">FullStack Developer</p>
+                <p class="useful-links"><strong>Useful links</strong></p>
+                <a class="link1 link" href="">
+                    <img class="icon" src="/static/images/linkedin.png" alt="Linkedin Alexandre">
+                    <div class="tooltip">
+                        <span class="tooltip-text">Linkedin</span>
+                    </div>
+                </a>
+                <a class="link2 link" href="">
+                    <img class="icon" src="/static/images/lattes.png" alt="Curriculum Lattes Alexandre">
+                    <div class="tooltip"><span class="tooltip-text">Curriculum Lattes</span></div>
+                </a>
+                <a class="link3 link" href="">
+                    <img class="icon" src="/static/images/github.png" alt="GitHub Alexandre">
+                    <div class="tooltip"><span class="tooltip-text">GitHub</span></div>
+                </a>
+            </div>
+        </div>
+        <div class="card-full" id="marcus">
+            <img src="/static/images/marcus.jpeg" alt="Marcus" class="image">
+            <div class="card">
+                <h4>Marcus Moura</h4>
+                <p class="gd">Master student</p>
+                <p class="fd">FullStack Developer</p>
+                <p class="useful-links"><strong>Useful links</strong></p>
+                <a class="link1 link" href="https://www.linkedin.com/in/marcus-ferreira-de-moura-3153ba208?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app">
+                    <img class="icon" src="/static/images/linkedin.png" alt="Linkedin Marcus">
+                    <div class="tooltip">
+                        <span class="tooltip-text">Linkedin</span>
+                    </div>
+                </a>
+                <a class="link2 link" href="https://github.com/Marcusfdm">
+                    <img class="icon" src="/static/images/lattes.png" alt="Curriculum Lattes Marcus">
+                    <div class="tooltip"><span class="tooltip-text">Curriculum Lattes</span></div>
+                </a>
+                <a class="link3 link" href="">
+                    <img class="icon" src="/static/images/github.png" alt="GitHub Marcus">
+                    <div class="tooltip"><span class="tooltip-text">GitHub</span></div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+{% block scripts %}
+    <script src="/static/js/about.js"></script>
+{% endblock %}
 {% endblock %}

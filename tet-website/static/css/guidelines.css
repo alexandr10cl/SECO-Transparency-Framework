@@ -9,12 +9,19 @@
     --cor-gray: gray;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 h1 {
     text-align: center;
+    margin-top: 40px;
+    font-size: 40px;
+    padding: 20px;
 }
 
 .sidebarG {
-    position: fixed;
+    position: fixed; 
     top: 51px;
     left: 0;
     width: 250px;
@@ -45,14 +52,37 @@ h1 {
     text-decoration: none;
     color: var(--cor-black);
     font-size: 1rem;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    padding: 10px;
+    border-radius: 5px;
 }
 
 .sidebarG ul li a:hover {
     color: var(--cor-1);
 }
 
+.sidebarG ul li a.active {
+    color: var(--cor-2);
+    background-color: var(--cor-1);
+    font-weight: bold;
+}
+
 .container {
     margin-left: 270px; /* Adjust to match the sidebar width + padding */
     padding: 20px;
+}
+
+.guideline {
+    padding: 20px 0 20px 0;
+    scroll-margin-top: 70px; /* Ajuste este valor para a altura da navbar */
+}
+
+.guideline p {
+    line-height: 1.7;
+    color: var(--cor-black);
+}
+
+.example {
+    margin-left: 100px;
+    margin-bottom: 15px;
 }

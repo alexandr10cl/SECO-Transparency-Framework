@@ -1,0 +1,161 @@
+body{
+    overflow-x: hidden;
+}
+
+h1{
+    text-align: center;
+}
+
+.container{
+    width: 100vw;
+    height: 100vh;
+}
+
+.card{
+    top: 180px;
+    width: 180px;
+    height: 75px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #11162e;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    position: relative;
+}
+
+.card p, h4, a{
+    
+    text-align: center;
+}
+
+.card p{
+    display: none;
+    transition: all 1s ease-in-out;
+}
+
+.card a{
+    text-decoration: none;
+    transition: all 1s ease-in-out;
+    display: none;
+}
+
+.card h4{
+    color: #f0f0f0;
+    margin-top: 5px;
+    grid-column: 1 / span 7;
+    grid-row: 2 / span 2;
+}
+
+.card-full:hover a{
+    color: #f0f0f0;
+    display: block;
+    font-size: 7px;
+}
+
+.card-full:hover p{
+    color: #f0f0f0;
+    display: block;
+    font-size: 7px;
+}
+
+.card-full:hover h4{
+    grid-row: 1;
+}
+
+.cards {
+    width: 100%;
+    height: 510px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image{
+    position: absolute;
+    background-color: red;
+    border-radius: 20px 20px 0 0;
+    width: 180px;
+    height: 180px;
+    z-index: -1;
+}
+
+.useful-links{
+    grid-column: 3 / span 3;
+    grid-row: 3;
+}
+
+.gd{
+    grid-column: 1 / span 3;
+    grid-row: 2;
+}
+
+.fd{
+    grid-column: 5 / span 3;
+    grid-row: 2;
+}
+
+.link1{
+    text-decoration: none;
+    grid-column: 2;
+    grid-row: 4;
+}
+.link2{
+    text-decoration: none;
+    grid-column: 4;
+    grid-row: 4;
+}
+.link3{
+    text-decoration: none;
+    grid-column: 6;
+    grid-row: 4;
+}
+
+.card-full{
+    height: 255px;
+    margin: 20px;
+}
+
+.icon{
+    width: 10px;
+    height: 10px;
+}
+
+.tooltip{
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text{
+    visibility: hidden;
+    width: 120px;
+    background-color: #1f1f1f;
+    color: #f0f0f0;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s;
+    top: 100%;
+    left: 50%;
+    margin-top: 12px;
+    margin-left: -65px;
+}
+
+.tooltip .tooltip-text::after{
+    content: " ";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #1f1f1f transparent;
+}
+
+.link:hover .tooltip-text{
+    visibility: visible;
+    opacity: 0.7;
+}

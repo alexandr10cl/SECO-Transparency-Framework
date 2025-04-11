@@ -1,5 +1,6 @@
 tet-website/__pycache__/
 
+.env
 
 # Python
 __pycache__/

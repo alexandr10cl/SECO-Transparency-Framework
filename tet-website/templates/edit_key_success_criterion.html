@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
+{% endblock %}
+
+{% block title %}Edit Key Success Criterion KSC{{ criterion.key_success_criterion_id }}{% endblock %}
+
+{% block content %}
+<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<div class="container">
+    <div id="key_success_criteria-section">
+        <div class="card">
+            <div class="card-header">
+                <h4>Edit Key Success Criterion KSC{{ criterion.key_success_criterion_id }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_key_success_criterion', id=criterion.key_success_criterion_id) }}">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" name="title" placeholder="Title" required value="{{ criterion.title }}">
+                        <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ criterion.description }}</textarea>
+                    </div>
+                    <div class="mb-7">
+                        <button type="submit" class="btn btn-primary">Update Criterion</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+</div>
+
+
+{% endblock %}

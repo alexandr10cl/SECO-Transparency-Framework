@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
+{% endblock %}
+
+{% block title %}Edit Example E{{ example.example_id }}{% endblock %}
+
+{% block content %}
+<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<div class="container">
+    <div id="examples-section">
+        <div class="card">
+            <div class="card-header">
+                <h4>Edit Example E{{ example.example_id }}</h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('update_example', id=example.example_id) }}" method="post">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="example" placeholder="Example" rows="4" required>{{ example.description }}</textarea>
+                    </div>
+                    <div class="mb-7">
+                        <button type="submit" class="btn btn-primary">Update Example</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
