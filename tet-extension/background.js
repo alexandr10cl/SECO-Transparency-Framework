@@ -3,7 +3,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     // Only send message when page is completely loaded and it's the active tab
     if (changeInfo.status === 'complete' && tab.active) {
       chrome.runtime.sendMessage({
-        action: "pageNavigation",
+        action: "page_navigation",
         url: tab.url,
         timestamp: new Date().toISOString(),
         title: tab.title
@@ -15,7 +15,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 chrome.tabs.onActivated.addListener(function(activeInfo) {
     chrome.tabs.get(activeInfo.tabId, function(tab) {
       chrome.runtime.sendMessage({
-        action: "tabSwitch",
+        action: "tab_switch",
         url: tab.url,
         timestamp: new Date().toISOString(),
         title: tab.title

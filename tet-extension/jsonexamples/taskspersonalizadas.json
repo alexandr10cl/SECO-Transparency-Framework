@@ -1,0 +1,51 @@
+[
+  {
+    "id": 6,
+    "title": "Task 1",
+    "description": "Translate the page into Portuguese.",
+    "questions": [
+      {
+        "text": "Could you solve the task? If not, could you explain why?",
+        "question_id": 1
+      },
+      {
+        "text": "In your opinion, is the portal's translation system effective?",
+        "question_id": 4
+      },
+      {
+        "text": "What do you think about the page design?",
+        "question_id": 5
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Task 2",
+    "description": "Find the portal's official documentation.",
+    "questions": [
+      {
+        "text": "Could you solve the task? If not, could you explain why?",
+        "question_id": 2
+      },
+      {
+        "text": "Was it easy to identify where the documentation is located and how to access it? If not, what could be improved?",
+        "question_id": 6
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Task 3",
+    "description": "Explore the portal's updates and news section and find a recent piece of information.",
+    "questions": [
+      {
+        "text": "Could you solve the task? If not, could you explain why?",
+        "question_id": 3
+      },
+      {
+        "text": "Were you able to easily identify where news and updates are published?",
+        "question_id": 7
+      }
+    ]
+  }
+]
