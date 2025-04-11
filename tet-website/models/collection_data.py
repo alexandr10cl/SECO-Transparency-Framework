@@ -20,8 +20,7 @@ class CollectedData(db.Model):
     
     # Rlationship with Navigation
     navigation = db.relationship('Navigation',
-                                backref=db.backref('collected_data', lazy=True, uselist=False),
-                                uselist=False)
+                                backref=db.backref('collected_data', lazy=True))
 
     # Foreign key to the evaluation table
     evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False) 
@@ -42,5 +41,4 @@ class Navigation(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
 
     # Foreign key to the collected data table
-    collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False, unique=True)
-
+    collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
