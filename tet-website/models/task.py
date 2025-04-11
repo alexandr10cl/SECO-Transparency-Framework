@@ -33,6 +33,9 @@ class PerformedTask(db.Model):
 
     # Foreign key to the collected data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
+    
+    # Foreign key to the task table
+    task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
 
 class Question(db.Model):
     __tablename__ = 'question'

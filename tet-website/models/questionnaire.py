@@ -11,9 +11,7 @@ class DeveloperQuestionnaire(db.Model):
     emotion = db.Column(db.Integer, nullable=False)
     comments = db.Column(db.String(500), nullable=False)
     segment = db.Column(db.Enum(SegmentType), nullable=False)
-
-    # Foreign key to the user table
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    experience = db.Column(db.Integer, nullable=False)
 
     # Foreign key to the collection data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False, unique=True)
