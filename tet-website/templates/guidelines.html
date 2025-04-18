@@ -2,59 +2,152 @@
 
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/guidelines.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 {% endblock %}
 
 {% block title %}Guidelines{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="sidebarG">
-            <h2>Guidelines</h2>
-            <ul>
-                {% for g in guidelines %}
-                    <li><a href="#guideline{{ g.guidelineID }}">{{ g.title }}</a></li>
-                {% endfor %}
-            </ul>
+
+    <div class="content">
+        <br>
+        <h1>Guidelines for Transparency</h1>
+
+        <div class="guidelines">
+            {% for g in guidelines %}
+                <div class="g" onclick="openModal('{{ g.guidelineID }}')">
+                    <div class="g-inner">
+                        <div class="g-front">
+                            <h2>G{{ g.guidelineID }}</h2>
+                            <p>{{ g.title }}</p>
+                            <i class="ic fas fa-info-circle text-3xl mt-4"></i>
+                        </div>
+                        <div class="g-back">
+                            <h3>G{{ g.guidelineID }}</h3>
+                            <p>Click to view full details</p>
+                            <i class="ic fas fa-expand text-3xl mt-4 text-gray-600"></i>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-        <h1 class="title">Guidelines</h1>
+
         {% for g in guidelines %}
-            <div class="guideline" id="guideline{{ g.guidelineID }}">
-                <span style="display: block; height: 70px; margin-top: -70px;" id="guideline{{ g.guidelineID }}"></span>
-                <h2>Guideline {{ g.guidelineID }} {{ g.title }}</h2>
-                <p><strong>Description:</strong> {{ g.description }}</p>
-                <p><strong>Helps in processes:</strong> 
-                    {% for p in g.seco_processes %}
-                        P{{ p.seco_process_id }} {% if not loop.last %}, {% endif %}
+        <div id="gModal{{ g.guidelineID }}" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>G{{ g.guidelineID }}: {{ g.title }}</h2>
+                <p>{{ g.description }}</p>
+
+                <div class="details">
+                    <div class="processes">
+                        <h3>Helps in Processes</h3>
+                        <ul>
+                            {% for p in g.seco_processes %}
+                            <li>P{{ p.seco_process_id }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="dimensions">
+                        <h3>Dimensions</h3>
+                        <ul class=>
+                            {% for d in g.seco_dimensions %}
+                                <li>{{ d.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="condFac">
+                        <h3>Conditioning Factors</h3>
+                        <ul>
+                            {% for cf in g.conditioning_factors %}
+                                <li>{{ cf.conditioning_factor_transp_id }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="dxFac">
+                        <h3>DX Factors</h3>
+                        <ul>
+                            {% for f in g.dx_factors %}
+                                <li>{{ f.dx_factor_id }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <h3 class="ksch3">Key Sucess Criteria</h3>
+                <div class="success-criteria">
+                    {% for ksc in g.key_success_criteria %}
+                        <div class="success-criterion">
+                            <h4>{{ ksc.title }}</h4>
+                            <p>{{ ksc.description }}</p>
+                            {% for e in ksc.examples %}
+                                <div class="example">
+                                    <strong>Example: </strong> {{ e.description }}
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% endfor %}
-                </p>
-                <p><strong>Software Ecosystem Dimension:</strong> 
-                    {% for d in g.seco_dimensions %}
-                        {{ d.name }} {% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-                <p><strong>Conditioning Factors for Transparency:</strong> 
-                    {% for cf in g.conditioning_factors %}
-                        CF{{ cf.conditioning_factor_transp_id }} {% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-                <p><strong>Developer Experience Factors:</strong> 
-                    {% for dx in g.dx_factors %}
-                        F{{ dx.dx_factor_id }} {% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-                {% for ksc in g.key_success_criteria %}
-                    <p><strong>Key Success Criteria {{ ksc.key_success_criteria_id }}:</strong> {{ ksc.title }}</p>
-                    <p>{{ ksc.description }}</p>
-                    {% for e in ksc.examples %}
-                    <p class="example"><strong>Example {{ e.example_id }}:</strong> 
-                        {{ e.description }}
-                    </p>
-                    {% endfor %}
-                {% endfor %}
+                    
+                </div>
             </div>
-
-
+        </div>
         {% endfor %}
+
+        <section class="references">
+            <h2>All Elements Reference</h2>
+            <div class="references-space">
+                <h3>Processes</h3>
+                <div class="references-content">
+                    {% for p in processes %}
+                        <div class="item">
+                            <h4>P{{ p.seco_process_id }}</h4>
+                            <p>{{ p.description }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="references-space">
+                <h3>Conditioning Factors for Transparency</h3>
+                <div class="references-content">
+                    {% for cf in conditioning_factors %}
+                        <div class="item">
+                            <h4>CF{{ cf.conditioning_factor_transp_id }}</h4>
+                            <p>{{ cf.description }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="references-space">
+                <h3>DX Factors</h3>
+                <div class="references-content">
+                    {% for f in factors %}
+                        <div class="item">
+                            <h4>F{{ f.dx_factor_id }}</h4>
+                            <p>{{ f.description }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="info">
+                <div class="i">
+                    <h4>LabESC</h4>
+                    <p>Complex Systems Engineering Laboratory</p>
+                </div>
+                <div class="i">
+                    <h4>Contato</h4>
+                    <p>(21) 98765-4321</p>
+                    <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
+                </div>
+            </div>
+            <div class="copy">
+                <p>&copy; 2025 UNIRIO. Todos os direitos reservados.</p> 
+            </div>
+        </div>
+    </footer>
 {% endblock %}
 
 {% block scripts %}
