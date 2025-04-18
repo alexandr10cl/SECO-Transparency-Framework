@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from app import app, db
 from functions import isLogged, isAdmin
-from models import User, Guideline
+from models import User, Guideline, SECO_process, SECO_dimension, Conditioning_factor_transp, Key_success_criterion, DX_factor
 
 @app.route('/doc')
 def doc():
@@ -24,15 +24,21 @@ def about():
 @app.route('/guidelines')
 def guidelines():
     guidelines = Guideline.query.all()
+    processes = SECO_process.query.all()
+    dimensions = SECO_dimension.query.all()
+    conditioning_factors = Conditioning_factor_transp.query.all()
+    criteria = Key_success_criterion.query.all()
+    factors = DX_factor.query.all()
+    
     if isLogged():
         email = session['user_signed_in']
         is_admin = isAdmin()
         return render_template('guidelines.html', 
                                 is_admin = is_admin,
-                                guidelines = guidelines)
+                                guidelines = guidelines, processes = processes, dimensions = dimensions, conditioning_factors = conditioning_factors, criteria = criteria, factors = factors)
 
     return render_template('guidelines.html', 
-                            guidelines = guidelines)
+                            guidelines = guidelines, processes = processes, dimensions = dimensions, conditioning_factors = conditioning_factors, criteria = criteria, factors = factors)
 
 @app.route('/seco_dashboard')
 def seco_dashboard():

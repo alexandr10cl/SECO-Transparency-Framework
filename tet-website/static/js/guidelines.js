@@ -1,48 +1,25 @@
-document.querySelectorAll('.sidebarG a').forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href').substring(1);
-        const targetElement = document.getElementById(targetId);
-        const offset = 70; // Altura da navbar
-        const elementPosition = targetElement.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-            top: elementPosition - offset,
-            behavior: 'smooth'
-        });
-    });
-});
-
-document.querySelectorAll('.sidebarG ul li').forEach(li => {
-    if (li.querySelector('a').classList.contains('active')) {
-        console.log(`The active sidebar item is: ${li.textContent.trim()}`);
+function openModal(guidelineID) {
+    const modal = document.getElementById(`gModal${guidelineID}`);
+    if (modal) {
+        modal.style.display = 'block'; // Exibe o modal
     }
-});
+}
 
-// Função para verificar qual guideline está visível
-function activateLinkOnScroll() {
-    const offset = 70; // Altura da navbar
-    const guidelines = document.querySelectorAll('.guideline');
-    const links = document.querySelectorAll('.sidebarG ul li a');
-
-    let activeGuidelineId = null;
-
-    guidelines.forEach(guideline => {
-        const rect = guideline.getBoundingClientRect();
-        if (rect.top <= offset && rect.bottom > offset) {
-            activeGuidelineId = guideline.id;
-        }
-    });
-
-    links.forEach(link => {
-        const targetId = link.getAttribute('href').substring(1);
-        if (targetId === activeGuidelineId) {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
+function closeModal() {
+    // Fecha todos os modais abertos
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none'; // Esconde o modal
     });
 }
 
-// Adiciona o evento de scroll
-window.addEventListener('scroll', activateLinkOnScroll);
+// Fecha o modal ao clicar fora dele
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none'; // Esconde o modal
+        }
+    });
+};
 
