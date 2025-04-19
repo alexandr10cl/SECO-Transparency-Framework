@@ -9,7 +9,29 @@
     --cor-gray: gray;
 }
 
-h1{
+.header{
+    margin-top: -7px;
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(90deg, rgb(104, 126, 255), var(--cor-1), blue);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.header h1{
+    font-size: 50px;
+    color: white;
+}
+
+.header p{
+    color: white;
+    font-size: 30px;
+    font-weight: 500;
+}
+
+.title{
     font-size: 40px;
     color: rgb(44, 44, 44);
 }
