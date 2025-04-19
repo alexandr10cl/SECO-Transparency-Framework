@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for
 from app import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -120,6 +120,7 @@ def evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
     seco_processes = evaluation.seco_processes
     collected_data = evaluation.collected_data
+    questions = Question.query.all()
     guidelines = []
     tasks = []
     for p in seco_processes:
@@ -132,4 +133,4 @@ def evaluation(id):
                 
     count_collected_data = len(collected_data)
 
-    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data, guidelines=guidelines, tasks=tasks)
+    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data, guidelines=guidelines, tasks=tasks, collected_data=collected_data, questions=questions)

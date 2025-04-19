@@ -28,8 +28,7 @@
                 <p><strong>URL:</strong> {{ evaluation.seco_portal_url }}</p>
                 <p><strong>Processes:</strong>{% for p in evaluation.seco_processes %} P{{ p.seco_process_id }} {% if not loop.last %}, {% endif %} {%endfor%}</p>
                 <p><strong>Number of collects:</strong> {{ count_collected_data }}</p>
-                <hr class="divider">
-                <div class="dropdownG">
+                <div class="dropdown">
                     <button class="dropdown-toggle" id="dropdown-toggleG">
                         <p class="label">Related Guidelines</p>
                         <p class="arrow" id="arrowG"><</p>
@@ -40,8 +39,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <hr class="divider">
-                <div class="dropdownT">
+                <div class="dropdown">
                     <button class="dropdown-toggle" id="dropdown-toggleT">
                         <p class="label">Related Tasks</p>
                         <p class="arrow" id="arrowT"><</p>
@@ -52,6 +50,21 @@
                         {% endfor %}
                     </ul>
                 </div>
+                {% if collected_data %}
+                <div class="dropdown">
+                    <button class="dropdown-toggle" id="dropdown-toggleC">
+                        <p class="label">Collects</p>
+                        <p class="arrow" id="arrowC"><</p>
+                    </button>
+                    <ul class="dropdown-menu" id="dropdown-menuC">
+                        {% for c in collected_data %}
+                            <li class="dropdown-itemC">
+                                <button id="openModal{{ c.collected_data_id }}">Collect {{ c.collected_data_id }}</button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -90,6 +103,37 @@
                 <ul id="modal-descriptionT{{ t.task_id }}">
                     <li><strong>Task ID:</strong> {{ t.task_id }}</li>
                     <li><strong>Description:</strong> {{ t.description }}</li>
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for c in collected_data %}
+        <div id="modalC{{ c.collected_data_id }}" class="modal inv">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modal-titleC{{ c.collected_data_id }}">Collect {{ c.collected_data_id }}</h2>
+                <ul id="modal-descriptionC{{ c.collected_data_id }}">
+                    <li><strong>Collect ID:</strong> {{ c.collected_data_id }}</li>
+                    <li><strong>Performed Tasks:</strong>
+                    {% for p in c.performed_tasks %}
+                         T{{ p.task_id }}: {{ p.status.value }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                    </li>
+                    <li><strong>Questionaire:</strong>
+                    {% for p in c.performed_tasks %}
+                        {% for a in p.answers %}
+                            {% for q in questions %}
+                                {% if q.question_id == a.question_id %}
+                                    <ul>
+                                        <li><strong>Question: </strong>{{ q.question }}</li>
+                                        <li><strong>Answer: </strong>{{ a.answer }}</li>
+                                    </ul>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endfor %}
+                    </li>
                 </ul>
             </div>
         </div>
