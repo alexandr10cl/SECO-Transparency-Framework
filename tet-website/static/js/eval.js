@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const dropdownTglT = document.getElementById("dropdown-toggleT");
     const dropdownMenuT = document.getElementById("dropdown-menuT");
     const arrowT = document.getElementById("arrowT");
+    const dropdownTglC = document.getElementById("dropdown-toggleC");
+    const dropdownMenuC = document.getElementById("dropdown-menuC");
+    const arrowC = document.getElementById("arrowC");
 
     dropdownTglG.addEventListener("click", () => {
         arrowG.classList.toggle("active");
@@ -16,6 +19,11 @@ document.addEventListener("DOMContentLoaded", () => {
         arrowT.classList.toggle("active");
         dropdownMenuT.classList.toggle("show");
     });
+
+    dropdownTglC.addEventListener("click", () => {
+        arrowC.classList.toggle("active");
+        dropdownMenuC.classList.toggle("show");
+    })
 
     // Modal functionality
     const modals = document.querySelectorAll(".modal");
@@ -33,6 +41,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".dropdown-itemT button").forEach(button => {
         button.addEventListener("click", () => {
             const modalId = `modalT${button.id.replace("openModal", "")}`;
+            document.getElementById(modalId).classList.remove("inv");
+        });
+    });
+
+    // Open modal for collects
+    document.querySelectorAll(".dropdown-itemC button").forEach(button => {
+        button.addEventListener("click", () => {
+            const modalId = `modalC${button.id.replace("openModal", "")}`;
             document.getElementById(modalId).classList.remove("inv");
         });
     });

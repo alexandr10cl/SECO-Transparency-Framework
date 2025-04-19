@@ -25,12 +25,14 @@
 .dropdown-toggle{
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 10px;
     cursor: pointer;
     width: 100%;
     background-color: var(--cor-2);
     border: none;
     transition: all 0.4s ease; 
+    border-top: 1px inset lightgray;
 }
 
 .dropdown-toggle:hover{
