@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    console.log("teste");
+
     const dropdownTglG = document.getElementById("dropdown-toggleG");
     const dropdownMenuG = document.getElementById("dropdown-menuG");
     const arrowG = document.getElementById("arrowG");
@@ -20,10 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
         dropdownMenuT.classList.toggle("show");
     });
 
-    dropdownTglC.addEventListener("click", () => {
-        arrowC.classList.toggle("active");
-        dropdownMenuC.classList.toggle("show");
-    })
+    if(dropdownTglC){
+        dropdownTglC.addEventListener("click", () => {
+            arrowC.classList.toggle("active");
+            dropdownMenuC.classList.toggle("show");
+    })}
 
     // Modal functionality
     const modals = document.querySelectorAll(".modal");
