@@ -1,70 +1,74 @@
 document.addEventListener("DOMContentLoaded", () => {
-
     console.log("teste");
-
-    const dropdownTglG = document.getElementById("dropdown-toggleG");
-    const dropdownMenuG = document.getElementById("dropdown-menuG");
-    const arrowG = document.getElementById("arrowG");
-    const dropdownTglT = document.getElementById("dropdown-toggleT");
-    const dropdownMenuT = document.getElementById("dropdown-menuT");
-    const arrowT = document.getElementById("arrowT");
-    const dropdownTglC = document.getElementById("dropdown-toggleC");
-    const dropdownMenuC = document.getElementById("dropdown-menuC");
-    const arrowC = document.getElementById("arrowC");
-
-    dropdownTglG.addEventListener("click", () => {
-        arrowG.classList.toggle("active");
-        dropdownMenuG.classList.toggle("show");
-    });
-
-    dropdownTglT.addEventListener("click", () => {
-        arrowT.classList.toggle("active");
-        dropdownMenuT.classList.toggle("show");
-    });
-
-    if(dropdownTglC){
-        dropdownTglC.addEventListener("click", () => {
-            arrowC.classList.toggle("active");
-            dropdownMenuC.classList.toggle("show");
-    })}
 
     // Modal functionality
     const modals = document.querySelectorAll(".modal");
     const closeButtons = document.querySelectorAll(".modal .close");
 
     // Open modal for guidelines
-    document.querySelectorAll(".dropdown-itemG button").forEach(button => {
+    document.querySelectorAll(".guidelines button").forEach(button => {
         button.addEventListener("click", () => {
             const modalId = `modalG${button.id.replace("openModal", "")}`;
-            document.getElementById(modalId).classList.remove("inv");
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove("inv");
+                modal.style.display = "block"; // Garantir que o modal seja exibido
+            } else {
+                console.error(`Modal with ID ${modalId} not found.`);
+            }
         });
     });
 
     // Open modal for tasks
-    document.querySelectorAll(".dropdown-itemT button").forEach(button => {
+    document.querySelectorAll(".tasks button").forEach(button => {
         button.addEventListener("click", () => {
             const modalId = `modalT${button.id.replace("openModal", "")}`;
-            document.getElementById(modalId).classList.remove("inv");
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove("inv");
+                modal.style.display = "block";
+            } else {
+                console.error(`Modal with ID ${modalId} not found.`);
+            }
         });
     });
 
     // Open modal for collects
-    document.querySelectorAll(".dropdown-itemC button").forEach(button => {
+    document.querySelectorAll(".cData button").forEach(button => {
         button.addEventListener("click", () => {
             const modalId = `modalC${button.id.replace("openModal", "")}`;
-            document.getElementById(modalId).classList.remove("inv");
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove("inv");
+                modal.style.display = "block";
+            } else {
+                console.error(`Modal with ID ${modalId} not found.`);
+            }
         });
     });
 
     // Open modal for settings
-    document.getElementById("openModalSettings").addEventListener("click", () => {
-        document.getElementById("modalConfig").classList.remove("inv");
-    });
+    const settingsButton = document.getElementById("openModalSettings");
+    if (settingsButton) {
+        settingsButton.addEventListener("click", () => {
+            const modal = document.getElementById("modalConfig");
+            if (modal) {
+                modal.classList.remove("inv");
+                modal.style.display = "block";
+            } else {
+                console.error("Settings modal not found.");
+            }
+        });
+    }
 
     // Close modals when clicking the close button
     closeButtons.forEach(button => {
         button.addEventListener("click", () => {
-            button.closest(".modal").classList.add("inv");
+            const modal = button.closest(".modal");
+            if (modal) {
+                modal.classList.add("inv");
+                modal.style.display = "none"; // Garantir que o modal seja ocultado
+            }
         });
     });
 
@@ -73,10 +77,10 @@ document.addEventListener("DOMContentLoaded", () => {
         modals.forEach(modal => {
             if (e.target === modal) {
                 modal.classList.add("inv");
+                modal.style.display = "none";
             }
         });
     });
-
 });
 
 
