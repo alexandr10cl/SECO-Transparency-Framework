@@ -9,28 +9,59 @@
 {% block content %}
 <br><br><br>
 <div class="container">
-    <h1>Evaluations</h1>
-        {% if evaluations %}
-            <div class="card">
-                <div class="card-body"></div>
-                    {% for e in evaluations %}
-                    <a href="{{ url_for('evaluation', id=e.evaluation_id) }}" style="text-decoration: none; color: black;">
+    <div class="header">
+        <h1 class="title">Evaluations</h1>
+        <p>An easy way to evaluate the transparency</p>
+        <p>of your portal</p>
+    </div>
+    <div class="evaluations">
+        <h2>Your Evaluations</h2>
+        <div class="evaluations-content">
+            {% if evaluations %}
+                {% for e in evaluations %}
+                    <a class="a-eval" href="{{ url_for('evaluation', id=e.evaluation_id) }}" style="text-decoration: none; color: black;">
                         <div class="eval" id="eval_{{ e.evaluation_id }}">
-                            <p id="eval-name">{{ e.name }}</p> 
-                            <p id="portal">Portal: {{ e.seco_portal }}</p>
-                            <p id="url">{{ e.seco_portal_url }}</p>
-                            <p id="pr_label">Processes:</p>
-                            <p id="pr">{% for p in e.seco_processes %}P{{ p.seco_process_id }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+                            <h3 id="eval-name">{{ e.name }}</h3> 
+                            <div class="portal">
+                                <h4>Portal</h4>
+                                <p>{{ e.seco_portal }}  ● <span>{{ e.seco_portal_url }}</span></p>
+                            </div>
+                            <div class="processes">
+                                <h4>Related Processes</h4>
+                                <div class="processes-content">
+                                    {% for p in e.seco_processes %}
+                                        <p>P{{ p.seco_process_id }}</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </a>
-                    {% endfor %}
-                    <a href="{{ url_for('create_evaluation') }}" class="btn btn-evaluation">+</a>
+                {% endfor %}
+                <a href="{{ url_for('create_evaluation') }}" class="btn-evaluation">&plus;</a>
+            {% else %}
+                
+                <p>You don't have any <span id="eval">evaluations</span>. Create one now!</p>
+                <a href="{{ url_for('create_evaluation') }}" class="btn-evaluation">&plus;</a>
+            {% endif %}
+        </div>
+    </div>
+    <footer>
+        <div class="footer-content">
+            <div class="info">
+                <div class="i">
+                    <h4>LabESC</h4>
+                    <p>Complex Systems Engineering Laboratory</p>
+                </div>
+                <div class="i">
+                    <h4>Contato</h4>
+                    <p>(21) 98765-4321</p>
+                    <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
                 </div>
             </div>
-        {% else %}
-            
-                <p>You don't have any <span id="eval">evaluations</span>. Create one now!</p>
-                <a href="{{ url_for('create_evaluation') }}" class="btn btn-evaluation">+</a>
-        {% endif %}
+            <div class="copy">
+                <p>&copy; 2025 UNIRIO. Todos os direitos reservados.</p> 
+            </div>
+        </div>
+    </footer>
 </div>
 {% endblock %}
