@@ -303,3 +303,7 @@ footer .footer-content{
     margin: 32px 0 0 0;
     border-top: 1px inset lightblue;
 }
+
+.inv {
+    display: none !important;
+}

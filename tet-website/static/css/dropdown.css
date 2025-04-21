@@ -20,6 +20,7 @@
     position: relative;
     display: inline-block;
     width: 100%;
+    border: none;
 }
 
 .dropdown-toggle{
@@ -30,15 +31,14 @@
     cursor: pointer;
     width: 100%;
     background-color: var(--cor-2);
-    border: none;
-    transition: all 0.4s ease; 
-    border-top: 1px inset lightgray;
+    transition: all 0.1s ease; 
+    border: 1px inset lightgray;
+    border-radius: 5px;
 }
 
 .dropdown-toggle:hover{
     background-color: var(--cor-1);
     color: var(--cor-2);
-    border-radius: 5px;
 }
 
 .dropdown-toggle .label{
@@ -101,6 +101,9 @@
 .dropdown-menu.show{
     max-height: 300px;
     opacity: 1;
+    border: 1px inset lightgray;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
 }
 
 .arrow.active{
