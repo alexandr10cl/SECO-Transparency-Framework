@@ -7,25 +7,25 @@
 {% block title %}Página principal{% endblock %}
 
 {% block content %}
-    {% if 'user_signed_in' not in session or session['user_signed_in'] == None %}
     <br><br>
     <header class="header-container">
         <div class="title_container">
-            <h1 class="title">Framework de Avaliação de Transparência em Ecossistemas de Software</h1>
-            <p class="subtitle">Solução tecnológica para analisar, avaliar e melhorar a transparência em portais de Ecossistemas de Software. Crie uma conta agora para começar uma avaliação em seu portal!</p>
+            <h1 class="title">Transparency Evaluation Framework for Software Ecosystems</h1>
+            <p class="subtitle">A technology solution to analyze, evaluate, and enhance transparency in software ecosystem portals.
+                Create an account now to start assessing your portal!</p>
             <div class="btn-section">
                 <button class="primary-btn">
-                    Conheça o Framework
+                    About the Framework
                 </button>
                 <button class="secondary-btn">
-                    Metodologia
+                    Documentation
                 </button>
             </div>
         </div>
     </header>
         <div class="about-bg">
             <div class="about_container">
-                <h2 class="about_title">Sobre o Projeto</h2>
+                <h2 class="about_title">About the Project</h2>
                 <hr id="about_hr">
                 <div class="about_content">
                     <div class="about_text_container">
@@ -40,73 +40,71 @@
             </div>
         </div>
         <div class="tools_container">
-            <h2 class="section_title">Nossas Ferramentas</h2>
+            <h2 class="section_title">Framework Tools</h2>
             <hr>
-            <p style="text-align: center;">Conheça as soluções integradas que compõem o Framework de avaliação de transparência</p>
+            <p style="text-align: center;">Discover the integrated solutions that make up the Transparency Assessment Framework.</p>
             <div class="tools_cards_container">
                 <div class="tool_card" id="tool_card_1">
                     <image src="{{ url_for('static', filename='images/extensao_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
-                    <h3>Extensão de Navegador</h3>
-                    <p>Extensão de navegador que coleta dados de portais de ecossistemas de software.</p>
-                    <button>Saiba mais</button>
+                    <h3>Browser Extension</h3>
+                    <p>A browser extension that guides developers through tasks, collects interaction data, and captures UX feedback to assess portal transparency.</p>
+                    <button>Learn More</button>
                 </div>
                 <div class="tool_card" id="tool_card_2">
                     <image src="{{ url_for('static', filename='images/dashboard_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>Dashboard</h3>
-                    <p>Fornece insights podersos sobre os portais analisados utilizando KPI's e um relatório completo da transparência baseado em diretrizes.</p>
-                    <button>Saiba mais</button>
+                    <p>Delivers powerful insights into analyzed portals with KPIs and a comprehensive transparency report based on established guidelines.</p>
+                    <button>Learn More</button>
                 </div>
                 <div class="tool_card" id="tool_card_3">
                     <image src="{{ url_for('static', filename='images/uxt_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>UX-Tracking</h3>
-                    <p>Ferramenta capaz de coletar dados de interação do usuário em tempo real, mapear jornadas do usuário, identificar pontos de interesse e fornecer insights relacionados e Experiência do Usuário em Ambientes Web e Mobile.</p>
-                    <button>Saiba mais</button>
+                    <p>A tool that collects real-time user interaction data, maps user journeys, identifies key touchpoints, and delivers valuable UX insights for both web and mobile environments.</p>
+                    <button>Learn More</button>
                 </div>
             </div>
         </div>
         <div class="evaluation_tutorial_container">
-            <h2 class="section_title">Como Funciona Uma Avaliação de Transparência em Portais?</h2>
+            <h2 class="section_title">How Does a Portal Transparency Evaluation Work?</h2>
             <hr>
-            <p>Aprenda a utilizar nossas ferramentas para avaliar a transparência do seu portal de ecossistema de software.</p>
+            <p>Learn how to use our tools to assess the transparency of your software ecosystem portal.</p>
             <div class="timeline_container">
                 <div class="timeline_line"></div> 
                 <div class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/info_icon.png') }}"></image></div>
-                    <h3>1. Criar avaliação</h3>
-                    <p>Após criar uma conta, é possível iniciar uma nova avaliação para o seu portal,
-                        selecionando os processos específicos que devem ser testados pelos desenvolvedores. 
-                        Para isso, basta fornecer o link para o portal.</p>
+                    <h3>1. Create Evaluation</h3>
+                    <p>After creating an account, you can start a new assessment for your portal by selecting the specific processes to be tested by developers.
+                        All you need to do is provide the link to your portal.</p>
                 </div>
                 <div class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/browse_activity_icon.png') }}"></image></div>
-                    <h3>2. Coleta de Dados</h3>
+                    <h3>2. Data Collection</h3>
                     <p>
-                        Ao criar uma avaliação, um código será gerado para que os desenvolvedores possam participar dela por meio da extensão de navegador.
-                        Ela irá registrar as interações dos desenvolvedores com o portal, coletando informações relevantes para a avaliação.</p>
+                        When an assessment is created, a code will be generated so developers can join it through the browser extension.
+                        The extension will record their interactions with the portal, collecting relevant information for the evaluation.</p>
                     </p>
                 </div>
                 <div class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/monitoring_icon.png') }}"></image></div>
-                    <h3>3. Análise dos dados</h3>
-                    <p> Acesse o dashboard para explorar os dados coletados, gerar relatórios detalhados e visualizar gráficos de desempenho.
-                         Utilize esses insights para entender padrões de uso e identificar pontos de melhoria na transparência do seu portal.</p>
+                    <h3>3. Data Analysis</h3>
+                    <p> Access the dashboard to explore the collected data, generate detailed reports, and view performance charts.
+                        Use these insights to understand usage patterns and identify opportunities to improve your portal’s transparency.</p>
                 </div>
                 <div class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/check_box_icon.png') }}"></image> </div>
-                    <h3>4. Correção</h3>
-                    <p>Consulte o relatório gerado, revise as diretrizes de transparência recomendadas e implemente as ações corretivas
-                         necessárias para aprimorar seu portal com base nos pontos identificados.</p>
+                    <h3>4. Correction</h3>
+                    <p>Review the generated report, go over the recommended transparency guidelines, and implement the necessary corrective actions to enhance your portal based on the identified issues.</p>
                 </div>
             </div>
         </div>
         <div class="demonstracao_container">
             <div class="demonstracao_text_container">
-                <h2>Veja a extensão em ação</h2>
-                <p>Assista ao vídeo abaixo para ver como a extensão funciona e como ela pode ajudar na avaliação da transparência do seu portal.</p>
+                <h2>See the Extension in Action</h2>
+                <p>Watch the video below to learn how the extension works and how it can support the transparency assessment of your portal.</p>
                 <ul class="custom-list">
-                    <li>Desenvolvedor realiza tarefas pré elaboradas para avaliar pontos chave do portal</li>
-                    <li>Questionário para avaliar a experiência ao interagir com o portal</li>
-                    <li>Após finalizar as tarefas, um questionário da experiência geral no portal deve ser respondido</li>
+                    <li>The developer performs pre-defined tasks to evaluate key areas of the portal</li>
+                    <li>A questionnaire is used to assess the experience while interacting with the portal</li>
+                    <li>After completing the tasks, a final questionnaire about the overall experience must be filled out</li>
                 </ul>
             </div>
             <video id="demonstracao" controls>
@@ -132,15 +130,4 @@
                 </div>
             </div>
         </footer>
-    {% else %}
-    <br><br><br>
-        <h1>Welcome {% if 'user_type' in session and session['user_type'] == 'admin' %}admin {% endif %}{{ username }}!</h1>
-        <p>This is the content of the logged home page</p>
-        <p>These are the admin accounts</p>
-        <ul>
-            {% for a in admins %}
-                <li> - {{ a.username }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
 {% endblock %}
