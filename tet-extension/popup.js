@@ -143,7 +143,7 @@ function fetchtasks(code) {
         // Estrutura da task e da review
         taskWrapper.innerHTML = `
         <div class="task" id="task${task.id}">
-        <h1>Task ${task.id}</h1>
+        <h1>${task.title}</h1>
             <hr style="border: 1px solid #ccc; width: 80%;">
             <h2 id="task${task.id}_title" style="display: none;">${task.description}</h2>
             <h2 id="task${task.id}_startmassage">Start the task when you're ready</h2>
@@ -153,7 +153,7 @@ function fetchtasks(code) {
             <button class="couldntsolve" id="couldntSolveTask${task.id}Button" style="display: none;">Couldn't solve it?</button>
           </div>
           <div class="task_review" id="task${task.id}_review">
-            <h1>Task ${task.id} Review</h1>
+            <h1>Review: ${task.title}</h1>
             <hr style="border: 1px solid #ccc; width: 80%;">
             <h2>${task.description}</h2>
             <hr style="border: 1px solid #ccc; width: 80%;">
@@ -328,9 +328,9 @@ function sendData() {
   })
   .then(response => response.json()) // converte a resposta recebida pela api em um json
   .then(data => { // Agora com os dados convertidos, exibe na tela que foi enviado com sucesso
+    document.getElementById("finishevaluationbtn").disabled = true; // Desabilita o botão de finalizar
     console.log("Resposta do servidor:", data);
     alert("Dados enviados com sucesso");
-    document.getElementById("finishevaluationbtn").disabled = true; // Desabilita o botão de finalizar
   })
   .catch(error => { //tratamento de erro
     alert("Erro ao enviar os dados");
