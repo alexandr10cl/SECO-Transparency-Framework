@@ -105,8 +105,6 @@ footer .footer-content{
     z-index: 2;
     text-align: center;
     max-width: 800px;
-    opacity: 0;
-    animation: fadeIn 1.5s forwards;
   }
 
 @keyframes fadeIn {
@@ -218,7 +216,6 @@ hr {
     border-top: var(--blue-light) solid 5px;
     text-align: justify;
     opacity: 0;
-    animation: cardFadeIn 1s ease-out forwards;
 }
 
 @keyframes cardFadeIn {

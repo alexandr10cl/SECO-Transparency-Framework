@@ -2,6 +2,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 {% endblock %}
 
 {% block title %}Página principal{% endblock %}
@@ -10,10 +11,10 @@
     <br><br>
     <header class="header-container">
         <div class="title_container">
-            <h1 class="title">Transparency Evaluation Framework for Software Ecosystems</h1>
-            <p class="subtitle">A technology solution to analyze, evaluate, and enhance transparency in software ecosystem portals.
+            <h1 data-aos="fade-up" class="title">Transparency Evaluation Framework for Software Ecosystems</h1>
+            <p data-aos="slide-up" class="subtitle">A technology solution to analyze, evaluate, and enhance transparency in software ecosystem portals.
                 Create an account now to start assessing your portal!</p>
-            <div class="btn-section">
+            <div data-aos="zoom-in" class="btn-section">
                 <button class="primary-btn">
                     About the Framework
                 </button>
@@ -26,7 +27,7 @@
         <div class="about-bg">
             <div class="about_container">
                 <h2 class="about_title">About the Project</h2>
-                <hr id="about_hr">
+                <hr data-aos="flip-left" id="about_hr">
                 <div class="about_content">
                     <div class="about_text_container">
                         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque commodo, velit nec pretium consequat, tellus libero iaculis erat, vitae porta sapien libero a urna. Nulla facilisi. Integer vel lorem vel ex dapibus euismod.</p>
@@ -44,19 +45,19 @@
             <hr>
             <p style="text-align: center;">Discover the integrated solutions that make up the Transparency Assessment Framework.</p>
             <div class="tools_cards_container">
-                <div class="tool_card" id="tool_card_1">
+                <div data-aos="fade-up" data-aos-delay="300" class="tool_card" id="tool_card_1">
                     <image src="{{ url_for('static', filename='images/extensao_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>Browser Extension</h3>
                     <p>A browser extension that guides developers through tasks, collects interaction data, and captures UX feedback to assess portal transparency.</p>
                     <button>Learn More</button>
                 </div>
-                <div class="tool_card" id="tool_card_2">
+                <div data-aos="fade-up" data-aos-delay="400" class="tool_card" id="tool_card_2">
                     <image src="{{ url_for('static', filename='images/dashboard_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>Dashboard</h3>
                     <p>Delivers powerful insights into analyzed portals with KPIs and a comprehensive transparency report based on established guidelines.</p>
                     <button>Learn More</button>
                 </div>
-                <div class="tool_card" id="tool_card_3">
+                <div data-aos="fade-up" data-aos-delay="500" class="tool_card" id="tool_card_3">
                     <image src="{{ url_for('static', filename='images/uxt_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>UX-Tracking</h3>
                     <p>A tool that collects real-time user interaction data, maps user journeys, identifies key touchpoints, and delivers valuable UX insights for both web and mobile environments.</p>
@@ -66,17 +67,17 @@
         </div>
         <div class="evaluation_tutorial_container">
             <h2 class="section_title">How Does a Portal Transparency Evaluation Work?</h2>
-            <hr>
+            <hr data-aos="flip-left">
             <p>Learn how to use our tools to assess the transparency of your software ecosystem portal.</p>
             <div class="timeline_container">
-                <div class="timeline_line"></div> 
-                <div class="timeline_step">
+                <div data-aos="flip-left" data-aos-duration="1000" class="timeline_line"></div> 
+                <div data-aos="fade-up" data-aos-delay="500" class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/info_icon.png') }}"></image></div>
                     <h3>1. Create Evaluation</h3>
                     <p>After creating an account, you can start a new assessment for your portal by selecting the specific processes to be tested by developers.
                         All you need to do is provide the link to your portal.</p>
                 </div>
-                <div class="timeline_step">
+                <div data-aos="fade-up" data-aos-delay="500" class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/browse_activity_icon.png') }}"></image></div>
                     <h3>2. Data Collection</h3>
                     <p>
@@ -84,13 +85,13 @@
                         The extension will record their interactions with the portal, collecting relevant information for the evaluation.</p>
                     </p>
                 </div>
-                <div class="timeline_step">
+                <div data-aos="fade-up" data-aos-delay="500" class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/monitoring_icon.png') }}"></image></div>
                     <h3>3. Data Analysis</h3>
                     <p> Access the dashboard to explore the collected data, generate detailed reports, and view performance charts.
                         Use these insights to understand usage patterns and identify opportunities to improve your portal’s transparency.</p>
                 </div>
-                <div class="timeline_step">
+                <div data-aos="fade-up" data-aos-delay="500" class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/check_box_icon.png') }}"></image> </div>
                     <h3>4. Correction</h3>
                     <p>Review the generated report, go over the recommended transparency guidelines, and implement the necessary corrective actions to enhance your portal based on the identified issues.</p>
@@ -130,4 +131,8 @@
                 </div>
             </div>
         </footer>
+        <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+        <script>
+            AOS.init();
+        </script>
 {% endblock %}
