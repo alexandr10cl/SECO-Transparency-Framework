@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for
 from app import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -109,6 +109,16 @@ def update_evaluation(id):
 @app.route('/evaluations/<int:id>/delete')
 def delete_evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
+    
+    for c in evaluation.collected_data:
+        for p in c.performed_tasks:
+            for a in p.answers:
+                db.session.delete(a)
+            db.session.delete(p)
+        
+        db.session.delete(c.developer_questionnaire)
+        db.session.delete(c)
+    
     db.session.delete(evaluation)
     db.session.commit()
     return redirect(url_for('evaluations'))
