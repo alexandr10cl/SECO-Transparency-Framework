@@ -151,6 +151,11 @@ function fetchtasks(code) {
             <button id="startTask${task.id}Button">Start Task</button>
             <button id="finishTask${task.id}Button" style="display: none;">Finish</button>
             <button class="couldntsolve" id="couldntSolveTask${task.id}Button" style="display: none;">Couldn't solve it?</button>
+              <div class="screenshot-box">
+                <h2>Having issues?</h2>
+                <p>Please take a screenshot to capture the problem you encounter while interacting with the site. This helps us identify <b>hotspots</b> during the evaluation!</p>
+                <button id="screenshotButton${task.id}">Take Screenshot</button>
+              </div>
           </div>
           <div class="task_review" id="task${task.id}_review">
             <h1>Review: ${task.title}</h1>

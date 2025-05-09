@@ -25,36 +25,53 @@ h1 {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .questionnaire_page {
   display: flex;
   align-items: center;
   flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .final_questionnaire_page {
   display: flex;
   align-items: center;
   flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .task_review{
   display: flex;
   align-items: center;
   flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .final_page {
   display: flex;
   align-items: center;
   flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .task {
   display: flex;
   align-items: center;
   flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0); 
+  }
 }
 
 /* Hidden Elements */
@@ -366,4 +383,20 @@ button:disabled {
 .final_questionnaire_questions {
   margin-top: 20px;
   margin-bottom: 20px;
+}
+
+.screenshot-box{
+  background-color: #2ecc7031;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 80% 0 0 0;
+}
+
+.screenshot-box button{
+  background-color: #2ecc70;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
 }
