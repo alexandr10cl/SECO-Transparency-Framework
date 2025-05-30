@@ -64,8 +64,8 @@ Admin Panel
                                     <div class="checkbox-group">
                                         {% for dimension in seco_dimensions %}
                                         <div class="checkbox-item">
-                                            <label for="seco_{{ dimension.seco_dimension_id }}" title="D{{ dimension.seco_dimension_id }}">D{{ dimension.seco_dimension_id }}</label>
-                                            <input type="checkbox" id="seco_{{ dimension.seco_dimension_id }}" 
+                                            <label for="seco_d_{{ dimension.seco_dimension_id }}" title="D{{ dimension.seco_dimension_id }}">D{{ dimension.seco_dimension_id }}</label>
+                                            <input type="checkbox" id="seco_d_{{ dimension.seco_dimension_id }}" 
                                                    name="seco_dimension_ids" value="{{ dimension.seco_dimension_id }}">
                                         </div>
                                         {% endfor %}
