@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
   "version": "0.0.1",
-  "name": "TET-SECO",
+  "name": "SECO-TransP",
   "description": "Ferramenta de análise de transparência",
   "author": "UNIRIO",
   "action": {
-    "default_title": "TET-SECO"
+    "default_title": "SECO-TransP"
   },
   "background": {
     "service_worker": "background.js"
