@@ -49,7 +49,7 @@
                         <h3>Helps in Processes</h3>
                         <ul>
                             {% for p in g.seco_processes %}
-                            <li>P{{ p.seco_process_id }}</li>
+                            <li>{{ p.description}}</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -65,7 +65,7 @@
                         <h3>Conditioning Factors</h3>
                         <ul>
                             {% for cf in g.conditioning_factors %}
-                                <li>{{ cf.conditioning_factor_transp_id }}</li>
+                                <li>{{ cf.description }}</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -73,7 +73,7 @@
                         <h3>DX Factors</h3>
                         <ul>
                             {% for f in g.dx_factors %}
-                                <li>{{ f.dx_factor_id }}</li>
+                                <li>{{ f.description }}</li>
                             {% endfor %}
                         </ul>
                     </div>

@@ -126,7 +126,7 @@
     padding: 30px;
     border-radius: 15px;
     width: 80%;
-    max-width: 700px;
+    width: 1000px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     animation: modalopen 0.5s;
     display: flex;
