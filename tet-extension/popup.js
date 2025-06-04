@@ -79,6 +79,12 @@ document.getElementById("verifyButton").addEventListener("click", function () {
 
 });
 
+
+// Gerar código com API DO UX-TRACKING
+document.getElementById("generateCode").addEventListener("click", function () {
+  console.log("Gerando código de autenticação...");
+});
+
 function auth_evaluation(code) {
   return fetch("http://127.0.0.1:5000/auth_evaluation", {
     method: "POST",
@@ -239,7 +245,6 @@ function fetchtasks(code) {
       updateDisplay();
     });
 }
-
 
 // Função que atualiza a exibição com base na fase e na task atual
 function updateDisplay() {

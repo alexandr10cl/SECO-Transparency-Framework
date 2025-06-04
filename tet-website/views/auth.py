@@ -1,4 +1,5 @@
-from flask import render_template, request, redirect, session, url_for
+from flask import render_template, request, redirect, session, url_for, flash
+import requests
 from app import app, db
 from models import User
 from functions import isLogged, isAdmin
@@ -25,6 +26,27 @@ def auth():
 
             session['user_signed_in'] = user.email
             session['user_type'] = user.type.value
+
+            # Pegar token de autenticação do UXT
+            uxt_url = 'https://uxt-stage.liis.com.br/auth/login'
+
+            uxt_dados = {
+                "email": user.email,
+                "password": user.passw
+            }
+
+            resposta = requests.post(uxt_url, json=uxt_dados)
+            if resposta.status_code == 200:
+                access_token = resposta.json().get('access_token')
+                if access_token:
+                    session['uxt_access_token'] = access_token
+                    print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
+                else:
+                    print("[UXT] Nenhum token de acesso retornado.")
+            else:
+                print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
+                print(f"[UXT] Resposta: {resposta.text}")
+                return redirect(url_for('signin'))
 
             message = ''
             messageReg = ''
@@ -78,6 +100,99 @@ def register():
     message = ''
     messageReg = 'Account created successfully'
     messageEA = ''
+
+    uxt_url = 'https://uxt-stage.liis.com.br/auth/register'
+
+    uxt_dados = {
+        "email": email,
+        "username": name,
+        "password": passw,
+        "role": 1
+    }
+
+    try:
+        resposta = requests.post(uxt_url, json=uxt_dados)
+        if resposta.status_code == 201:
+            print(f"[UXT] Conta registrada com sucesso na API UXT para '{email}'.")
+
+            # Conta criada com sucesso. Agora, é necessário mudar a role padrão 1 para 2 (SECO Manager)
+            # PEGAR O TOKEN RETORNADO DO NOVO USUÁRIO
+            access_token = resposta.json().get('access_token')
+
+            if access_token:
+                # FAZER REQUISIÇÃO AUTENTICADA PARA /auth/me
+                headers = {
+                    'Authorization': f'Bearer {access_token}'
+                }
+
+                me_url = 'https://uxt-stage.liis.com.br/auth/me'
+                me_resp = requests.get(me_url, headers=headers)
+
+                if me_resp.status_code == 200:
+                    me_data = me_resp.json()
+                    print(f"[UXT] Dados do usuário logado: {me_data}")
+                else:
+                    print(f"[UXT] Falha ao acessar /auth/me: {me_resp.status_code}")
+                    print(f"[UXT] Resposta: {me_resp.text}")
+            else:
+                print("[UXT] Nenhum token de acesso retornado.")
+
+            # Obter Token de administrador para mudar a role
+            uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
+
+            # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
+            credenciais_admin = {
+                "email": "vasco@gmail.com",
+                "password": "vasco123"
+            }
+
+            resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
+            if resposta_admin.status_code == 200:
+                token = resposta_admin.json().get("access_token")
+                managerId = me_data.get("idUser")
+
+                # Atualizar a role do usuário para SECO Manager (role 2)
+                uxt_changeRole_url = 'https://uxt-stage.liis.com.br/auth/change-role'
+                dados_changeRole = {
+                    "userId": managerId,
+                    "newRole": 2 # SECO Manager
+                }
+
+                headers_admin = {
+                    'Authorization': f'Bearer {token}'
+                }
+
+                resposta_changeRole = requests.post(uxt_changeRole_url, json=dados_changeRole, headers=headers_admin)
+                if resposta_changeRole.status_code == 200:
+                    print(f"[UXT] Role do usuário '{email}' alterada para SECO Manager com sucesso.")
+                    message = 'Account created and registered in UXT successfully'
+                    messageReg = ''
+                    messageEA = ''
+                else:
+                    print(f"[UXT] Erro ao alterar a role do usuário: {resposta_changeRole.text}")
+                    message = 'Error changing user role in UXT'
+                    messageReg = ''
+                    messageEA = ''
+                    return redirect(url_for('signin'))
+
+            else:
+                print(f"[UXT] Erro ao obter token de administrador: {resposta_admin.text}")
+                message = 'Error obtaining admin token for UXT'
+                messageReg = ''
+                messageEA = ''
+                return redirect(url_for('signin'))
+
+        else:
+            print(f"[UXT] Erro ao registrar na API UXT (status {resposta.status_code}).")
+            print(f"[UXT] Resposta: {resposta.text}")
+            message = 'Local account created, but UXT registration failed. This user already exists.'
+            messageReg = ''
+            messageEA = ''
+    except requests.exceptions.RequestException as e:
+        print(f"[UXT] Erro de conexão com a API UXT: {str(e)}")
+        message = 'Error connecting to UXT'
+        messageReg = ''
+        messageEA = ''
 
     return redirect(url_for('signin'))
 
