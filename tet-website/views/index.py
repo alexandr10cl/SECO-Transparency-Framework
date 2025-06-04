@@ -4,6 +4,7 @@ from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
+import requests
 
 @app.route('/')
 def index():
@@ -44,10 +45,32 @@ def add_evaluation():
     user_id = user.user_id
 
     # setting the evaluation_id
-    while True:
-        evaluation_id = ''.join(rd.choices('0123456789', k=6))
-        if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
-            break
+
+    # Gerar código de Avaliação Único usando API
+    uxt_url_generate = 'https://uxt-stage.liis.com.br/generate-code?horas=730' # 730 horas = 30 dias
+
+    access_token = session.get('uxt_access_token')
+
+    if not access_token:
+        print("[UXT] No access token found in session. Please log in again.")
+        return redirect(url_for('signin'))
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    resposta_generatecode = requests.post(uxt_url_generate, headers=headers)
+    if resposta_generatecode.status_code == 201:
+        evaluation_id = resposta_generatecode.json().get('cod')
+        print("Generated evaluation ID from API:", evaluation_id)
+    else:
+        # If the API call fails, we can still use the random ID
+        print("Failed to generate evaluation ID from API, using random ID instead.")
+        print("Response from API:", resposta_generatecode.status_code, resposta_generatecode.text)
+        while True:
+            evaluation_id = ''.join(rd.choices('0123456789', k=6))
+            if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
+                break
 
     # getting the selected SECO_process IDs
     seco_process_ids = request.form.getlist('seco_process_ids')
