@@ -27,6 +27,27 @@ def auth():
             session['user_signed_in'] = user.email
             session['user_type'] = user.type.value
 
+            # Pegar token de autenticação do UXT
+            uxt_url = 'https://uxt-stage.liis.com.br/auth/login'
+
+            uxt_dados = {
+                "email": user.email,
+                "password": user.passw
+            }
+
+            resposta = requests.post(uxt_url, json=uxt_dados)
+            if resposta.status_code == 200:
+                access_token = resposta.json().get('access_token')
+                if access_token:
+                    session['uxt_access_token'] = access_token
+                    print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
+                else:
+                    print("[UXT] Nenhum token de acesso retornado.")
+            else:
+                print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
+                print(f"[UXT] Resposta: {resposta.text}")
+                return redirect(url_for('signin'))
+
             message = ''
             messageReg = ''
             messageEA = ''
