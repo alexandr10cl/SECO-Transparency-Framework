@@ -8,63 +8,61 @@
 </head>
 <body>
     <div class="progress-bar-container" id="progressBarContainer">
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
-        </div>
-        <div class="progress-text" id="progressText">0/0 tasks completed</div>
+  <div class="progress-bar">
+    <div class="progress-bar-fill" id="progressBarFill"></div>
+  </div>
+  <div class="progress-text" id="progressText">0/0 tasks completed</div>
     </div>
+
     <div class="login_page">
-        <h1>Transparency evaluation tool</h1>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <div class="login-container">
-          <h1>Evaluation Authentication</h1>
-          <div id="errorMessage" class="error-message">
-            Invalid authentication code. Please try again.
-          </div>
-          <p>Please enter the code to validate this evaluation.</p>
-          <div class="login-form">
-            <div class="form-card-input-wrapper">
-              <input id="authcode" class="form-card-input" placeholder="______" maxlength="6" type="text">
-              <div class="form-card-input-bg"></div>
-            </div>
-            <button id="verifyButton">VERIFY</button>
-          </div>
+    <h1>Transparency evaluation tool</h1>
+    <hr style="border: 1px solid #ccc; width: 80%;">
+    <div class="login-container">
+        <h1>Evaluation Authentication</h1>
+        <div id="errorMessage" class="error-message">
+        Invalid authentication code. Please try again.
         </div>
-      </div>
+        <p>Please enter the code to validate this evaluation.</p>
+        <div class="login-form">
+        <div class="form-card-input-wrapper">
+            <input id="authcode" class="form-card-input" placeholder="______" maxlength="7" type="text">
+            <div class="form-card-input-bg"></div>
+        </div>
+        <button id="verifyButton">VERIFY</button>
+        </div>
+    </div>
+    </div> 
+
     <div class="main_page">
-        <h1>Transparency evaluation tool</h1>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <h2>Evaluation Process: What to Expect</h2>
+    <h1>Transparency evaluation tool</h1>
+    <hr style="border: 1px solid #ccc; width: 80%;">
+    <h2>Evaluation Process: What to Expect</h2>
+
     <div class="timeline">
         <div class="process-step">
-            <h3>1. Profile Questionnaire</h3>
-            <p>
-                You'll provide basic information about your professional background. 
-                This helps contextualize your experience and insights. 
-            </p>
+        <h3>1. Profile Questionnaire</h3>
+        <p>You'll provide basic information about your professional background. This helps contextualize your experience and insights.</p>
         </div>
         <div class="process-step">
-            <h3>2. Task Solving</h3>
-            <p>
-                You will need to complete several tasks that will guide you through exploring the portal. 
-                These tasks will take you through the key parts of the portal so that you can evaluate it.
-            </p>
+        <h3>2. Task Solving</h3>
+        <p>You will need to complete several tasks that will guide you through exploring the portal.</p>
         </div>
         <div class="process-step">
-            <h3>3. Task Review</h3>
-            <p>
-                After each completed task, you must answer a short questionnaire about your experience in solving that task.
-            </p>
+        <h3>3. Task Review</h3>
+        <p>After each completed task, you must answer a short questionnaire about your experience in solving that task.</p>
         </div>
         <div class="process-step">
-            <h3>4. Final Submission</h3>
-            <p>
-                After completing all tasks, you will answer a questionnaire to provide your overall opinion about the portal and how you felt while using it.
-            </p>
+        <h3>4. Final Submission</h3>
+        <p>After completing all tasks, you will answer a questionnaire to provide your overall opinion about the portal and how you felt while using it.</p>
         </div>
     </div>
-        <button id="mainPageButton">Start</button>
+
+    <h1>Gerar código de sessão para sincronizar</h1>
+    <button id="generateCode">Gerar</button>
+
+    <button id="mainPageButton">Start</button>
     </div>
+
 
     <div class="questionnaire_page">
         <h1>Questionnaire for Profile Characterization</h1>
