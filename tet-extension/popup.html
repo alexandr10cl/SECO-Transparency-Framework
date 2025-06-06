@@ -33,34 +33,54 @@
     </div>
     </div> 
 
-    <div class="main_page">
-    <h1>Transparency evaluation tool</h1>
-    <hr style="border: 1px solid #ccc; width: 80%;">
-    <h2>Evaluation Process: What to Expect</h2>
-
-    <div class="timeline">
-        <div class="process-step">
-        <h3>1. Profile Questionnaire</h3>
-        <p>You'll provide basic information about your professional background. This helps contextualize your experience and insights.</p>
+    <div class="sync_page">
+        <div id="overlay" class="loading-effect">
+            <section class="dots-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </section>
         </div>
-        <div class="process-step">
-        <h3>2. Task Solving</h3>
-        <p>You will need to complete several tasks that will guide you through exploring the portal.</p>
+        <div class="sync-header">
+            <h1>SECO-Transp +</h1>
+            <img src="/static/logo.png" alt="UX-Tracking logo" style="width: 70px; height: 70px;">
         </div>
-        <div class="process-step">
-        <h3>3. Task Review</h3>
-        <p>After each completed task, you must answer a short questionnaire about your experience in solving that task.</p>
-        </div>
-        <div class="process-step">
-        <h3>4. Final Submission</h3>
-        <p>After completing all tasks, you will answer a questionnaire to provide your overall opinion about the portal and how you felt while using it.</p>
-        </div>
+        <hr style="border: 1px solid #ccc; width: 80%;">
+        <h2>Session Synchronization</h2>
+        <p>Before starting the evaluation, you must initialize UX-Tracking capture using the same code you used to validate this evaluation. Once you have done that, click
+            the button below to synchronize the session.
+        </p>
+        <img src="/static/tutorial.png" alt="Tutorial image" style="width: 224px; height: 295px;">
+        <p><strong>ATTENTION:</strong> Start UX-Tracking before attempting to synchronize here.</p>
+        <button id="syncButton">Synchronize</button>
+        <p id="syncStatus" class="sync-status">Sync didn’t work. Try again, and make sure UX tracking is turned on first.</p>
     </div>
 
-    <h1>Gerar código de sessão para sincronizar</h1>
-    <button id="generateCode">Gerar</button>
-
-    <button id="mainPageButton">Start</button>
+    <div class="main_page">
+        <h1>Transparency evaluation tool</h1>
+        <hr style="border: 1px solid #ccc; width: 80%;">
+        <h2>Evaluation Process: What to Expect</h2>
+        <div class="timeline">
+            <div class="process-step">
+            <h3>1. Profile Questionnaire</h3>
+            <p>You'll provide basic information about your professional background. This helps contextualize your experience and insights.</p>
+            </div>
+            <div class="process-step">
+            <h3>2. Task Solving</h3>
+            <p>You will need to complete several tasks that will guide you through exploring the portal.</p>
+            </div>
+            <div class="process-step">
+            <h3>3. Task Review</h3>
+            <p>After each completed task, you must answer a short questionnaire about your experience in solving that task.</p>
+            </div>
+            <div class="process-step">
+            <h3>4. Final Submission</h3>
+            <p>After completing all tasks, you will answer a questionnaire to provide your overall opinion about the portal and how you felt while using it.</p>
+            </div>
+        </div>
+        <button id="mainPageButton">Start</button>
     </div>
 
 
