@@ -3,10 +3,14 @@ let finalpage = document.querySelector(".final_page");
 let questionnaire_page = document.querySelector(".questionnaire_page");
 let final_questionnaire_page = document.querySelector(".final_questionnaire_page");
 let login_page = document.querySelector(".login_page");
+let sync_page = document.querySelector(".sync_page");
+let overlay = document.getElementById('overlay');
 
 // Variáveis globais
 let data_collection = {
   "evaluation_code" : "123456",
+  "uxt_cod" : "default",
+  "uxt_sessionId" : "default",
   "performed_tasks" : [],
   "profile_questionnaire" : {},
   "final_questionnaire" : {},
@@ -15,7 +19,7 @@ let data_collection = {
 let tasks_data = [];   // Armazena as respostas para envio
 let todo_tasks = [];   // Armazena as tasks recebidas em formato de objeto para serem feitas
 let currentTaskIndex = -1; // Índice da task atual (-1 significa página incial e 0 significa primeira task e por ai vai)
-let currentPhase = "login"; // Pode ser "login","initial","questionnaire", "task", "review", "finalquestionnaire" ou "final", serve para configurar a exibição na tela
+let currentPhase = "login"; // Pode ser "login", "sync","initial","questionnaire", "task", "review", "finalquestionnaire" ou "final", serve para configurar a exibição na tela
 let currentTaskTimestamp = "Erro ao obter o timestamp"; // Armazena o timestamp da task atual
 let currentTaskStatus = "solving" // alterado para "solved" ou "couldntsolve" no botão de finalizar a task
 
@@ -62,7 +66,7 @@ document.getElementById("questionnaireButton").addEventListener("click", functio
 
 // Autentificação
 document.getElementById("verifyButton").addEventListener("click", function () {
-  currentPhase = "initial";
+  currentPhase = "sync";
   let authcode = document.getElementById("authcode").value;
 
   auth_evaluation(authcode) // Envia o código para autenticação
@@ -80,9 +84,49 @@ document.getElementById("verifyButton").addEventListener("click", function () {
 });
 
 
-// Gerar código com API DO UX-TRACKING
-document.getElementById("generateCode").addEventListener("click", function () {
-  console.log("Gerando código de autenticação...");
+// Sincronizar código com API DO UX-TRACKING
+document.getElementById("syncButton").addEventListener("click", function () {
+  overlay.style.display = 'block'; // Exibe o overlay de carregamento
+
+  setTimeout(() => {
+    overlay.style.display = 'none';
+  }, 3000);
+
+  fetch("https://uxt-stage.liis.com.br/data/syncsession", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      cod: data_collection.evaluation_code
+    })
+  })
+  .then(response => {
+    if (response.status >= 200 && response.status < 300) {
+      // Sucesso (qualquer 2xx)
+      return response.json().then(data => {
+        console.log("Success:", data);
+        
+        currentPhase = "initial";
+        updateDisplay();
+      });
+    } else {
+      return response.json().then(errorData => {
+        console.error(`Error: ${response.status} - ${errorData.message || response.statusText}`);
+
+        document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+      }).catch(() => {
+        console.error(`Error: ${response.status} - ${response.statusText}`);
+
+        document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+      });
+    }
+  })
+  .catch(error => {
+    console.error("Fetch error:", error);
+    document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+  });
+
 });
 
 function auth_evaluation(code) {
@@ -254,6 +298,7 @@ function updateDisplay() {
   finalpage.style.display = "none";
   questionnaire_page.style.display = "none";
   final_questionnaire_page.style.display = "none";
+  sync_page.style.display = "none";
   document.querySelectorAll(".task").forEach(div => div.style.display = "none");
   document.querySelectorAll(".task_review").forEach(div => div.style.display = "none");
   document.getElementById("progressBarContainer").style.display = "none"; // Esconde a barra por padrão
@@ -280,6 +325,8 @@ function updateDisplay() {
     final_questionnaire_page.style.display = "flex";
   } else if (currentPhase === "login") {
     login_page.style.display = "block";
+  } else if (currentPhase === "sync") {
+    sync_page.style.display = "flex";
   }
 }
 
