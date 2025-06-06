@@ -92,40 +92,52 @@ document.getElementById("syncButton").addEventListener("click", function () {
     overlay.style.display = 'none';
   }, 3000);
 
-  fetch("https://uxt-stage.liis.com.br/data/syncsession", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      cod: data_collection.evaluation_code
+  let uxt_mode = false; // Opção de fazer a avaliação com UX-Tracking o não
+
+  if (uxt_mode) {
+    fetch("https://uxt-stage.liis.com.br/data/syncsession", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        cod: data_collection.evaluation_code
+      })
     })
-  })
-  .then(response => {
-    if (response.status >= 200 && response.status < 300) {
-      // Sucesso (qualquer 2xx)
-      return response.json().then(data => {
-        console.log("Success:", data);
-        
-        currentPhase = "initial";
-        updateDisplay();
-      });
-    } else {
-      return response.json().then(errorData => {
-        console.error(`Error: ${response.status} - ${errorData.message || response.statusText}`);
+    .then(response => {
+      if (response.status >= 200 && response.status < 300) {
+        // Sucesso (qualquer 2xx)
+        return response.json().then(data => {
+          console.log("Success:", data);
+          
+          currentPhase = "initial";
+          updateDisplay();
+        });
+      } else {
+        return response.json().then(errorData => {
+          console.error(`Error: ${response.status} - ${errorData.message || response.statusText}`);
+  
+          document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+        }).catch(() => {
+          console.error(`Error: ${response.status} - ${response.statusText}`);
+  
+          document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+        });
+      }
+    })
+    .catch(error => {
+      console.error("Fetch error:", error);
+      document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+    });
+  } else {
+    // Se não for usar UX-Tracking, apenas salva os dados e avança
+    data_collection.uxt_cod = "default";
+    data_collection.uxt_sessionId = "default";
 
-        document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
-      }).catch(() => {
-        console.error(`Error: ${response.status} - ${response.statusText}`);
+    currentPhase = "initial";
+    updateDisplay();
+  }
 
-        document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
-      });
-    }
-  })
-  .catch(error => {
-    console.error("Fetch error:", error);
-    document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
-  });
 
 });
 
