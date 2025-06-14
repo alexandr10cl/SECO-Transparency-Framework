@@ -8,11 +8,12 @@ class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
+    
+    # Relationship with seco_process
+    seco_processes = db.relationship('SECO_process',
+                                        secondary='process_task',
+                                        back_populates='tasks')
 
-    # Relationship with Guideline
-    guidelines = db.relationship('Guideline',
-                                secondary='guideline_task',
-                                back_populates='related_tasks')
 
 class PerformedTask(db.Model):
     __tablename__ = 'performed_task'
@@ -22,6 +23,7 @@ class PerformedTask(db.Model):
     initial_timestamp = db.Column(db.DateTime, nullable=False)
     final_timestamp = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.Enum(PerformedTaskStatus), nullable=False)
+    comments = db.Column(db.String(1000), nullable=True)
 
     # Foreign key to the collected data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)

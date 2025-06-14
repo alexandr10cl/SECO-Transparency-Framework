@@ -630,21 +630,23 @@ def add_task():
     task_title = request.form.get('title')
     task_description = request.form.get('description')
     
-    guidelines_ids = request.form.getlist('guideline_ids')
+    process_ids = request.form.getlist('process_ids')
 
-    if guidelines_ids:
-        guidelines = Guideline.query.filter(Guideline.guidelineID.in_(guidelines_ids)).all()
+    if process_ids:
+        processes = SECO_process.query.filter(SECO_process.seco_process_id.in_(process_ids)).all()
 
     try:
         # Create a new task
-        new_task = Task(title=task_title, description=task_description, task_id=task_id, guidelines=guidelines)
+        new_task = Task(title=task_title, description=task_description, task_id=task_id, seco_processes=processes)
         # Add the task to the session and commit
         db.session.add(new_task)
         db.session.commit()
+        print('Task added successfully!')
         admin_message = 'Task added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
+        print('Error adding task:', str(e))
         admin_message = f'Error adding task: {str(e)}'
         message_type = 'danger'
     
@@ -733,18 +735,21 @@ def add_question():
 
     # Get form data
     question = request.form.get('question')
-    task_id = request.form.get('task_id')
+    ksc_id = request.form.get('ksc_id')
+    print('saved data')
 
     try:
         # Create a new question
-        new_question = Question(question_id=question_id, question=question, task_id=task_id)  # Corrigido para usar Question
+        new_question = Question(question_id=question_id, question=question, key_success_criterion_id=ksc_id)  # Corrigido para usar Question
         # Add the question to the session and commit
         db.session.add(new_question)
         db.session.commit()
+        print('Question added successfully!')
         admin_message = 'Question added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
+        print('Error adding question:', str(e))
         admin_message = f'Error adding question: {str(e)}'
         message_type = 'danger'
     
