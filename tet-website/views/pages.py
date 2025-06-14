@@ -78,3 +78,9 @@ def get_evaluation_data():
 def check_tables():
     # Controleer of tabellen bestaan
     return jsonify({"tables_exist": True})
+
+@app.route('/dashboardv2')
+def dashboard_v2():
+    dimensions = SECO_dimension.query.all()
+        
+    return render_template('dashboardv2.html', dimensions=dimensions)

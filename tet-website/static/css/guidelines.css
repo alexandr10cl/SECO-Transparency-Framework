@@ -51,12 +51,14 @@
     gap: 100px;
 }
 
+
 .guidelines {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 40px;
 }
 
