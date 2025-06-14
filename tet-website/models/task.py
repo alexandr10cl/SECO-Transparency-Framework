@@ -27,10 +27,6 @@ class PerformedTask(db.Model):
     final_timestamp = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.Enum(PerformedTaskStatus), nullable=False)
 
-    # Relationship with Answer
-    answers = db.relationship('Answer',
-                            backref=db.backref('performed_task', lazy=True))
-
     # Foreign key to the collected data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
     
@@ -44,8 +40,8 @@ class Question(db.Model):
     question_id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.String(1000), nullable=False)
 
-    # Foreign key to the task table
-    task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
+    # Foreign key to the key success criterion table
+    key_success_criterion_id = db.Column(db.Integer, db.ForeignKey('key_success_criterion.key_success_criterion_id'), nullable=False)
 
     # Relationship with Answer
     answers = db.relationship('Answer',
@@ -58,8 +54,8 @@ class Answer(db.Model):
     answer_id = db.Column(db.Integer, primary_key=True)
     answer = db.Column(db.String(1000), nullable=False)
 
-    # Foreign key to the performed task table
-    performed_task_id = db.Column(db.Integer, db.ForeignKey('performed_task.performed_task_id'), nullable=False)
+    # Foreign key to the collected data table
+    collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
 
     # Foreign key to the question table
     question_id = db.Column(db.Integer, db.ForeignKey('question.question_id')) 
