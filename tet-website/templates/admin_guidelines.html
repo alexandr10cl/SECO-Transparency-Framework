@@ -527,13 +527,13 @@ Admin Panel
                                 <input type="text" class="form-control" name="title" placeholder="Title" required>
                                 <textarea class="form-control" name="description" placeholder="Description" rows="4" required></textarea>
                                 <div class="mb-3">
-                                    <h4 class="form-label">Related guidelines</h4>
+                                    <h4 class="form-label">Related Process</h4>
                                     <div class="checkbox-group">
-                                        {% for guideline in guidelines %}
+                                        {% for p in seco_processes %}
                                         <div class="checkbox-item">
-                                            <label for="guideline_{{ guideline.guidelineID }}" title="G{{ guideline.guidelineID }}">G{{ guideline.guidelineID }}</label>
-                                            <input type="checkbox" id="guideline_{{ guideline.guidelineID }}" 
-                                                    name="guideline_ids" value="{{ guideline.guidelineID }}">
+                                            <label for="process_{{ p.seco_process_id }}" title="G{{ p.seco_process_id }}">P{{ p.seco_process_id }}</label>
+                                            <input type="checkbox" id="process_{{ p.seco_process_id }}" 
+                                                    name="process_ids" value="{{ p.seco_process_id }}" onclick="handleCheckboxSelection(this)">
                                         </div>
                                         {% endfor %}
                                     </div>
@@ -586,13 +586,13 @@ Admin Panel
                             <div class="mb-3">
                                 <textarea class="form-control" name="question" placeholder="Question" rows="4" required></textarea>
                                 <div class="mb-3">
-                                    <h4 class="form-label">Related task</h4>
+                                    <h4 class="form-label">Related key success criterion</h4>
                                     <div class="checkbox-group">
-                                        {% for t in tasks %}
+                                        {% for ksc in key_success_criteria %}
                                         <div class="checkbox-item">
-                                            <label for="task_{{ t.task_id }}" title="T{{ t.task_id }}">{{ t.title }}</label>
-                                            <input type="checkbox" id="task_{{ t.task_id }}" 
-                                                    name="task_id" value="{{ t.task_id }}" onclick="handleCheckboxSelection(this)">
+                                            <label for="ksc_{{ ksc.key_success_criterion_id }}" title="KSC{{ ksc.key_success_criterion_id }}">{{ ksc.title }}</label>
+                                            <input type="checkbox" id="ksc_{{ ksc.key_success_criterion_id }}" 
+                                                    name="ksc_id" value="{{ ksc.key_success_criterion_id }}" onclick="handleCheckboxSelection(this)">
                                         </div>
                                         {% endfor %}
                                     </div>

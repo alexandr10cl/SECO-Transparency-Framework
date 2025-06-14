@@ -157,12 +157,12 @@ def evaluation(id):
     guidelines = []
     tasks = []
     for p in seco_processes:
+        for t in p.tasks:
+            if t not in tasks:
+                tasks.append(t)
         for g in p.guidelines:
             if g not in guidelines:
                 guidelines.append(g)
-                for t in g.related_tasks:
-                    if t not in tasks:
-                        tasks.append(t)
                 
     count_collected_data = len(collected_data)
 

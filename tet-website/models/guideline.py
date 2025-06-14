@@ -22,8 +22,8 @@ guideline_seco_dimension = db.Table('guideline_seco_dimension',
     db.Column('seco_dimension_id', db.Integer, db.ForeignKey('seco_dimension.seco_dimension_id'))
 )
 
-guideline_task = db.Table('guideline_task',
-    db.Column('guideline_id', db.Integer, db.ForeignKey('guideline.guidelineID')),
+process_task = db.Table('process_task',
+    db.Column('seco_process_id', db.Integer, db.ForeignKey('seco_process.seco_process_id')),
     db.Column('task_id', db.Integer, db.ForeignKey('task.task_id'))
 )
 
@@ -59,11 +59,6 @@ class Guideline(db.Model):
     seco_dimensions = db.relationship('SECO_dimension',
                                     secondary=guideline_seco_dimension,
                                     backref=db.backref('guidelines', lazy=True))
-    
-    # Relationship with Task
-    related_tasks = db.relationship('Task',
-                                    secondary=guideline_task,
-                                    back_populates='guidelines')
 
 class Conditioning_factor_transp(db.Model):
     __tablename__ = 'conditioning_factor_transp'
@@ -97,6 +92,11 @@ class SECO_process(db.Model):
                                 secondary=guideline_seco_process,
                                 back_populates='seco_processes',
                                 overlaps='guideline_seco_process')
+    
+    # Relationship with Task
+    tasks = db.relationship('Task',
+                            secondary=process_task,
+                            back_populates='seco_processes')
 
 class SECO_dimension(db.Model):
     __tablename__ = 'seco_dimension'
