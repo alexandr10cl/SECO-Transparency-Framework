@@ -9,10 +9,6 @@ class Task(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
 
-    # Relationship with Question
-    questions = db.relationship('Question',
-                                backref=db.backref('tasks', lazy=True))
-
     # Relationship with Guideline
     guidelines = db.relationship('Guideline',
                                 secondary='guideline_task',
