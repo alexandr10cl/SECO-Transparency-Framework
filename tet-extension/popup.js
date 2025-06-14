@@ -92,7 +92,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
     overlay.style.display = 'none';
   }, 3000);
 
-  let uxt_mode = false; // Opção de fazer a avaliação com UX-Tracking o não
+  let uxt_mode = true; // Opção de fazer a avaliação com UX-Tracking o não
 
   if (uxt_mode) {
     fetch("https://uxt-stage.liis.com.br/data/syncsession", {
