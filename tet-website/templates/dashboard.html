@@ -1,12 +1,152 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='dashboard/static/css/main.6328a2c2.css') }}">
+ {# <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/static/css/main.6328a2c2.css') }}"> #}
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 {% endblock %}
 
 {% block title %}SECO Dashboard{% endblock %}
 
 {% block content %}
-<div id="root"></div>
-<script src="{{ url_for('static', filename='dashboard/static/js/main.0344493c.js') }}"></script>
-{% endblock %} 
+{# 
+    <div id="root"></div>
+    <script src="{{ url_for('static', filename='dashboard/static/js/main.0344493c.js') }}"></script>
+#}
+<br><br>
+<div class="dashboard-container">
+    <div class="dashboard-title">
+        <p>Icone</p>
+        <h2>Evaluation Dashboard: 834569</h2>
+    </div>
+    <hr>
+
+    <div class="evaluation-info">
+        <div class="evaluation-info-card">
+            <h3>Evaluated portal</h3>
+            <h2>Portal's name</h2>
+        </div>
+        <div class="evaluation-info-card">
+            <h3>Evaluation Date</h3>
+            <h2>23/10/2025 - 23/11/2025</h2>
+        </div>
+        <div class="evaluation-info-card">
+            <h3>Participants</h3>
+            <h2>32</h2>
+        </div>
+        <div class="evaluation-info-card">
+            <h3>Transparency Score</h3>
+            <h2>82%</h2>
+        </div>
+    </div>
+
+    <div class="dashboard-navbar">
+        <ul>
+            <li class="active">Overview</li>
+            <li>Performed Tasks</li>
+            <li>Hotspots</li>
+            <li>Guidelines Score</li>
+        </ul>
+    </div>
+
+    <div class="overview-container active-container">
+        <div class="overview-card">
+            <div class="overview-header">
+                <h2>Overview</h2>
+                <p>Summary of the evaluation results, including the number of performed tasks, hotspots, and guidelines score.</p>
+            </div>
+            <hr class="task-heatmap-divider">
+            <div class="overview-content">
+                <div class="overview-profile">
+                    <h3>Participants’ Profile</h3>
+                    <p>Summary of academic background and experience of the evaluation participants.</p>
+                    <div class="profilecharts">
+                        <div class="academic">
+                            <canvas id="experienceChart" style="max-width: 600px; height: 300px;"></canvas>
+                        </div>
+                        <div class="experience">
+                            <canvas id="educationChart" style="max-width: 600px; height: 300px; margin-top: 40px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="word-cloud">
+                <h3>Word Cloud</h3>
+                <p>Word cloud showing the terms most frequently cited by developers throughout the evaluation process.</p>
+                <img src="https://placehold.co/500x300" alt="Heatmap">
+            </div>
+            <div class="dev-emotion">
+                <h3>Developer Satisfaction</h3>
+                <p>Emotional feedback from developers based on their experience interacting with the portal.</p>
+                <canvas id="pieChart" width="800" height="400"></canvas>
+            </div>
+            <div class="developer-comments">
+                <h3>Developer Comments</h3>
+                <p>Comments and suggestions from developers after the evaluation process.</p>
+                <div class="comments">
+                    <div class="comment-card">
+                        <p><strong>Comment 1:</strong> The documentation is comprehensive but could be more user-friendly.</p>
+                    </div>
+                    <div class="comment-card">
+                        <p><strong>Comment 2:</strong> The documentation is comprehensive but could be more user-friendly.</p>
+                    </div>
+                    <div class="comment-card">
+                        <p><strong>Comment 3:</strong> The documentation is comprehensive but could be more user-friendly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="performed-tasks-container">
+        performed-tasks-container
+    </div>
+
+    <div class="hotspots-container">
+        <div class="hotspot-card">
+            <div class="hotspots-header">
+                <h2>Heatmaps by Task</h2>
+                <p>Visualization of user interaction during the execution of each incomplete or partially completed task.</p>
+            </div>
+            <div class="task-heatmap-container">
+                <hr class="task-heatmap-divider">
+                <div class="task-heatmap">
+                    <h3>Task: Access Platform Documentation</h3>
+                    <p>Related procedure: Access to documentation, source code, and tools</p>
+                    <p>Task description:</p>
+                    <div class="heatmap-image">
+                        <img src="https://placehold.co/1280x720" alt="Heatmap">
+                    </div>
+                </div>
+                <hr class="task-heatmap-divider">
+                <div class="task-heatmap">
+                    <h3>Task: Access Platform Documentation</h3>
+                    <p>Related procedure: Access to documentation, source code, and tools</p>
+                    <p>Task description:</p>
+                    <div class="heatmap-image">
+                        <img src="https://placehold.co/1280x720" alt="Heatmap">
+                    </div>
+                </div>
+                <hr class="task-heatmap-divider">
+                <div class="task-heatmap">
+                    <h3>Task: Access Platform Documentation</h3>
+                    <p>Related procedure: Access to documentation, source code, and tools</p>
+                    <p>Task description:</p>
+                    <div class="heatmap-image">
+                        <img src="https://placehold.co/1280x720" alt="Heatmap">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="guidelines-score-container">
+        guidelines-score-container
+    </div>
+</div>
+
+
+{% endblock %}
+{% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
