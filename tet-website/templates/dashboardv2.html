@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboardv2.css') }}">
+{% endblock %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <br><br><br>
+    <div class="container">
+        <div class="card">
+            <div class="menu">
+                <h2>SECO Transparency Dashboard</h2>
+                <ul>
+                    <li><a href="#" class="active">Overview</a></li>
+                    <li><a href="#">Guidelines</a></li>
+                    <li><a href="#">Hotspots</a></li>
+                </ul>
+            </div>
+            <div class="scores">
+                <h3>Evaluation Scores</h3>
+                <div class="overall_score">
+                    <div class="score overall">
+                        <h4>Overall Score</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Overall Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+                <h3>Scores by SECO Dimension</h3>
+                <div class="dimensions">
+                    {% for d in dimensions %}
+                    <div class="score d{{d.seco_dimension_id}}">
+                        <h4>{{ d.name }} Dimension</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#">View Guidelines</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <h3>Scores by DX category</h3>
+                <div class="dx_categorys">
+                    <div class="score c1">
+                        <h4>Common Tecnological Platform</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#">View Guidelines</a>
+                    </div>
+                    <div class="score c2">
+                        <h4>Projects and Applications</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#">View Guidelines</a>
+                    </div>
+                    <div class="score c3">
+                        <h4>Community Interaction</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#">View Guidelines</a>
+                    </div>
+                    <div class="score c4">
+                        <h4>Expectations and Value of Contribuition</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#">View Guidelines</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

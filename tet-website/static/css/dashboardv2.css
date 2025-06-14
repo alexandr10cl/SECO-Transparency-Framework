@@ -1,0 +1,197 @@
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card{
+    display: flex;
+    flex-direction: column;
+    width: 81%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.menu{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #112131;
+    color: #f4f4f4;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+}
+
+.menu h2{
+    font-size: 20px;
+}
+
+.menu ul{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style: none;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.menu a{
+    color: #f4f4f4;
+    text-decoration: none;
+    background-color: #2d3841;
+    padding: 7px;
+    border-radius: 5px;
+    font-size: 17px
+}
+
+.menu a.active{
+    background-color: #0059ff;
+}
+
+.scores{
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    justify-content: center;
+    background-color: #f4f4f4;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.scores h3{
+    color: #0059ff;
+    margin-bottom: 20px;
+}
+
+.dimensions{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 50px;
+}
+
+.subWrite{
+    color: gray;
+    width: 100%;
+    font-size: 14px;
+}
+
+.score{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    width: 32.5%;
+}
+
+.score h4{
+    font-size: 17px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.score p{
+    width: 100%;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.score a{
+    text-align: center;
+    text-decoration: none;
+    padding: 5px;
+    color: white;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.d1{
+    background-color: rgb(227, 239, 253);
+}
+
+.d1 a{
+    background-color: rgb(0, 102, 255);
+}
+
+.d2{
+    background-color: rgb(221, 240, 221);
+}
+
+.d2 a{
+    background-color: rgb(0, 153, 0);
+}
+
+.d3{
+    background-color: rgb(248, 243, 214);
+}
+
+.d3 a{
+    background-color: rgb(255, 145, 0);
+}
+
+.percentage-bar{
+    margin: 10px 0 10px 0;
+    width: 100%;
+    height: 10px;
+    background-color: lightgray;
+    border-radius: 5px;
+}
+
+.percentage-bar div{
+    height: 100%;
+    border-radius: 5px;
+    width: 70%;
+}
+
+.d1 .percentage-bar div{
+    background-color: rgb(0, 102, 255);
+}
+
+.d2 .percentage-bar div{
+    background-color: rgb(0, 153, 0);
+}
+
+.d3 .percentage-bar div{
+    background-color: rgb(255, 145, 0);
+}
+
+.overall_score{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #f4f4f4;
+    margin-top: 20px;
+    margin-bottom: 75px;
+}
+
+.overall{
+    transform: scale(1.5);
+    background-color: #f4f4f4;
+}
+
+.dx_categorys{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 50px;
+    gap: 15px
+}

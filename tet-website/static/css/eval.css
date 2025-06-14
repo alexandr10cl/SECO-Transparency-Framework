@@ -101,6 +101,12 @@
     font-size: 15px;
 }
 
+.advise{
+    color: gray;
+    font-size: 15px;
+    font-weight: 400;
+}
+
 .modals button:hover{
     transform: translateY(-2px);
     box-shadow: 4px 8px 12px rgba(0,0,0,0.2);

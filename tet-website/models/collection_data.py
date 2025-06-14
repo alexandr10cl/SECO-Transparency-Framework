@@ -21,6 +21,10 @@ class CollectedData(db.Model):
     # Rlationship with Navigation
     navigation = db.relationship('Navigation',
                                 backref=db.backref('collected_data', lazy=True))
+    
+    # Relationship with Answer table
+    answers = db.relationship('Answer',
+                            backref=db.backref('collected_data', lazy=True))
 
     # Foreign key to the evaluation table
     evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False) 
