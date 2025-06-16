@@ -1,50 +1,44 @@
 [
   {
-    "id": 6,
-    "title": "Task 1",
-    "description": "Translate the page into Portuguese.",
-    "questions": [
+    "process_id": 9,
+    "process_title": "Processo teste para mudança de processo da avaliação",
+    "process_tasks": [
       {
-        "text": "Could you solve the task? If not, could you explain why?",
-        "question_id": 1
+        "task_id": 12,
+        "task_title": "[TESTE] Access the project documentation",
+        "task_description": "[TESTE] Navigate the portal and check if the project documentation is accessible, including installation guides, usage, and examples."
       },
       {
-        "text": "In your opinion, is the portal's translation system effective?",
-        "question_id": 4
+        "task_id": 13,
+        "task_title": "[TESTE] Find the 'Getting Started' section",
+        "task_description": "[TESTE] Locate the \"Getting Started\" section in the documentation to help new developers set up their environment."
+      }
+    ],
+    "process_review": [
+      {
+        "process_review_question_text": "1 Pergunta sobre o primero procedimento teste",
+        "process_review_question_id": 2
       },
       {
-        "text": "What do you think about the page design?",
-        "question_id": 5
+        "process_review_question_text": "2 pergunta sobre o primeiro processo teste",
+        "process_review_question_id": 3
       }
     ]
   },
   {
-    "id": 7,
-    "title": "Task 2",
-    "description": "Find the portal's official documentation.",
-    "questions": [
+    "process_id": 10,
+    "process_title": "[TESTE 2] Segundo Processo teste para mudança de processo da avaliação",
+    "process_tasks": [
       {
-        "text": "Could you solve the task? If not, could you explain why?",
-        "question_id": 2
-      },
-      {
-        "text": "Was it easy to identify where the documentation is located and how to access it? If not, what could be improved?",
-        "question_id": 6
+        "task_id": 14,
+        "task_title": "[TESTE] Find the Official Communication Channels",
+        "task_description": "teste para mudança de processo da avaliação"
       }
-    ]
-  },
-  {
-    "id": 8,
-    "title": "Task 3",
-    "description": "Explore the portal's updates and news section and find a recent piece of information.",
-    "questions": [
+    ],
+    "process_review": [
       {
-        "text": "Could you solve the task? If not, could you explain why?",
-        "question_id": 3
-      },
-      {
-        "text": "Were you able to easily identify where news and updates are published?",
-        "question_id": 7
+        "process_review_question_text": "1 pergunta sobre o SEGUNDO processo teste",
+        "process_review_question_id": 4
       }
     ]
   }

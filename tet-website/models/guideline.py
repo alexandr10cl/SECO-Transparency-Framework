@@ -120,6 +120,9 @@ class Key_success_criterion(db.Model):
     # Foreign key to the guideline table
     guideline_id = db.Column(db.Integer, db.ForeignKey('guideline.guidelineID'), nullable=False)
 
+    # Relationship with Question
+    questions = db.relationship('Question', backref='key_success_criterion', lazy=True)
+
 class Example(db.Model):
     __tablename__ = 'example'
 
