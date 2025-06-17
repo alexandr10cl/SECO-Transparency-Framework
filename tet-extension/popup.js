@@ -24,9 +24,10 @@ let currentTaskIndex = -1; // Índice da task atual (-1 significa página incial
 let currentPhase = "login"; // Pode ser "login", "sync","initial","questionnaire", "task", "review", "processreview" ,"finalquestionnaire" ou "final", serve para configurar a exibição na tela
 let currentTaskTimestamp = "Erro ao obter o timestamp"; // Armazena o timestamp da task atual
 let currentTaskStatus = "solving" // alterado para "solved" ou "couldntsolve" no botão de finalizar a task
+let taskStartTime = null;
+let taskEndTime = null;
 
-// Timestamps por tarefa
-let taskTimestamps = {}; // { [taskId]: { start: ISOString, end: ISOString } }
+
 
 
 // Navigation tracking
@@ -279,7 +280,8 @@ function attachListenersAll() {
       // Start Task
       document.getElementById(`startTask${task.task_id}Button`).addEventListener("click", () => {
         // Armazena timestamp de início
-        taskTimestamps[task.task_id] = { start: new Date().toISOString(), end: null };
+        taskStartTime = new Date().toISOString();
+        taskEndTime = null;
 
         // Ajusta UI
         document.getElementById(`startTask${task.task_id}Button`).style.display = "none";
@@ -304,10 +306,7 @@ function attachListenersAll() {
         document.getElementById(`${type}Task${task.task_id}Button`).addEventListener("click", () => {
           currentTaskStatus = typeMap[type];
 
-          // Armazena timestamp de fim
-          if (taskTimestamps[task.task_id]) {
-            taskTimestamps[task.task_id].end = new Date().toISOString();
-          }
+          taskEndTime = new Date().toISOString();
 
           currentPhase = "review";
           updateDisplay();
@@ -326,7 +325,7 @@ function attachListenersAll() {
         updateDisplay();
       });
     });
-    
+
     // process review next
     document
       .getElementById(`process${proc.process_id}ReviewButton`)
@@ -355,8 +354,8 @@ function saveTaskAnswer(processId, taskId) {
     task_id: taskId,
     answer: answer,
     status: currentTaskStatus,
-    initialTimestamp: timestamps.start || null,
-    finalTimestamp:   timestamps.end   || null
+    initialTimestamp: taskStartTime,
+    finalTimestamp: taskEndTime
   });
 
   console.log(`Task ${taskId} do proc ${processId}:`, answer, `(status: ${currentTaskStatus})`, timestamps);
