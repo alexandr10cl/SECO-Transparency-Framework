@@ -62,7 +62,7 @@
                 </div>
                 {% endif %}
                 <div class="div-dash">
-                    <a href="#" class="btn btn-dash">View dashboard</a>
+                    <a href="{{ url_for('eval_dashboard', id=evaluation.evaluation_id) }}" class="btn btn-dash">View dashboard</a>
                 </div>
         </div>
     </div>
