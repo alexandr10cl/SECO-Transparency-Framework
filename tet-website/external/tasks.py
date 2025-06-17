@@ -1,6 +1,14 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from app import app, db
-from models import User, Task, Evaluation, CollectedData, Guideline, SECO_process, PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question
+from datetime import datetime
+from models import (
+    User, Task, Evaluation, CollectedData, Guideline, SECO_process,
+    PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question
+)
+from models.enums import (
+    PerformedTaskStatus, NavigationType, AcademicLevel,
+    SegmentType, PreviousExperience
+)
 from flask_cors import CORS
 
 CORS(app)
@@ -51,87 +59,77 @@ def data_collected():
 
 
 @app.route('/submit_tasks', methods=['POST'])
-def dashboard():
-    data = request.json  # Obtém os dados JSON enviados pela extensão
-    collections_data.append(data)
-    print("Dados recebidos:", data) 
-    
-    #Inserir no banco a coleta
-    collected_data = CollectedData.query.all()
-    if not collected_data:
-        collected_data_id = 1
-    else:
-        collected_data_id = collected_data[-1].collected_data_id + 1 #pega o último id e soma 1
+def submit_tasks():
+    data = request.get_json(force=True)
+    print("Dados recebidos:", data)
 
-    # Pega o informações do JSON
-    evaluation_code = data.get("evaluation_code") 
-    collected_data_starttime = data.get("startTime")
-    collected_data_endtime = data.get("endTime")
+    # Busca a avaliação pelo código
+    evaluation = Evaluation.query.filter_by(evaluation_id=data.get("evaluation_code")).first()
+    if not evaluation:
+        return jsonify({"error": "Evaluation not found"}), 404
 
-    performedtasksList = []
-    # PerformedTasks
-    performed_tasks = data.get("performed_tasks")
-    for task in performed_tasks:
-        #task_id = task.get("id")
-        task_start_time = task.get("initial_timestamp")
-        task_end_time = task.get("final_timestamp")
-        status = data.get("status")
+    # Cria o objeto CollectedData
+    collected = CollectedData(
+        start_time    = datetime.fromisoformat(data.get("startTime")),
+        end_time      = datetime.fromisoformat(data.get("endTime")),
+        evaluation_id = evaluation.evaluation_id
+    )
+    db.session.add(collected)
+    db.session.flush()  # para gerar collected_data_id
 
-        answersList = []
-
-        for a in task.get("answers"):
-            # Pega as perguntas e respostas
-            task_question = a.get("question")
-            task_answer = a.get("answer")
-
-            answers = Answer.query.all()
-            if not answers:
-                id = 1
-            else:
-                id = answers[-1].answer_id + 1 #pega o último id e soma 1
-
-            new_answer = Answer(
-                answer_id=id,
-                answer=task_answer,
-                question_id=task_question
-            )         
-            db.session.add(new_answer) # Adiciona a nova resposta ao banco de dados
-            db.session.commit() #envia de fato pro servidor       
-            answersList.append(new_answer.answer_id) # Adiciona o id da resposta à lista de respostas
-
-        performedtasks = PerformedTask.query.all()
-        if not performedtasks:
-            id = 1
-        else:
-            id = performedtasks[-1].performed_task_id + 1 #pega o último id e soma 1
-
-        # Inserir no banco a coleta
-        new_performed_task = PerformedTask(
-            performed_task_id=id,
-            collected_data_id=collected_data_id,
-            initial_timestamp=task_start_time,
-            final_timestamp=task_end_time,
-            answers=answersList,
-            status=status,
-            #task_id=task_id
+    # Salva cada tarefa executada
+    for item in data.get("performed_tasks", []):
+        if item.get("type") == "task_review":
+            # Lê timestamps específicos por tarefa
+            initial_ts = item.get("initialTimestamp") or data.get("startTime")
+            final_ts   = item.get("finalTimestamp")   or data.get("endTime")
+            performed = PerformedTask(
+                initial_timestamp    = datetime.fromisoformat(initial_ts),
+                final_timestamp      = datetime.fromisoformat(final_ts),
+                status               = PerformedTaskStatus(item.get("status")),
+                task_id              = item.get("task_id"),
+                collected_data_id    = collected.collected_data_id,
+                comments             = item.get("answer")
             )
-        db.session.add(new_performed_task) # Adiciona a nova coleta ao banco de dados
-        db.session.commit() #envia de fato pro servidor
-        performedtasksList.append(new_performed_task.performed_task_id) # Adiciona o id da resposta à lista de respostas
+            db.session.add(performed)
 
-    new_collected_data = CollectedData( # os nomes da esquerda são como está no db
-        collected_data_id=collected_data_id,
-        start_time=collected_data_starttime,
-        end_time=collected_data_endtime,
-        evaluation_id=evaluation_code,
-        performed_tasks=performedtasksList
-        #developer_questionnaire=questionnaire_id,
-        #navigation=navigation_id
+        elif item.get("type") == "process_review":
+            answer = Answer(
+                answer              = item.get("answer"),
+                question_id         = item.get("question_id"),
+                collected_data_id   = collected.collected_data_id
+            )
+            db.session.add(answer)
+
+    # Salva o questionário do desenvolvedor
+    prof = data.get("profile_questionnaire", {})
+    fin  = data.get("final_questionnaire", {})
+
+    dev_q = DeveloperQuestionnaire(
+        academic_level      = AcademicLevel(prof.get("academic_level")),
+        segment             = SegmentType(prof.get("segment")),
+        previus_xp          = PreviousExperience(prof.get("previus_experience")),
+        experience          = int(prof.get("years_of_experience")) if prof.get("years_of_experience") else None,
+        emotion             = int(fin.get("emotion", 0)),
+        comments            = fin.get("comments", ""),
+        collected_data_id   = collected.collected_data_id
+    )
+    db.session.add(dev_q)
+
+    # Salva a navegação (caso exista)
+    for nav in data.get("navigation", []):
+        nav_entry = Navigation(
+            action              = NavigationType(nav.get("action")),
+            title               = nav.get("title"),
+            url                 = nav.get("url"),
+            timestamp           = datetime.fromisoformat(nav.get("timestamp")),
+            task_id             = nav.get("taskId"),
+            collected_data_id   = collected.collected_data_id
         )
+        db.session.add(nav_entry)
 
-
-
-    return jsonify({"message": "Dados recebidos com sucesso"}), 200
+    db.session.commit()
+    return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200
 
 
 

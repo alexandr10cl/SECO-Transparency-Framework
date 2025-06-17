@@ -18,10 +18,16 @@ let data_collection = {
 }
 let tasks_data = [];   // Armazena as respostas para envio
 let todo_tasks = [];   // Armazena as tasks recebidas em formato de objeto para serem feitas
+let processes = []; // Cada processo tem tarefas e perguntas do review
+let currentProcessIndex = 0;
 let currentTaskIndex = -1; // Índice da task atual (-1 significa página incial e 0 significa primeira task e por ai vai)
-let currentPhase = "login"; // Pode ser "login", "sync","initial","questionnaire", "task", "review", "finalquestionnaire" ou "final", serve para configurar a exibição na tela
+let currentPhase = "login"; // Pode ser "login", "sync","initial","questionnaire", "task", "review", "processreview" ,"finalquestionnaire" ou "final", serve para configurar a exibição na tela
 let currentTaskTimestamp = "Erro ao obter o timestamp"; // Armazena o timestamp da task atual
 let currentTaskStatus = "solving" // alterado para "solved" ou "couldntsolve" no botão de finalizar a task
+
+// Timestamps por tarefa
+let taskTimestamps = {}; // { [taskId]: { start: ISOString, end: ISOString } }
+
 
 // Navigation tracking
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -68,14 +74,12 @@ document.getElementById("questionnaireButton").addEventListener("click", functio
 document.getElementById("verifyButton").addEventListener("click", function () {
   currentPhase = "sync";
   let authcode = document.getElementById("authcode").value;
+  updateDisplay(); // Atualiza a exibição para a fase de sincronização
 
   auth_evaluation(authcode) // Envia o código para autenticação
     .then((isValid) => {
       if (isValid) {
         data_collection.evaluation_code = authcode; // Salva o código de avaliação na variável global
-
-        fetchtasks(authcode); // Puxa as tasks do servidor
-        updateDisplay();
       } else {
         document.getElementById("errorMessage").style.display = "block";
       }
@@ -90,9 +94,9 @@ document.getElementById("syncButton").addEventListener("click", function () {
 
   setTimeout(() => {
     overlay.style.display = 'none';
-  }, 3000);
+  }, 5000);
 
-  let uxt_mode = true; // Opção de fazer a avaliação com UX-Tracking o não
+  let uxt_mode = false; // Opção de fazer a avaliação com UX-Tracking o não
 
   if (uxt_mode) {
     fetch("https://uxt-stage.liis.com.br/data/syncsession", {
@@ -110,8 +114,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
         return response.json().then(data => {
           console.log("Success:", data);
           
-          currentPhase = "initial";
-          updateDisplay();
+          fetchtasks(data_collection.evaluation_code);
         });
       } else {
         return response.json().then(errorData => {
@@ -136,8 +139,8 @@ document.getElementById("syncButton").addEventListener("click", function () {
 
     currentPhase = "initial";
     updateDisplay();
+    fetchtasks(data_collection.evaluation_code);
   }
-
 
 });
 
@@ -175,172 +178,283 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Fetch tasks
+// 1) Carrega os processos e tarefas e já adiciona listeners
 function fetchtasks(code) {
   fetch("http://127.0.0.1:5000/load_tasks", {
     method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ code: code })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code })
   })
-    .then(response => response.json())
-    .then(tasks => {
-      const container = document.querySelector("#taskscontainer"); // Puxa o container que guarda as tasks no html
-
-      tasks.forEach(task => {
-        // Cria um wrapper para cada task (contendo a parte de tarefa e a de review)
-        const taskWrapper = document.createElement("div");
-
-        // Gera o HTML das questões iterando por cada questao que tem relacionada a task
-        let questionsHTML = "";
-        task.questions.forEach((question, index) => {
-          questionsHTML += `
-            <div class="question">
-              <label for="question-${task.id}-${index}">${question.text}</label>
-              <input class="input" type="text" id="question-${task.id}-${index}" name="question-${task.id}-${index}">
-            </div>
-          `;
-        });
-
-        // Estrutura da task e da review
-        taskWrapper.innerHTML = `
-        <div class="task" id="task${task.id}">
-        <h1>${task.title}</h1>
-            <hr style="border: 1px solid #ccc; width: 80%;">
-            <h2 id="task${task.id}_title" style="display: none;">${task.description}</h2>
-            <h2 id="task${task.id}_startmassage">Start the task when you're ready</h2>
-            <hr style="border: 1px solid #ccc; width: 80%;">
-            <button id="startTask${task.id}Button">Start Task</button>
-            <button id="finishTask${task.id}Button" style="display: none;">Finish</button>
-            <button class="couldntsolve" id="couldntSolveTask${task.id}Button" style="display: none;">Couldn't solve it?</button>
-              <div class="screenshot-box">
-                <h2>Having issues?</h2>
-                <p>Please take a screenshot to capture the problem you encounter while interacting with the site. This helps us identify <b>hotspots</b> during the evaluation!</p>
-                <button id="screenshotButton${task.id}">Take Screenshot</button>
-              </div>
-          </div>
-          <div class="task_review" id="task${task.id}_review">
-            <h1>Review: ${task.title}</h1>
-            <hr style="border: 1px solid #ccc; width: 80%;">
-            <h2>${task.description}</h2>
-            <hr style="border: 1px solid #ccc; width: 80%;">
-            <div class="task-questions">
-              ${questionsHTML}
-            </div>
-            <button id="task${task.id}ReviewButton">Next</button>
-          </div>
-        `;
-
-        container.appendChild(taskWrapper); // Colocar a task criada no container
-        // Armazena o objeto da task para ser realizada
-        todo_tasks.push(task);
-
-        // Adiciona eventos aos botões da task para passar para a fase de review
-        document.getElementById(`finishTask${task.id}Button`).addEventListener("click", () => {
-          currentPhase = "review";
-          currentTaskStatus = "solved";
-          updateDisplay();
-        });
-        document.getElementById(`couldntSolveTask${task.id}Button`).addEventListener("click", () => {
-          currentPhase = "review";
-          currentTaskStatus = "unsolved";
-          updateDisplay();
-        });
-
-        // Evento para iniciar a task e guardar o timestamp inicial
-        document.getElementById(`startTask${task.id}Button`).addEventListener("click", () => {
-          document.getElementById(`task${task.id}_startmassage`).style.display = "none";
-          document.getElementById(`startTask${task.id}Button`).style.display = "none";
-          document.getElementById(`finishTask${task.id}Button`).style.display = "block";
-          document.getElementById(`couldntSolveTask${task.id}Button`).style.display = "block";
-          document.getElementById(`task${task.id}_title`).style.display = "block";
-          currentTaskTimestamp = new Date().toISOString(); // Salvar na global o timestamp inicial da task atual
-        });
-
-        // Evento do botão Next na review
-        document.getElementById(`task${task.id}ReviewButton`).addEventListener("click", () => {
-          // Coleta as respostas
-          const inputs = document.querySelectorAll(`#task${task.id}_review .task-questions input`);
-          const answers = [];
-          inputs.forEach((input, index) => {
-            answers.push({
-              question_id: task.questions[index].question_id,
-              question_text: task.questions[index].text,
-              answer: input.value
-            });
-          });
-          // Criar o objeto com os dados da task e adiciona no array
-          tasks_data.push({
-            id: task.id,
-            title: task.title,
-            description: task.description,
-            initial_timestamp : currentTaskTimestamp,
-            final_timestamp : new Date().toISOString(),
-            answers : answers,
-            status : currentTaskStatus
-          });
-          // Avança para a próxima task ou para a página final se não houver mais tasks
-          currentTaskIndex++;
-          if (currentTaskIndex < todo_tasks.length) {
-            currentPhase = "task";
-          } else {
-            currentPhase = "finalquestionnaire";
-          }
-          updateProgressBar();
-          updateDisplay();
-        });
-      });
-      // Atualiza a exibição após gerar as tasks
+    .then(res => res.json())
+    .then(list => {
+      processes = list;
+      currentProcessIndex = 0;
+      currentTaskIndex = 0;
+      currentPhase = "initial";  
+      renderAll();               // monta o HTML
+      attachListenersAll();      // conecta todos os botões
       updateDisplay();
     })
-    .catch(error => {
-      const container = document.querySelector("#taskscontainer");
-      container.innerHTML = "<h1>Servidor fora do ar</h1> <p>Erro ao carregar tarefas</p>";
-      console.error("Erro ao carregar as tasks:", error)
+    .catch(err => {
+      console.error(err);
       currentPhase = "error";
       updateDisplay();
     });
 }
 
+// 2) Monta todo o HTML (igual ao código anterior)
+function renderAll() {
+  const container = document.querySelector("#taskscontainer");
+  container.innerHTML = "";
+
+  processes.forEach(proc => {
+    const div = document.createElement("div");
+    div.classList.add("process-container");
+    div.id = `process${proc.process_id}`;
+
+    proc.process_tasks.forEach(task => {
+      div.insertAdjacentHTML("beforeend", `
+        <div class="task" id="task${task.task_id}">
+          <h1 class="task-title">${task.task_title}</h1>
+          <p class="task-description">${task.task_description}</p>
+          <button id="startTask${task.task_id}Button">Start Task</button>
+          <p>Após finalizar, responda a pergunta abaixo:</p>
+          <button id="finishTask${task.task_id}Button" style="display:none">Consegui resolver</button>
+          <button id="notSureTask${task.task_id}Button" style="display:none">Não tenho certeza</button>
+          <button id="couldntSolveTask${task.task_id}Button" style="display:none">Não consegui resolver</button>
+        </div>
+        <div class="task_review" id="task${task.task_id}_review" style="display:none">
+          <h1>Review: ${task.task_title}</h1>
+          <p>Como foi a realização desta tarefa?</p>
+          <input type="text" id="question-${task.task_id}">
+          <button id="task${task.task_id}ReviewButton">Next</button>
+        </div>
+      `);
+    });
+
+    // process review
+    let html = `<div class="process-review" id="process${proc.process_id}_review" style="display:none">
+        <h1>Review: ${proc.process_title}</h1>
+        <div class="questionnaire">
+      `;
+
+      proc.process_review.forEach((q, i) => {
+        html += `
+          <div class="question">
+            <label for="process-question-${proc.process_id}-${i}">
+              ${q.process_review_question_text}
+            </label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="process-question-${proc.process_id}-${i}" value="yes">
+                ✅ Sim
+              </label>
+              <label>
+                <input type="radio" name="process-question-${proc.process_id}-${i}" value="partial">
+                🟡 Parcialmente
+              </label>
+              <label>
+                <input type="radio" name="process-question-${proc.process_id}-${i}" value="no">
+                ❌ Não
+              </label>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+          <button id="process${proc.process_id}ReviewButton">Próximo Processo</button>
+        </div>
+      </div>`;
+    div.insertAdjacentHTML("beforeend", html);
+
+    container.appendChild(div);
+  });
+}
+
+// 3) Conecta todos os listeners de uma vez
+function attachListenersAll() {
+  processes.forEach((proc) => {
+    proc.process_tasks.forEach((task) => {
+      // Start Task
+      document.getElementById(`startTask${task.task_id}Button`).addEventListener("click", () => {
+        // Armazena timestamp de início
+        taskTimestamps[task.task_id] = { start: new Date().toISOString(), end: null };
+
+        // Ajusta UI
+        document.getElementById(`startTask${task.task_id}Button`).style.display = "none";
+        [
+          `finishTask${task.task_id}Button`,
+          `notSureTask${task.task_id}Button`,
+          `couldntSolveTask${task.task_id}Button`
+        ].forEach(id => document.getElementById(id).style.display = "inline-block");
+
+        currentPhase = "task";
+        updateDisplay();
+      });
+
+      // Conseguiu / Não tenho certeza / Não conseguiu
+      const typeMap = {
+        finish:     "solved",
+        notSure:    "notSure",
+        couldntSolve: "couldntsolve"
+      };
+
+      ["finish", "notSure", "couldntSolve"].forEach(type => {
+        document.getElementById(`${type}Task${task.task_id}Button`).addEventListener("click", () => {
+          currentTaskStatus = typeMap[type];
+
+          // Armazena timestamp de fim
+          if (taskTimestamps[task.task_id]) {
+            taskTimestamps[task.task_id].end = new Date().toISOString();
+          }
+
+          currentPhase = "review";
+          updateDisplay();
+        });
+      });
+
+      // Next: salvar resposta e avançar
+      document.getElementById(`task${task.task_id}ReviewButton`).addEventListener("click", () => {
+        saveTaskAnswer(proc.process_id, task.task_id);
+        if (currentTaskIndex < processes[currentProcessIndex].process_tasks.length - 1) {
+          currentTaskIndex++;
+          currentPhase = "task";
+        } else {
+          currentPhase = "processreview";
+        }
+        updateDisplay();
+      });
+    });
+    
+    // process review next
+    document
+      .getElementById(`process${proc.process_id}ReviewButton`)
+      .addEventListener("click", () => {
+        saveProcessAnswers(proc.process_id);
+        // avança processo
+        if (currentProcessIndex < processes.length - 1) {
+          currentProcessIndex++;
+          currentTaskIndex = 0;
+          currentPhase = "task";
+        } else {
+          currentPhase = "finalquestionnaire";
+        }
+        updateDisplay();
+      });
+  });
+}
+
+function saveTaskAnswer(processId, taskId) {
+  const answer = document.getElementById(`question-${taskId}`).value;
+  const timestamps = taskTimestamps[taskId] || {};
+
+  tasks_data.push({
+    type: "task_review",
+    process_id: processId,
+    task_id: taskId,
+    answer: answer,
+    status: currentTaskStatus,
+    initialTimestamp: timestamps.start || null,
+    finalTimestamp:   timestamps.end   || null
+  });
+
+  console.log(`Task ${taskId} do proc ${processId}:`, answer, `(status: ${currentTaskStatus})`, timestamps);
+}
+
+
+function saveProcessAnswers(processId) {
+  const proc = processes[currentProcessIndex];
+  proc.process_review.forEach((q, i) => {
+    const selected = document.querySelector(`input[name="process-question-${processId}-${i}"]:checked`);
+    const answerValue = selected ? selected.value : null;
+    
+    console.log(`Processo ${processId} - Pergunta ${q.process_review_question_id}: ${answerValue}`);
+
+    // Exemplo de armazenamento
+    tasks_data.push({
+      type: "process_review",
+      process_id: processId,
+      question_id: q.process_review_question_id,
+      answer: answerValue
+    });
+  });
+}
+
 // Função que atualiza a exibição com base na fase e na task atual
 function updateDisplay() {
-  // Esconde tudo
+  // 1) Esconde todas as telas principais
   login_page.style.display = "none";
   starttestdiv.style.display = "none";
-  finalpage.style.display = "none";
   questionnaire_page.style.display = "none";
-  final_questionnaire_page.style.display = "none";
   sync_page.style.display = "none";
-  document.querySelectorAll(".task").forEach(div => div.style.display = "none");
-  document.querySelectorAll(".task_review").forEach(div => div.style.display = "none");
-  document.getElementById("progressBarContainer").style.display = "none"; // Esconde a barra por padrão
+  final_questionnaire_page.style.display = "none";
+  finalpage.style.display = "none";
+  document.getElementById("progressBarContainer").style.display = "none";
 
-  if (currentPhase === "initial") {
-    starttestdiv.style.display = "flex";
-  } else if (currentPhase === "task") {
-    // Exibe a parte da tarefa da task atual
-    const taskId = todo_tasks[currentTaskIndex].id;
-    document.getElementById("task" + taskId).style.display = "flex";
-    updateProgressBar(); // Atualiza a barra de progresso
-    document.getElementById("progressBarContainer").style.display = "block"; // Mostra a barra
-  } else if (currentPhase === "review") {
-    // Exibe a parte de review da task atual
-    const taskId = todo_tasks[currentTaskIndex].id;
-    document.getElementById("task" + taskId + "_review").style.display = "flex";
-    updateProgressBar(); // Atualiza a barra de progresso
-    document.getElementById("progressBarContainer").style.display = "block"; // Mostra a barra
-  } else if (currentPhase === "final") {
-    finalpage.style.display = "flex";
-  } else if (currentPhase === "questionnaire") {
-    questionnaire_page.style.display = "flex";
-  } else if (currentPhase === "finalquestionnaire") {
-    final_questionnaire_page.style.display = "flex";
-  } else if (currentPhase === "login") {
-    login_page.style.display = "block";
-  } else if (currentPhase === "sync") {
-    sync_page.style.display = "flex";
+  // 2) Esconde todos os blocos de tarefa e review
+  document.querySelectorAll(".task").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".task_review").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".process-review").forEach(el => el.style.display = "none");
+
+  // 3) Fluxo de fases
+  switch (currentPhase) {
+    case "login":
+      login_page.style.display = "block";
+      break;
+
+    case "sync":
+      sync_page.style.display = "flex";
+      break;
+
+    case "initial":
+      starttestdiv.style.display = "flex";
+      break;
+
+    case "questionnaire":
+      questionnaire_page.style.display = "flex";
+      break;
+
+    case "task":
+      // exibe a tarefa atual dentro do processo atual
+      const proc = processes[currentProcessIndex];
+      const task = proc && proc.process_tasks[currentTaskIndex];
+      if (task) {
+        document.getElementById(`task${task.task_id}`).style.display = "flex";
+        updateProgressBar();
+        document.getElementById("progressBarContainer").style.display = "block";
+      }
+      break;
+
+    case "review":
+      // exibe o review da tarefa atual
+      const proc2 = processes[currentProcessIndex];
+      const task2 = proc2 && proc2.process_tasks[currentTaskIndex];
+      if (task2) {
+        document.getElementById(`task${task2.task_id}_review`).style.display = "flex";
+        updateProgressBar();
+        document.getElementById("progressBarContainer").style.display = "block";
+      }
+      break;
+
+    case "processreview":
+      // exibe o review completo do processo após todas as tarefas
+      const proc3 = processes[currentProcessIndex];
+      if (proc3) {
+        document.getElementById(`process${proc3.process_id}_review`).style.display = "flex";
+      }
+      break;
+
+    case "finalquestionnaire":
+      final_questionnaire_page.style.display = "flex";
+      break;
+
+    case "final":
+      finalpage.style.display = "flex";
+      break;
   }
 }
+
 
 function getProfileData() {
   const getSelectedValue = (name) => {
@@ -369,19 +483,22 @@ function getFinalQuestionnaireData() {
 // Botão para finalizar o questionário final
 document.getElementById("finalQuestionnaireButton").addEventListener("click", function () {
   currentPhase = "final";
+
+  data_collection.endTime = new Date().toISOString(); // Salva o timestamp final da avaliação
+
+  data_collection.profile_questionnaire = getProfileData(); // Salva os dados do questionário de perfil
+
+  data_collection.final_questionnaire = getFinalQuestionnaireData(); // Salva os dados do questionário final
+
+  data_collection.performed_tasks = tasks_data;
+
   updateDisplay();
 });
 
 // Botão para finalizar a avaliação e enviar os dados para o Flask
 document.getElementById("finishevaluationbtn").addEventListener("click", function () {
-    // Enviando os dados para o backend Flask
-    data_collection.endTime = new Date().toISOString(); // Salva o timestamp final da avaliação
-
-    data_collection.profile_questionnaire = getProfileData(); // Salva os dados do questionário de perfil
-
-    data_collection.final_questionnaire = getFinalQuestionnaireData(); // Salva os dados do questionário final
-
-    data_collection.performed_tasks = tasks_data;
+    
+  // Enviando os dados para o backend Flask
 
     sendData();
 });
@@ -441,12 +558,27 @@ function emotionRange() {
 
 // Função para atualizar a barra de progresso
 function updateProgressBar() {
-  if (todo_tasks.length === 0) return;
-  
-  const completedTasks = currentTaskIndex;
-  const totalTasks = todo_tasks.length;
+  if (processes.length === 0) return;
+
+  const totalTasks = processes.reduce((sum, proc) => sum + proc.process_tasks.length, 0);
+
+  // Conta quantas tarefas já passaram
+  let completedTasks = 0;
+
+  // Soma todas as tarefas dos processos anteriores
+  for (let i = 0; i < currentProcessIndex; i++) {
+    completedTasks += processes[i].process_tasks.length;
+  }
+
+  // Soma as tarefas do processo atual que já passaram
+  if (currentPhase === "review" || currentPhase === "task") {
+    completedTasks += currentTaskIndex;
+  } else if (currentPhase === "processreview") {
+    completedTasks += processes[currentProcessIndex].process_tasks.length;
+  }
+
   const progressPercentage = (completedTasks / totalTasks) * 100;
-  
+
   document.getElementById("progressBarFill").style.width = `${progressPercentage}%`;
   document.getElementById("progressText").textContent = `${completedTasks}/${totalTasks} tasks completed`;
 }
