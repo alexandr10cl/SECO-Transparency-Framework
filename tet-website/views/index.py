@@ -167,3 +167,42 @@ def evaluation(id):
     count_collected_data = len(collected_data)
 
     return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data, guidelines=guidelines, tasks=tasks, collected_data=collected_data, questions=questions)
+
+@app.route('/eval_dashboard/<int:id>')
+def eval_dashboard(id):
+    email = session['user_signed_in']
+    user = User.query.filter_by(email=email).first()
+    evaluation = Evaluation.query.get_or_404(id)
+    seco_processes = evaluation.seco_processes
+    collected_data = evaluation.collected_data
+    questions = Question.query.all()
+    guidelines = []
+    tasks = []
+    for p in seco_processes:
+        for t in p.tasks:
+            if t not in tasks:
+                tasks.append(t)
+        for g in p.guidelines:
+            if g not in guidelines:
+                guidelines.append(g)
+                
+    count_collected_data = len(collected_data)
+    
+    eName = evaluation.name
+    eId = evaluation.evaluation_id
+    ePortal = evaluation.seco_portal
+    ePortalUrl = evaluation.seco_portal_url
+    
+    return render_template('dashboard.html', 
+                            evaluation=evaluation,
+                            user=user,
+                            seco_processes=seco_processes,
+                            count_collected_data=count_collected_data,
+                            guidelines=guidelines,
+                            tasks=tasks,
+                            collected_data=collected_data,
+                            questions=questions,
+                            eName=eName,
+                            eId=eId,
+                            ePortal=ePortal,
+                            ePortalUrl=ePortalUrl)
