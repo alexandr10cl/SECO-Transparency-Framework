@@ -68,11 +68,14 @@ def submit_tasks():
     if not evaluation:
         return jsonify({"error": "Evaluation not found"}), 404
 
+
     # Cria o objeto CollectedData
     collected = CollectedData(
         start_time    = datetime.fromisoformat(data.get("startTime")),
         end_time      = datetime.fromisoformat(data.get("endTime")),
-        evaluation_id = evaluation.evaluation_id
+        evaluation_id = evaluation.evaluation_id,
+        cod = data.get("uxt_cod"),
+        sessionId = data.get("uxt_sessionId")
     )
     db.session.add(collected)
     db.session.flush()  # para gerar collected_data_id
@@ -80,13 +83,15 @@ def submit_tasks():
     # Salva cada tarefa executada
     for item in data.get("performed_tasks", []):
         if item.get("type") == "task_review":
-            # Lê timestamps específicos por tarefa
             initial_ts = item.get("initialTimestamp") or data.get("startTime")
             final_ts   = item.get("finalTimestamp")   or data.get("endTime")
+            status = item.get("status")
+            
+
             performed = PerformedTask(
                 initial_timestamp    = datetime.fromisoformat(initial_ts),
                 final_timestamp      = datetime.fromisoformat(final_ts),
-                status               = PerformedTaskStatus(item.get("status")),
+                status               = status,
                 task_id              = item.get("task_id"),
                 collected_data_id    = collected.collected_data_id,
                 comments             = item.get("answer")
@@ -130,6 +135,75 @@ def submit_tasks():
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200
+
+
+@app.route('/get_data/<evaluation_id>', methods=['GET'])
+def get_data(evaluation_id):
+    evaluation = Evaluation.query.filter_by(evaluation_id=evaluation_id).first()
+    if not evaluation:
+        return jsonify({"error": "Evaluation not found"}), 404
+
+    # Busca todos os registros CollectedData vinculados a essa avaliação
+    collected_list = CollectedData.query.filter_by(evaluation_id=evaluation_id).all()
+
+    result = []
+    for col in collected_list:
+        collected_dict = {
+            "collected_data_id": col.collected_data_id,
+            "start_time": col.start_time.isoformat(),
+            "end_time": col.end_time.isoformat(),
+            "performed_tasks": [],
+            "process_answers": [],
+            "developer_questionnaire": None,
+            # "navigation": []  
+        }
+
+        # Tarefas executadas
+        tasks = PerformedTask.query.filter_by(collected_data_id=col.collected_data_id).all()
+        for t in tasks:
+            collected_dict["performed_tasks"].append({
+                "task_id": t.task_id,
+                "status": t.status.value if hasattr(t.status, "value") else t.status,
+                "initial_timestamp": t.initial_timestamp.isoformat(),
+                "final_timestamp": t.final_timestamp.isoformat(),
+                "comments": t.comments
+            })
+
+        # Respostas do processo
+        answers = Answer.query.filter_by(collected_data_id=col.collected_data_id).all()
+        for a in answers:
+            collected_dict["process_answers"].append({
+                "question_id": a.question_id,
+                "answer": a.answer
+            })
+
+        # Questionário do desenvolvedor
+        devq = DeveloperQuestionnaire.query.filter_by(collected_data_id=col.collected_data_id).first()
+        if devq:
+            collected_dict["developer_questionnaire"] = {
+                "academic_level": devq.academic_level.value if hasattr(devq.academic_level, "value") else devq.academic_level,
+                "segment": devq.segment.value if hasattr(devq.segment, "value") else devq.segment,
+                "previus_xp": devq.previus_xp.value if hasattr(devq.previus_xp, "value") else devq.previus_xp,
+                "experience": devq.experience,
+                "emotion": devq.emotion,
+                "comments": devq.comments
+            }
+
+        # Navegação
+        # navs = Navigation.query.filter_by(collected_data_id=col.collected_data_id).all()
+        # collected_dict["navigation"] = [{
+        #     "action": n.action.value if hasattr(n.action, "value") else n.action,
+        #     "url": n.url,
+        #     "title": n.title,
+        #     "timestamp": n.timestamp.isoformat(),
+        #     "task_id": n.task_id
+        # } for n in navs]
+
+        result.append(collected_dict)
+
+    return jsonify(result), 200
+
+
 
 
 
