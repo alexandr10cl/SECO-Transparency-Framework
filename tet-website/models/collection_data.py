@@ -8,6 +8,9 @@ class CollectedData(db.Model):
     collected_data_id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
+    cod = db.Column(db.String(100), nullable=False)
+    sessionId = db.Column(db.Integer, nullable=False)
+
 
     # Relationship with PerformedTask
     performed_tasks = db.relationship('PerformedTask',

@@ -10,7 +10,7 @@ let overlay = document.getElementById('overlay');
 let data_collection = {
   "evaluation_code" : "123456",
   "uxt_cod" : "default",
-  "uxt_sessionId" : "default",
+  "uxt_sessionId" : "0",
   "performed_tasks" : [],
   "profile_questionnaire" : {},
   "final_questionnaire" : {},
@@ -136,7 +136,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
   } else {
     // Se não for usar UX-Tracking, apenas salva os dados e avança
     data_collection.uxt_cod = "default";
-    data_collection.uxt_sessionId = "default";
+    data_collection.uxt_sessionId = "0";
 
     currentPhase = "initial";
     updateDisplay();
@@ -216,10 +216,10 @@ function renderAll() {
     proc.process_tasks.forEach(task => {
       div.insertAdjacentHTML("beforeend", `
         <div class="task" id="task${task.task_id}">
-          <h1 class="task-title">${task.task_title}</h1>
-          <p class="task-description">${task.task_description}</p>
+          <h1 class="task-title" id="taskTitle${task.task_id}" style="display:none">${task.task_title}</h1>
+          <p class="task-description" id="taskDescription${task.task_id}" style="display:none">${task.task_description}</p>
           <button id="startTask${task.task_id}Button">Start Task</button>
-          <p>Após finalizar, responda a pergunta abaixo:</p>
+          <p id="taskInstructions${task.task_id}" style="display:none">Após finalizar, responda a pergunta abaixo:</p>
           <button id="finishTask${task.task_id}Button" style="display:none">Consegui resolver</button>
           <button id="notSureTask${task.task_id}Button" style="display:none">Não tenho certeza</button>
           <button id="couldntSolveTask${task.task_id}Button" style="display:none">Não consegui resolver</button>
@@ -282,6 +282,11 @@ function attachListenersAll() {
         // Armazena timestamp de início
         taskStartTime = new Date().toISOString();
         taskEndTime = null;
+
+        // Mostra título, descrição e instruções
+        document.getElementById(`taskTitle${task.task_id}`).style.display = "block";
+        document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
+        document.getElementById(`taskInstructions${task.task_id}`).style.display = "block";
 
         // Ajusta UI
         document.getElementById(`startTask${task.task_id}Button`).style.display = "none";
@@ -346,7 +351,6 @@ function attachListenersAll() {
 
 function saveTaskAnswer(processId, taskId) {
   const answer = document.getElementById(`question-${taskId}`).value;
-  const timestamps = taskTimestamps[taskId] || {};
 
   tasks_data.push({
     type: "task_review",
@@ -358,7 +362,6 @@ function saveTaskAnswer(processId, taskId) {
     finalTimestamp: taskEndTime
   });
 
-  console.log(`Task ${taskId} do proc ${processId}:`, answer, `(status: ${currentTaskStatus})`, timestamps);
 }
 
 

@@ -22,7 +22,7 @@ class PerformedTask(db.Model):
     performed_task_id = db.Column(db.Integer, primary_key=True)
     initial_timestamp = db.Column(db.DateTime, nullable=False)
     final_timestamp = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.Enum(PerformedTaskStatus), nullable=False)
+    status = db.Column(db.Enum(PerformedTaskStatus, native_enum=False), nullable=False)
     comments = db.Column(db.String(1000), nullable=True)
 
     # Foreign key to the collected data table
