@@ -86,12 +86,20 @@ def submit_tasks():
             initial_ts = item.get("initialTimestamp") or data.get("startTime")
             final_ts   = item.get("finalTimestamp")   or data.get("endTime")
             status = item.get("status")
+            # Converte string para Enum
+            if status:
+                try:
+                    status_enum = PerformedTaskStatus(status)
+                except ValueError:
+                    status_enum = PerformedTaskStatus.SOLVED  # fallback ou trate como preferir
+            else:
+                status_enum = PerformedTaskStatus.SOLVED
             
 
             performed = PerformedTask(
                 initial_timestamp    = datetime.fromisoformat(initial_ts),
                 final_timestamp      = datetime.fromisoformat(final_ts),
-                status               = status,
+                status               = status_enum,
                 task_id              = item.get("task_id"),
                 collected_data_id    = collected.collected_data_id,
                 comments             = item.get("answer")

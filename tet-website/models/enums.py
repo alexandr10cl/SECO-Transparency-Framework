@@ -7,7 +7,7 @@ class UserType(Enum):
 
 class PerformedTaskStatus(Enum):
     SOLVED = "solved"
-    COULDNT_SOLVE = "couldntsolve"
+    COULDNT_SOLVE = "couldntsolve" 
     NOT_SURE = "notSure"
 
 class NavigationType(Enum):
