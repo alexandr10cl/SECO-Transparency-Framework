@@ -3,33 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transparency evaluation tool</title>
+    <title>SECO-Transp</title>
     <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
 </head>
 <body>
-    <div class="progress-bar-container" id="progressBarContainer">
-  <div class="progress-bar">
-    <div class="progress-bar-fill" id="progressBarFill"></div>
-  </div>
-  <div class="progress-text" id="progressText">0/0 tasks completed</div>
+    <div class="progress-bar-container progress-bar-bluebg" id="progressBarContainer">
+        <div class="progress-text" id="progressText">0/0 Tasks Completed</div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
     </div>
 
     <div class="login_page">
-    <h1>Transparency evaluation tool</h1>
-    <hr style="border: 1px solid #ccc; width: 80%;">
-    <div class="login-container">
-        <h1>Evaluation Authentication</h1>
-        <div id="errorMessage" class="error-message">
-        Invalid authentication code. Please try again.
-        </div>
-        <p>Please enter the code to validate this evaluation.</p>
-        <div class="login-form">
-        <div class="form-card-input-wrapper">
-            <input id="authcode" class="form-card-input" placeholder="______" maxlength="7" type="text">
-            <div class="form-card-input-bg"></div>
-        </div>
-        <button id="verifyButton">VERIFY</button>
-        </div>
+        <div class="login-container">
+            <div class="bluebg">
+                <div class="icon-circle">
+                    <span class="material-symbols-outlined">shield</span>
+                </div>
+                <h1>Evaluation Authentication</h1>
+                <p style="color: #DBEAFE;">Please enter the 7 digit code to validate this evaluation</p>
+            </div>
+            <div class="login_page_content">
+                <div id="errorMessage" class="error-message">
+                    Invalid authentication code. Please try again.
+                </div>
+                <hr style="border: 1px solid #DBEAFE; width: 80%;">
+                <p>Verification code</p>
+                <div class="login-form">
+                    <div class="form-card-input-wrapper">
+                        <input id="authcode" class="form-card-input" placeholder="_______" maxlength="7" type="text" inputmode="numeric">
+                        <div class="form-card-input-bg"></div>
+                    </div>
+                    <hr style="border: 1px solid #DBEAFE; width: 80%;">
+                    <button id="verifyButton">VERIFY</button>
+                </div>
+            </div>
     </div>
     </div> 
 
@@ -59,8 +69,12 @@
     </div>
 
     <div class="main_page">
-        <h1>Transparency evaluation tool</h1>
-        <hr style="border: 1px solid #ccc; width: 80%;">
+        <div class="bluebg">
+                <div class="icon-circle">
+                    <span class="material-symbols-outlined">help</span>
+                </div>
+                <h1>SECO-Transp Overview</h1>
+        </div>
         <h2>Evaluation Process: What to Expect</h2>
         <div class="timeline">
             <div class="process-step">
@@ -85,12 +99,16 @@
 
 
     <div class="questionnaire_page">
-        <h1>Questionnaire for Profile Characterization</h1>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <h2>Before starting this experiment, please answer the following questions.</h2>
+        <div class="bluebg">
+                <div class="icon-circle">
+                    <span class="material-symbols-outlined">person</span>
+                </div>
+                <h1>Questionnaire for Profile Characterization</h1>
+                <p>Before starting this experiment, please answer the following questions.</p>
+        </div>
         <div class="questionnaire_questions">
             <div class="question">
-                <label for="question-academic-level">Qual seu último grau acadâmico concluído?</label>
+                <label for="question-academic-level">What is the highest level of education you have completed?</label>
                 <div class="radio-group">
                     <label>
                         <input type="radio" name="formacao" value="high_school" required>
@@ -111,7 +129,7 @@
                 </div>
             </div>
             <div class="question">
-                <label for="question-sector">In which segment do you work?</label>
+                <label for="question-sector">Which sector do you work in?</label>
                 <div class="radio-group">
                     <label>
                         <input type="radio" name="segment" value="academia" required>
@@ -128,7 +146,7 @@
                 </div>
             </div>
             <div class="question">
-                <label for="question-previus-experience">Com que frequência você utiliza o portal X?</label>
+                <label for="question-previus-experience">How often do you use the {Python} portal?</label>
                 <div class="radio-group">
                     <label>
                         <input type="radio" name="previus-experience" value="never" required>
@@ -150,7 +168,7 @@
             </div>
             <div class="question">
                 <label for="question-experience">How long have you been working with software development (in years)?</label>
-                <input class="input" type="number" id="question-experience" name="question-experience">
+                <input class="input" type="number" id="question-experience" name="question-experience" min="0">
             </div>
         </div>
         <button id="questionnaireButton">Start evaluation</button>
@@ -160,14 +178,17 @@
     </div>
 
     <div class="final_questionnaire_page">
-        <h1>Tasks completed!</h1>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <h2>We're almost done with the evaluation! Now, please answer this questionnaire about your overall experience on the portal.</h2>
-        <hr style="border: 1px solid #ccc; width: 80%;">
+        <div class="bluebg">
+                <div class="icon-circle">
+                    <span class="material-symbols-outlined">check</span>
+                </div>
+                <h1>Tasks completed!</h1>
+                <p>We're almost done with the evaluation! Now, please answer this questionnaire about your overall experience on the portal.</p>
+        </div>
         <div class="final_questionnaire_questions">
             <div class="question">
                 <label for="question-overall">Describe your overall experience with the portal, highlighting its strengths and weaknesses and reporting any difficulties encountered.</label>
-                <textarea class="input" name="question-overall" id="question-overall"></textarea>
+                <textarea class="input" name="question-overall" id="question-overall" placeholder="Leave your comments here..."></textarea>
             </div>
             <div class="question">
                 <label for="question-emotion">Rate how you felt while using the portal.</label>
@@ -192,9 +213,15 @@
     </div>
 
     <div class="final_page" id="finalpage">
-        <h1>We've finished the evaluation!</h1>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <h2>Thank you for participating! Click the button to submit the collected data.</h2>
+        <div class="bluebg">
+                <div class="icon-circle">
+                    <span class="material-symbols-outlined">favorite</span>
+                </div>
+                <h1>Evaluation completed!</h1>
+                <p>Thank you for your participation!</p>
+        </div>
+        <hr style="border: 1px solid #ccc; width: 80%; margin-top: 30px;">
+        <h2 class="highlight-message">Before leaving, please click the button to submit your answers and complete the evaluation.</h2>
         <hr style="border: 1px solid #ccc; width: 80%;">
         <button id="finishevaluationbtn">Finish evaluation</button>
     </div>

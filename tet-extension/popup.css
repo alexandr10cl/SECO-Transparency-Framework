@@ -28,6 +28,18 @@ h1 {
   animation: fadeIn 0.5s ease-in-out;
 }
 
+.main_page h1 {
+  color: white;
+  font-weight: bold;
+  line-height: 1.75rem;
+}
+
+.main_page p {
+  color: #1E3A8A;
+  font-weight: 500;
+  line-height: 1.75rem;
+}
+
 .questionnaire_page {
   display: flex;
   align-items: center;
@@ -35,11 +47,38 @@ h1 {
   animation: fadeIn 0.5s ease-in-out;
 }
 
+.questionnaire_page h1 {
+  color: white;
+  font-weight: bold;
+  line-height: 1.75rem;
+}
+
+.questionnaire_page p {
+  color: #DBEAFE;
+  font-weight: 500;
+  text-align: center;
+  padding: 5px;
+}
+
+
 .final_questionnaire_page {
   display: flex;
   align-items: center;
   flex-direction: column;
   animation: fadeIn 0.5s ease-in-out;
+}
+
+.final_questionnaire_page h1 {
+  color: white;
+  font-weight: bold;
+  line-height: 1.75rem;
+}
+
+.final_questionnaire_page p {
+    color: #DBEAFE;
+    font-weight: 500;
+    text-align: center;
+    padding: 5px;
 }
 
 .task_review{
@@ -82,25 +121,28 @@ h1 {
   display: none;
 }
 
-/* Input Styles */
 .input {
   width: 80%;
-  height: 2.5em;
-  padding-left: 0.8em;
-  border: 1.5px solid transparent;
-  border-radius: 10px;
-  background-color: #fcfcfc;
+  height: 2.8em;
+  padding: 0 1em;
+  border: 1.5px solid #d1d5db; /* cinza claro */
+  border-radius: 0.75rem; /* 12px arredondado */
+  background-color: #f5f7fa; /* fundo levemente cinza */
   outline: none;
-  overflow: hidden;
-  transition: all 0.5s;
   font-size: 1rem;
+  color: #1f2937; /* texto escuro */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  box-sizing: border-box;
+}
+.input::placeholder {
+  color: #9ca3af; /* placeholder cinza médio */
 }
 
 .input:hover,
 .input:focus {
-  border-color: #4A9DEC;
-  box-shadow: 0px 0px 0px 4px rgba(74, 157, 236, 0.2);
-  background-color: white;
+  border-color: #2563eb; /* azul do tema */
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25); /* sombra azul suave */
 }
 
 textarea {
@@ -109,13 +151,14 @@ textarea {
   max-width: 80%;
   min-width: 80%;
   height: fit-content;
-  min-height: 2.5em;
+  min-height: 3.5em;
+  resize: vertical;
 }
 
 /* Button Styles */
 button {
   display: inline-block;
-  background-color: var(--primary-color);
+  background-color: #1D4ED8;
   color: white;
   padding: 12px 24px;
   border: none;
@@ -129,7 +172,7 @@ button {
 }
 
 button:hover {
-  background-color: #2980b9;
+  background-color: #142f79;
   transform: translateY(-2px);
 }
 
@@ -161,29 +204,30 @@ button:disabled {
 }
 
 /* Question and Questionnaire Styles */
-.questionnaire {
+.questionnaire_questions {
   max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 12px;
-  background: #f8f9fa;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* Question Container */
+/* Cada pergunta */
 .question {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  margin-bottom: 1.2rem;
 }
 
 .question label {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: var(--text-color);
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 1rem; /* ↓ reduzido */
+  margin-bottom: 0.6rem; /* ↓ menor espaço abaixo */
+  color: #1f2937;
 }
-
 
 
 /* Emotion Range Input Styles */
@@ -282,7 +326,6 @@ button:disabled {
 }
 .login-container {
   font-size: initial;
-  padding: 0 15px;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -290,42 +333,90 @@ button:disabled {
   gap: 12px;
 }
 
-/* hard reset */
-.form-card-input {
-  all: unset;
+.bluebg {
+  background-color: #1D4ED8;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: -webkit-fill-available;
 }
 
-/* Limita a largura do wrapper para evitar overflow */
+.icon-circle {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 60px;
+      margin-top: 20px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #E0F2FE; /* azul claro */
+    }
+
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,    /* 0 = contorno, 1 = preenchido */
+    'wght' 400,  /* espessura da linha (100–700) */
+    'GRAD' 0,    /* gradação tonal */
+    'opsz' 48;   /* tamanho óptico (20–48) */
+  
+  font-size: 40px !important; /* tamanho da fonte/escala real */
+  color: #2563EB;  /* cor azul */
+}
+
+.login-container h1 {
+  color: white;
+  font-weight: bold;
+  line-height: 1.75rem;
+}
+
+.login-container p {
+  color: #1E3A8A;
+  font-weight: 500;
+  line-height: 1.75rem;
+}
+
+/* Reset + base */
+.form-card-input {
+  all: unset;
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  color: #1f2937; /* cinza-escuro */
+  width: 100%;
+  z-index: 2;
+  position: relative;
+  padding: 0 0.5rem;
+  caret-color: #2563eb;
+}
+
+/* Container moderno */
 .form-card-input-wrapper {
   position: relative;
   width: 100%;
-  max-width: 200px;  /* ajuste o valor conforme necessário */
-  height: 3rem;
-  display: flex;
-  margin: 0 auto 1rem auto;
-}
-
-.form-card-input {
-  font-size: 1.5rem;        /* Aumenta o tamanho do texto */
-  font-weight: bold;
-  letter-spacing: 0.8rem;  /* Ajuste o espaçamento para caber melhor */
-  text-align: start;
-  transform: translateX(36px);
-  z-index: 3;
-  background-color: transparent;
-  width: 100%;            /* Garante que o input ocupe a largura do wrapper */
-}
-
-.form-card-input-bg {
-  content: '';
+  max-width: 240px;
   height: 60px;
-  margin: auto;
-  inset: 0;
-  bottom: 10px;
+  display: flex;
+  align-items: center;
+  margin: 0 auto 1rem;
+}
+
+/* Plano de fundo arredondado */
+.form-card-input-bg {
   position: absolute;
+  inset: 0;
   z-index: 1;
+  background: rgba(243, 244, 246, 0.95); /* cinza claro */
   border-radius: 12px;
-  background-color: rgba(206, 206, 206, 0.664);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  transition: background-color 0.2s ease;
+}
+
+/* Efeito ao focar */
+.form-card-input:focus ~ .form-card-input-bg {
+  background-color: rgba(226, 232, 240, 1); /* muda um pouco o fundo */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3); /* azul leve */
 }
 
 .error-message {
@@ -341,26 +432,45 @@ button:disabled {
 .radio-group {
   display: flex;
   flex-direction: column;
+  gap: 0.4rem; /* ↓ menor espaçamento entre opções */
 }
+
 .radio-group label {
-  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem; 
+  border-radius: 0.375rem;
   cursor: pointer;
+  font-size: 0.95rem; 
+  transition: background-color 0.2s ease;
+  color: #374151;
+  border: 2px solid #dbeafe; 
+  background-color: #ffffff;
 }
+
+.radio-group label:hover {
+  background-color: #f0f9ff; 
+  border-color: #93c5fd;    
+}
+
+/* Radio input */
 .radio-group input[type="radio"] {
+  accent-color: #2563eb;
   margin-right: 10px;
+  width: 16px;
+  height: 16px;
 }
 
 /* Progress Bar Styles */
 .progress-bar-container {
   width: 90%;
-  margin: 10px auto;
   display: none;
 }
 
 .progress-bar {
   width: 100%;
   height: 10px;
-  background-color: #e0e0e0;
+  background-color: #3B82F6;
   border-radius: 5px;
   overflow: hidden;
   margin-bottom: 5px;
@@ -368,21 +478,39 @@ button:disabled {
 
 .progress-bar-fill {
   height: 100%;
-  background-color: var(--secondary-color);
+  background-color: #0F172A;
   width: 0%;
   transition: width 0.3s ease;
 }
 
 .progress-text {
   text-align: center;
-  font-size: 1rem;
-  color: var(--text-color);
+  font-weight: 600;
   margin-bottom: 10px;
+  font-style: bold;
+  font-size: large;
 }
 
 .final_questionnaire_questions {
-  margin-top: 20px;
-  margin-bottom: 20px;
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.login_page_content {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  font-family: 'Segoe UI', sans-serif;
 }
 
 .screenshot-box{
@@ -501,16 +629,223 @@ button:disabled {
   background-blend-mode: lighten;
 }
 
+.process-container {
+  background-color: #ffffff;
+  max-width: 700px;
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.taskbox-container {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  max-width: 700px;
+  border-radius: 0 0 1rem 1rem; 
+  border-bottom: 1px solid #e5e7eb; 
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Tarefas individuais */
+.task,
+.task_review,
 .process-review {
   display: flex;
   flex-direction: column;
+  margin-top: 1.5rem;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.task h1{
+  size: 900px;
+  line-height: 1.75rem;
+  font-weight: bold;
+  color : #1E3A8A;
+}
+
+.task p {
+  color: #1D4ED8;
+  font-weight: 500;
+  size: 500px;
+  line-height: 1.75rem;
+  font-size: medium;
+  text-align: center;
+}
+
+.task-description {
+  color: #1E3A8A;
+}
+
+.task-info {
+  background-color: #EFF6FF;
+  padding: 16px;
+  border: 10px;
+  border-radius: 20px;
+  text-align: left;
+}
+
+.task_review p {
+  color: #1E3A8A;
+  font-weight: 500;
+  size: 500px;
+  line-height: 1.75rem;
+  font-size: medium;
+  text-align: center;
+}
+
+/* Título da revisão de processo */
+.process-review h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Questões do processo */
+.process-review .question {
+  background-color: #f9fafb;
+  padding: 1rem;
+  border: 1px solid #e0e7ff;
+  border-radius: 0.75rem;
+}
+
+/* Grupo de radio */
+.process-review .radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.process-review .radio-group label {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dbeafe;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.process-review .radio-group label:hover {
+  background-color: #f0f9ff;
+}
+
+.task-btn {
+  background-color: white;
+  border: 1.5px solid #2563eb;
+  color: #2563eb;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
   width: 100%;
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-  background-color: #f8f9fa;
+  height: auto;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  display: flex; /* garante alinhamento horizontal */
+  align-items: center;
+  gap: 0.5rem;    /* espaçamento entre ícone e texto */
+}
+
+.task-btn:hover {
+  background-color: #2563EB;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  color: white;
+}
+
+/* Ícone com estilo inicial */
+.icon-botao {
+  font-size: 20px !important;
+  color: #2563EB;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  transition: color 0.2s ease;
+}
+
+/* Muda a cor do ícone quando o botão está em hover */
+.task-btn:hover .icon-botao {
+  color: white;
+}
+
+.custom-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem 1rem;
+
+  border: 1.5px solid #93c5fd; /* azul claro */
+  border-radius: 0.75rem;
+
+  font-size: 1rem;
+  font-family: sans-serif;
+  color: #1f2937;
+
+  background-color: #ffffff;
+  outline: none;
+  resize: vertical;
+
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.custom-textarea:focus {
+  border-color: #2563eb; /* azul principal */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); /* leve brilho */
+}
+
+
+.final_page h1 {
+  color: white;
+  font-weight: bold;
+  line-height: 1.75rem;
+}
+
+.final_page p {
+  color: white;
+  font-weight: 500;
+  line-height: 1.75rem;
+}
+
+.highlight-message {
+  background-color: #f0f4ff; /* azul claro suave */
+  padding: 16px 24px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+  font-weight: 500;
+}
+
+
+.progress-bar-bluebg {
+  background-color: #1D4ED8;
+  border-radius: 20px 20px 0 0;
+  padding: 18px 0 10px 0;
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.progress-bar-bluebg .progress-text {
+  color: #DBEAFE;
+}
+
+.progress-bar-bluebg .progress-bar {
+  width: 90%;
+  margin: 0 auto 5px auto;
+}
+
+.pending-tasks-text {
+  background-color: #f0f4ff; /* azul claro suave */
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+  font-weight: 500;
 }
