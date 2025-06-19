@@ -334,7 +334,7 @@ button:disabled {
 }
 
 .bluebg {
-  background-color: #1D4ED8;
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
   border-radius: 20px 20px 0 0;
   display: flex;
   flex-direction: column;
@@ -669,7 +669,6 @@ button:disabled {
   size: 500px;
   line-height: 1.75rem;
   font-size: medium;
-  text-align: center;
 }
 
 .task-description {

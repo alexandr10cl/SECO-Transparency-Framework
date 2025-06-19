@@ -24,8 +24,8 @@ let currentTaskIndex = -1; // Índice da task atual (-1 significa página incial
 let currentPhase = "login"; // Pode ser "login", "sync","initial","questionnaire", "task", "review", "processreview" ,"finalquestionnaire" ou "final", serve para configurar a exibição na tela
 let currentTaskTimestamp = "Erro ao obter o timestamp"; // Armazena o timestamp da task atual
 let currentTaskStatus = "solving" // alterado para "solved" ou "couldntsolve" no botão de finalizar a task
-let taskStartTime = null;
-let taskEndTime = null;
+let taskStartTime = null; // Armazena o timestamp da task atual
+let taskEndTime = null; // Armazena o timestamp da task atual
 
 
 
@@ -73,15 +73,17 @@ document.getElementById("questionnaireButton").addEventListener("click", functio
 
 // Autentificação
 document.getElementById("verifyButton").addEventListener("click", function () {
-  currentPhase = "sync";
   let authcode = document.getElementById("authcode").value;
-  updateDisplay(); // Atualiza a exibição para a fase de sincronização
 
   auth_evaluation(authcode) // Envia o código para autenticação
     .then((isValid) => {
       if (isValid) {
+        console.log("Código de avaliação válido");
+        currentPhase = "sync";
         data_collection.evaluation_code = authcode; // Salva o código de avaliação na variável global
+        updateDisplay(); // Atualiza a exibição para a fase de sincronização
       } else {
+        console.error("Código de avaliação inválido");
         document.getElementById("errorMessage").style.display = "block";
       }
     });
@@ -139,7 +141,6 @@ document.getElementById("syncButton").addEventListener("click", function () {
     data_collection.uxt_sessionId = "0";
 
     currentPhase = "initial";
-    updateDisplay();
     fetchtasks(data_collection.evaluation_code);
   }
 
@@ -595,15 +596,12 @@ function updateProgressBar() {
 
   const totalTasks = processes.reduce((sum, proc) => sum + proc.process_tasks.length, 0);
 
-  // Conta quantas tarefas já passaram
   let completedTasks = 0;
 
-  // Soma todas as tarefas dos processos anteriores
   for (let i = 0; i < currentProcessIndex; i++) {
     completedTasks += processes[i].process_tasks.length;
   }
 
-  // Soma as tarefas do processo atual que já passaram
   if (currentPhase === "review" || currentPhase === "task") {
     completedTasks += currentTaskIndex;
   } else if (currentPhase === "processreview") {
@@ -612,6 +610,9 @@ function updateProgressBar() {
 
   const progressPercentage = (completedTasks / totalTasks) * 100;
 
+  // Atualiza a barra de progresso
   document.getElementById("progressBarFill").style.width = `${progressPercentage}%`;
-  document.getElementById("progressText").textContent = `${completedTasks}/${totalTasks} Tasks Completed`;
+
+  const currentTaskNumber = Math.min(completedTasks + 1, totalTasks);
+  document.getElementById("progressText").textContent = `Task ${currentTaskNumber} of ${totalTasks}`;
 }
