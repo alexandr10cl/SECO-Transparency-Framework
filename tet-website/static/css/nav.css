@@ -23,7 +23,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--cor-1);
+    background-color: #0052cc;
     color: var(--cor-2);
     position: fixed;
     width: 100%;
@@ -53,7 +53,6 @@ body {
     color: var(--cor-2);
     font-size: 1rem;
     transition: 0.3s;
-    border: 1px solid var(--cor-1);
 }
 
 .nav-links a:hover{
