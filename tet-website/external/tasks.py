@@ -130,16 +130,16 @@ def submit_tasks():
     db.session.add(dev_q)
 
     # Salva a navegação (caso exista)
-    for nav in data.get("navigation", []):
-        nav_entry = Navigation(
-            action              = NavigationType(nav.get("action")),
-            title               = nav.get("title"),
-            url                 = nav.get("url"),
-            timestamp           = datetime.fromisoformat(nav.get("timestamp")),
-            task_id             = nav.get("taskId"),
-            collected_data_id   = collected.collected_data_id
-        )
-        db.session.add(nav_entry)
+    #for nav in data.get("navigation", []):
+        #nav_entry = Navigation(
+          #  action              = NavigationType(nav.get("action")),
+          #  title               = nav.get("title"),
+          #  url                 = nav.get("url"),
+          #  timestamp           = datetime.fromisoformat(nav.get("timestamp")),
+           # task_id             = nav.get("taskId"),
+          #  collected_data_id   = collected.collected_data_id
+       # )
+      #  db.session.add(nav_entry)
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200
