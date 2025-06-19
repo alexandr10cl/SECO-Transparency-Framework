@@ -215,28 +215,48 @@ function renderAll() {
 
     proc.process_tasks.forEach(task => {
       div.insertAdjacentHTML("beforeend", `
-        <div class="task" id="task${task.task_id}">
-          <h1 class="task-title" id="taskTitle${task.task_id}" style="display:none">${task.task_title}</h1>
-          <p class="task-description" id="taskDescription${task.task_id}" style="display:none">${task.task_description}</p>
-          <button id="startTask${task.task_id}Button">Start Task</button>
-          <p id="taskInstructions${task.task_id}" style="display:none">Após finalizar, responda a pergunta abaixo:</p>
-          <button id="finishTask${task.task_id}Button" style="display:none">Consegui resolver</button>
-          <button id="notSureTask${task.task_id}Button" style="display:none">Não tenho certeza</button>
-          <button id="couldntSolveTask${task.task_id}Button" style="display:none">Não consegui resolver</button>
-        </div>
-        <div class="task_review" id="task${task.task_id}_review" style="display:none">
-          <h1>Review: ${task.task_title}</h1>
-          <p>Como foi a realização desta tarefa?</p>
-          <input type="text" id="question-${task.task_id}">
-          <button id="task${task.task_id}ReviewButton">Next</button>
+        <div class="taskbox-container" id="taskbox${task.task_id}" style="display:none">
+          <div class="task" id="task${task.task_id}">
+            <h1 class="task-title" id="taskTitle${task.task_id}" style="display:none">${task.task_title}</h1>
+            <div class="task-info">
+              <p class="task-description" id="taskDescription${task.task_id}" style="display:none">${task.task_description}</p>
+            </div>
+            <p id="pendingText${task.task_id}" class="pending-tasks-text" style="margin-bottom:10px;">You still have pending tasks. Click the button to get started.</p>
+            <button id="startTask${task.task_id}Button">Start Task</button>
+            <p id="taskInstructions${task.task_id}" style="display:none; color: #1E3A8A;">How did the execution of this task go?</p>
+            <button class="task-btn" id="finishTask${task.task_id}Button" style="display:none">
+              <span class="material-symbols-outlined icon-botao">check</span>
+              Solved it
+            </button>
+            <button class="task-btn" id="notSureTask${task.task_id}Button" style="display:none">
+              <span class="material-symbols-outlined icon-botao">help</span>
+              Not sure
+            </button>
+            <button class="task-btn" id="couldntSolveTask${task.task_id}Button" style="display:none">
+              <span class="material-symbols-outlined icon-botao">close</span>
+              Couldn't solve
+            </button>
+          </div>
+          <div class="task_review" id="task${task.task_id}_review" style="display:none">
+            <h1>Review: ${task.task_title}</h1>
+            <p>How was your experience with this task?</p>
+            <textarea class="custom-textarea" id="question-${task.task_id}" placeholder="Leave a comment about your experience..."></textarea>
+            <button id="task${task.task_id}ReviewButton">Next</button>
+          </div>
         </div>
       `);
     });
 
     // process review
     let html = `<div class="process-review" id="process${proc.process_id}_review" style="display:none">
+          <div class="bluebg">
+                  <div class="icon-circle">
+                      <span class="material-symbols-outlined">assignment</span>
+                  </div>
+                  <h1 style="color: white;">Procedure Review</h1>
+          </div>
         <h1>Review: ${proc.process_title}</h1>
-        <div class="questionnaire">
+        <div class="questionnaire" style="display: flex; align-items: center; flex-direction: column; padding: 10px;">
       `;
 
       proc.process_review.forEach((q, i) => {
@@ -248,15 +268,15 @@ function renderAll() {
             <div class="radio-group">
               <label>
                 <input type="radio" name="process-question-${proc.process_id}-${i}" value="yes">
-                ✅ Sim
+                Yes
               </label>
               <label>
                 <input type="radio" name="process-question-${proc.process_id}-${i}" value="partial">
-                🟡 Parcialmente
+                Partially
               </label>
               <label>
                 <input type="radio" name="process-question-${proc.process_id}-${i}" value="no">
-                ❌ Não
+                No
               </label>
             </div>
           </div>
@@ -264,7 +284,7 @@ function renderAll() {
       });
 
       html += `
-          <button id="process${proc.process_id}ReviewButton">Próximo Processo</button>
+          <button id="process${proc.process_id}ReviewButton">Next</button>
         </div>
       </div>`;
     div.insertAdjacentHTML("beforeend", html);
@@ -288,8 +308,10 @@ function attachListenersAll() {
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
         document.getElementById(`taskInstructions${task.task_id}`).style.display = "block";
 
-        // Ajusta UI
+        // Esconde o texto de pendentes e o botão Start
+        document.getElementById(`pendingText${task.task_id}`).style.display = "none";
         document.getElementById(`startTask${task.task_id}Button`).style.display = "none";
+
         [
           `finishTask${task.task_id}Button`,
           `notSureTask${task.task_id}Button`,
@@ -393,6 +415,7 @@ function updateDisplay() {
   final_questionnaire_page.style.display = "none";
   finalpage.style.display = "none";
   document.getElementById("progressBarContainer").style.display = "none";
+  document.querySelectorAll(".taskbox-container").forEach(el => el.style.display = "none");
 
   // 2) Esconde todos os blocos de tarefa e review
   document.querySelectorAll(".task").forEach(el => el.style.display = "none");
@@ -422,17 +445,25 @@ function updateDisplay() {
       const proc = processes[currentProcessIndex];
       const task = proc && proc.process_tasks[currentTaskIndex];
       if (task) {
+        // Mostra apenas a taskbox-container da task atual
+        document.querySelectorAll(".taskbox-container").forEach(el => el.style.display = "none");
+        document.getElementById(`taskbox${task.task_id}`).style.display = "block";
+
         document.getElementById(`task${task.task_id}`).style.display = "flex";
         updateProgressBar();
         document.getElementById("progressBarContainer").style.display = "block";
       }
-      break;
+    break;
 
     case "review":
       // exibe o review da tarefa atual
       const proc2 = processes[currentProcessIndex];
       const task2 = proc2 && proc2.process_tasks[currentTaskIndex];
       if (task2) {
+        // Mostra apenas a taskbox-container da task atual
+        document.querySelectorAll(".taskbox-container").forEach(el => el.style.display = "none");
+        document.getElementById(`taskbox${task2.task_id}`).style.display = "block";
+
         document.getElementById(`task${task2.task_id}_review`).style.display = "flex";
         updateProgressBar();
         document.getElementById("progressBarContainer").style.display = "block";
@@ -582,5 +613,5 @@ function updateProgressBar() {
   const progressPercentage = (completedTasks / totalTasks) * 100;
 
   document.getElementById("progressBarFill").style.width = `${progressPercentage}%`;
-  document.getElementById("progressText").textContent = `${completedTasks}/${totalTasks} tasks completed`;
+  document.getElementById("progressText").textContent = `${completedTasks}/${totalTasks} Tasks Completed`;
 }
