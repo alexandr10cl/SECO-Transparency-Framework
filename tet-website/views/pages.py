@@ -25,20 +25,14 @@ def about():
 def guidelines():
     guidelines = Guideline.query.all()
     processes = SECO_process.query.all()
-    dimensions = SECO_dimension.query.all()
     conditioning_factors = Conditioning_factor_transp.query.all()
-    criteria = Key_success_criterion.query.all()
     factors = DX_factor.query.all()
-    
-    if isLogged():
-        email = session['user_signed_in']
-        is_admin = isAdmin()
-        return render_template('guidelines.html', 
-                                is_admin = is_admin,
-                                guidelines = guidelines, processes = processes, dimensions = dimensions, conditioning_factors = conditioning_factors, criteria = criteria, factors = factors)
 
     return render_template('guidelines.html', 
-                            guidelines = guidelines, processes = processes, dimensions = dimensions, conditioning_factors = conditioning_factors, criteria = criteria, factors = factors)
+                            guidelines = guidelines, 
+                            processes = processes, 
+                            conditioning_factors = conditioning_factors,
+                            factors = factors)
 
 @app.route('/seco_dashboard')
 def seco_dashboard():
