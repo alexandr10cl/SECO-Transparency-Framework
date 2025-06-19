@@ -84,3 +84,7 @@ def dashboard_v2():
     dimensions = SECO_dimension.query.all()
         
     return render_template('dashboardv2.html', dimensions=dimensions)
+
+@app.route('/teste')
+def teste():
+    return render_template('teste.html')
