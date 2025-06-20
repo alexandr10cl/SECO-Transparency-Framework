@@ -39,6 +39,7 @@ body {
     display: flex;
     flex-direction: row;
     gap: 16px;  
+    align-items: center;
 }
 
 .evaluation-info {
@@ -273,4 +274,9 @@ body {
     margin-top: 24px;
     justify-content: center;
     align-items: flex-end;
+}
+
+.material-symbols-outlined {
+  font-size: 50px !important;
+  color: #2563EB;
 }

@@ -3,6 +3,7 @@
 {% block head %}
  {# <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/static/css/main.6328a2c2.css') }}"> #}
  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+ <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 {% endblock %}
 
 {% block title %}SECO Dashboard{% endblock %}
@@ -15,7 +16,7 @@
 <br><br>
 <div class="dashboard-container">
     <div class="dashboard-title">
-        <p>Icone</p>
+        <span class="material-symbols-outlined">analytics</span>
         <h2>Evaluation Dashboard: {{ evaluation.evaluation_id }}</h2>
     </div>
     <hr>
