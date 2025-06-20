@@ -8,7 +8,7 @@
 {% block title %}Guidelines{% endblock %}
 
 {% block content %}
-<br><br><br>
+<br><br>
     <div class="content">
         
         <div class="header">
@@ -37,65 +37,44 @@
             {% endfor %}
         </div>
 
-        {% for g in guidelines %}
-        <div id="gModal{{ g.guidelineID }}" class="modal">
+        
+        <div id="gModal" class="modal inv">
             <div class="modal-content">
                 <span class="close" onclick="closeModal()">&times;</span>
-                <h2>G{{ g.guidelineID }}: {{ g.title }}</h2>
-                <p>{{ g.description }}</p>
-
-                <div class="details">
-                    <div class="processes">
-                        <h3>Helps in Processes</h3>
-                        <ul>
-                            {% for p in g.seco_processes %}
-                            <li>{{ p.description}}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="dimensions">
-                        <h3>Dimensions</h3>
-                        <ul class=>
-                            {% for d in g.seco_dimensions %}
-                                <li>{{ d.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="condFac">
-                        <h3>Conditioning Factors</h3>
-                        <ul>
-                            {% for cf in g.conditioning_factors %}
-                                <li>{{ cf.description }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="dxFac">
-                        <h3>DX Factors</h3>
-                        <ul>
-                            {% for f in g.dx_factors %}
-                                <li>{{ f.description }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
+                <!-- Indicador de carregamento -->
+                <div id="modal-loading" style="display:none; text-align:center; margin: 2em 0;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Carregando...</p>
                 </div>
-                <h3 class="ksch3">Key Sucess Criteria</h3>
-                <div class="success-criteria">
-                    {% for ksc in g.key_success_criteria %}
-                        <div class="success-criterion">
-                            <h4>{{ ksc.title }}</h4>
-                            <p>{{ ksc.description }}</p>
-                            {% for e in ksc.examples %}
-                                <div class="example">
-                                    <strong>Example: </strong> {{ e.description }}
-                                </div>
-                            {% endfor %}
+                <!-- Conteúdo do modal -->
+                <div id="modal-main-content">
+                    <h2 id="modal-title"></h2>
+                    <p id="modal-description"></p>
+
+                    <div class="details">
+                        <div class="processes">
+                            <h3>Helps in Processes</h3>
+                            <ul id="modal-processes"></ul>
                         </div>
-                    {% endfor %}
-                    
+                        <div class="dimensions">
+                            <h3>Dimensions</h3>
+                            <ul id=modal-dimensions></ul></ul>
+                        </div>
+                        <div class="condFac">
+                            <h3>Conditioning Factors</h3>
+                            <ul id="modal-cond"></ul>
+                        </div>
+                        <div class="dxFac">
+                            <h3>DX Factors</h3>
+                            <ul id="modal-dx"></ul></ul>
+                        </div>
+                    </div>
+                    <h3 class="ksch3">Key Sucess Criteria</h3>
+                    <div class="success-criteria" id="modal-ksc"></div>
                 </div>
             </div>
         </div>
-        {% endfor %}
+        
 
         <section class="references">
             <h2>All Elements Reference</h2>

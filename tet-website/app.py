@@ -21,6 +21,7 @@ from views.index import *
 from views.pages import *
 from views.auth import *
 from views.admin import *
+from views.api import *
 from external.tasks import *
 from views import pages, auth  # We gebruiken pages.py voor de API endpoints
 
