@@ -63,11 +63,49 @@ document.getElementById("mainPageButton").addEventListener("click", function () 
 
 // Botão de finalizar questionário de perfil
 document.getElementById("questionnaireButton").addEventListener("click", function () {
+  // Validação do formulário de perfil
+  const requiredRadios = [
+    "formacao",
+    "segment",
+    "previus-experience"
+  ];
+  let valid = true;
+
+  // Remove erros anteriores
+  requiredRadios.forEach(name => {
+    // Remove erro de todos os radio groups antes de validar
+    document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+      input.closest('.radio-group').classList.remove("input-error");
+    });
+  });
+
+  requiredRadios.forEach(name => {
+    const checked = document.querySelector(`input[name="${name}"]:checked`);
+    if (!checked) {
+      valid = false;
+      // Adiciona erro ao grupo de radio correspondente
+      const group = document.querySelector(`input[name="${name}"]`).closest('.radio-group');
+      if (group) group.classList.add("input-error");
+    }
+  });
+
+  const yearsInput = document.getElementById("question-experience");
+  if (!yearsInput.value || yearsInput.value < 0) {
+    valid = false;
+    yearsInput.classList.add("input-error");
+  } else {
+    yearsInput.classList.remove("input-error");
+  }
+
+  if (!valid) {
+    alert("Please fill in all required fields before starting the evaluation.");
+    return;
+  }
+
+
   currentTaskIndex = 0;
   currentPhase = "task";
-  
   data_collection.startTime = new Date().toISOString(); // Salva o timestamp inicial da avaliação
-
   updateDisplay();
 });
 
@@ -117,6 +155,9 @@ document.getElementById("syncButton").addEventListener("click", function () {
         return response.json().then(data => {
           console.log("Success:", data);
           
+          data_collection.uxt_cod = data.cod;
+          data_collection.uxt_sessionId = data.sessionId; 
+
           fetchtasks(data_collection.evaluation_code);
         });
       } else {
@@ -516,16 +557,26 @@ function getFinalQuestionnaireData() {
 
 // Botão para finalizar o questionário final
 document.getElementById("finalQuestionnaireButton").addEventListener("click", function () {
+
+  const commentsInput = document.getElementById("question-overall");
+
+  // Validação do formulário final
+  const comments = document.getElementById("question-overall").value.trim();
+
+  let valid = true;
+
+  if (!comments) {
+    commentsInput.classList.add("input-error");
+    valid = false;
+    alert("Please fill in all fields before finishing the evaluation.");
+    return;
+  }
+
   currentPhase = "final";
-
   data_collection.endTime = new Date().toISOString(); // Salva o timestamp final da avaliação
-
   data_collection.profile_questionnaire = getProfileData(); // Salva os dados do questionário de perfil
-
   data_collection.final_questionnaire = getFinalQuestionnaireData(); // Salva os dados do questionário final
-
   data_collection.performed_tasks = tasks_data;
-
   updateDisplay();
 });
 

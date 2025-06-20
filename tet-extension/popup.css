@@ -848,3 +848,8 @@ button:disabled {
   text-align: center;
   font-weight: 500;
 }
+
+.input-error {
+  border: 2px solid #e53935;
+  background: #fff6f6;
+}
