@@ -24,20 +24,20 @@
     <div class="evaluation-info">
         <div class="evaluation-info-card">
             <h3>Evaluated portal</h3>
-            <h2>Portal's name</h2>
+            <h2>{{ ePortal }}</h2>
         </div>
-        <div class="evaluation-info-card">
+        <!-- <div class="evaluation-info-card">
             <h3>Evaluation Date</h3>
             <h2>23/10/2025 - 23/11/2025</h2>
-        </div>
+        </div> -->
         <div class="evaluation-info-card">
             <h3>Participants</h3>
-            <h2>32</h2>
+            <h2>{{ count_collected_data }}</h2>
         </div>
-        <div class="evaluation-info-card">
+        <!-- <div class="evaluation-info-card">
             <h3>Transparency Score</h3>
             <h2>82%</h2>
-        </div>
+        </div> -->
     </div>
 
     <div class="dashboard-navbar">
@@ -56,6 +56,72 @@
                 <p>Summary of the evaluation results, including the number of performed tasks, hotspots, and guidelines score.</p>
             </div>
             <hr class="task-heatmap-divider">
+            <div class="scores">
+                <h3>Evaluation Scores</h3>
+                <div class="overall_score">
+                    <div class="evaluation-info-card overall">
+                        <h4>Overall Score</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Overall Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                    </div>
+                </div>
+                <h3>SECO Dimension</h3>
+                <div class="dimensions">
+                    {% for d in dimensions %}
+                    <div class="evaluation-info-card">
+                        <h4>{{ d.name }} Dimension</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#" class="view-guidelines">View Guidelines</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <h3>DX category</h3>
+                <div class="dx_categorys">
+                    <div class="evaluation-info-card">
+                        <h4>Common Tecnological Platform</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#" class="view-guidelines">View Guidelines</a>
+                    </div>
+                    <div class="evaluation-info-card">
+                        <h4>Projects and Applications</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#" class="view-guidelines">View Guidelines</a>
+                    </div>
+                    <div class="evaluation-info-card">
+                        <h4>Community Interaction</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#" class="view-guidelines">View Guidelines</a>
+                    </div>
+                    <div class="evaluation-info-card">
+                        <h4>Expectations and Value of Contribuition</h4>
+                        <p>70%</p>
+                        <span class="subWrite">Score</span>
+                        <div class="percentage-bar">
+                            <div></div>
+                        </div>
+                        <a href="#" class="view-guidelines">View Guidelines</a>
+                    </div>
+                </div>
+            </div>
             <div class="overview-content">
                 <div class="overview-profile">
                     <h3>Participants’ Profile</h3>

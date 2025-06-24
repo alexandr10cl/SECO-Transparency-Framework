@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from app import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -193,6 +193,8 @@ def eval_dashboard(id):
     ePortal = evaluation.seco_portal
     ePortalUrl = evaluation.seco_portal_url
     
+    dimensions = SECO_dimension.query.all()
+    
     return render_template('dashboard.html', 
                             evaluation=evaluation,
                             user=user,
@@ -205,7 +207,8 @@ def eval_dashboard(id):
                             eName=eName,
                             eId=eId,
                             ePortal=ePortal,
-                            ePortalUrl=ePortalUrl)
+                            ePortalUrl=ePortalUrl,
+                            dimensions=dimensions)
     
 @app.route('/view_heatmap/<int:id>')
 def view_heatmap(id):
