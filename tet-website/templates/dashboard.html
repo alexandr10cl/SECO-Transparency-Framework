@@ -150,15 +150,11 @@
                 <h3>Developer Comments</h3>
                 <p>Comments and suggestions from developers after the evaluation process.</p>
                 <div class="comments">
+                    {% for d in collected_data %}
                     <div class="comment-card">
-                        <p><strong>Comment 1:</strong> The documentation is comprehensive but could be more user-friendly.</p>
+                        <p><strong>Comment {{ loop.index }}:</strong> {{ d.developer_questionnaire.comments }}</p>
                     </div>
-                    <div class="comment-card">
-                        <p><strong>Comment 2:</strong> The documentation is comprehensive but could be more user-friendly.</p>
-                    </div>
-                    <div class="comment-card">
-                        <p><strong>Comment 3:</strong> The documentation is comprehensive but could be more user-friendly.</p>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
