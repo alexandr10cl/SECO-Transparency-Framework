@@ -42,7 +42,7 @@ fetch(`/api/satisfaction/${id}`)
           'Muito satisfeito'
         ],
         datasets: [{
-          label: 'Nível de Satisfação',
+          label: 'Quantidade',
           data: data.values,
           backgroundColor: [
             '#e74c3c',   // vermelho escuro
