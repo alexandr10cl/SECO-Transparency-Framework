@@ -141,3 +141,35 @@ fetch(`/api/grau-academico/${id}`)
         }
     });
   })
+
+async function gerarNuvem(){
+
+  const words = [
+  ['JavaScript', 40],
+  ['HTML', 30],
+  ['CSS', 25],
+  ['React', 20],
+  ['Node.js', 18],
+  ['Web', 15],
+  ['Frontend', 12],
+  ['Backend', 10],
+  ['API', 9],
+  ['Design', 7],
+  ['Database', 5]
+];
+
+WordCloud(document.getElementById('word-cloud'), {
+  list: words,
+  gridSize: 10,
+  weightFactor: 4,
+  fontFamily: 'Montserrat',
+  color: 'random-dark',
+  backgroundColor: '#ffffff',
+  rotateRatio: 0,
+  rotationSteps: 2,
+  shape: 'circle'
+});
+
+}
+
+window.onload = gerarNuvem;

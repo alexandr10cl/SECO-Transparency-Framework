@@ -78,7 +78,6 @@
                         <div class="percentage-bar">
                             <div></div>
                         </div>
-                        <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
                     {% endfor %}
                 </div>
@@ -91,7 +90,6 @@
                         <div class="percentage-bar">
                             <div></div>
                         </div>
-                        <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
                     <div class="evaluation-info-card c2">
                         <h4>Projects and Applications</h4>
@@ -100,7 +98,6 @@
                         <div class="percentage-bar">
                             <div></div>
                         </div>
-                        <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
                     <div class="evaluation-info-card c3">
                         <h4>Community Interaction</h4>
@@ -109,7 +106,6 @@
                         <div class="percentage-bar">
                             <div></div>
                         </div>
-                        <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
                     <div class="evaluation-info-card c4">
                         <h4>Expectations and Value of Contribuition</h4>
@@ -118,8 +114,18 @@
                         <div class="percentage-bar">
                             <div></div>
                         </div>
-                        <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
+                </div>
+            </div>
+            <div class="procedures">
+                <h3>Evaluated Procedures</h3>
+                <div class="procedures-list">
+                    {% for p in seco_processes %}
+                        <div class="evaluation-info-card process p{{ p.seco_process_id }}">
+                            <h4>P{{ p.seco_process_id }}</h4>
+                            <p><strong>{{ p.description }}</strong></p>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
             <div class="overview-content">
@@ -140,7 +146,7 @@
                 <div class="word-cloud">
                     <h3>Word Cloud</h3>
                     <p>Word cloud showing the terms most frequently cited by developers throughout the evaluation process.</p>
-                    <img src="https://placehold.co/500x300" alt="Heatmap">
+                    <canvas id="word-cloud" width="750px" height="450px"></canvas>
                 </div>
                 <div class="dev-emotion">
                     <h3>Developer Satisfaction</h3>
@@ -156,20 +162,6 @@
                     <div class="comment-card">
                         <p><strong>Comment {{ loop.index }}:</strong> {{ d.developer_questionnaire.comments }}</p>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="procedures">
-                <h3>Evaluated Procedures</h3>
-                <div class="procedures-list">
-                    {% for p in seco_processes %}
-                        <a href="#">
-                            <div class="evaluation-info-card process p{{ p.seco_process_id }}">
-                                <h4>P{{ p.seco_process_id }}</h4>
-                                <p><strong>{{ p.description }}</strong></p>
-                                <p>Click for more info</p>
-                            </div>
-                        </a>
                     {% endfor %}
                 </div>
             </div>
@@ -252,4 +244,5 @@
 {% block scripts %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
 {% endblock %}
