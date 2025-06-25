@@ -195,6 +195,53 @@ def eval_dashboard(id):
     
     dimensions = SECO_dimension.query.all()
     
+
+    # Processamento das tasks para facilitar o jinja
+    # Reunir tasks únicas
+    task_map = {}  # task_id → { title, comments[], avg_time, completion_rate }
+
+    for data in collected_data:
+        for pt in data.performed_tasks:
+            task_id = pt.task_id
+            task_title = pt.task.title
+
+            # tempo em segundos
+            exec_time = (pt.final_timestamp - pt.initial_timestamp).total_seconds()
+
+            if task_id not in task_map:
+                task_map[task_id] = {
+                    "title": task_title,
+                    "comments": [],
+                    "times": [],
+                    "solved_count": 0,
+                    "total_count": 0,
+                }
+
+            task_info = task_map[task_id]
+            if pt.comments:
+                task_info["comments"].append(pt.comments)
+
+            task_info["times"].append(exec_time)
+            task_info["total_count"] += 1
+            if pt.status.name == "SOLVED":
+                task_info["solved_count"] += 1
+
+    # Processar média de tempo e taxa de completude
+    processed_tasks = []
+    for task_id, info in task_map.items():
+        avg_time = round(sum(info["times"]) / len(info["times"]), 2) if info["times"] else 0
+        completion_rate = round((info["solved_count"] / info["total_count"]) * 100, 1) if info["total_count"] > 0 else 0
+
+        processed_tasks.append({
+            "title": info["title"],
+            "comments": info["comments"],
+            "avg_time": avg_time,
+            "completion_rate": completion_rate
+        })
+
+
+
+    print(collected_data)
     return render_template('dashboard.html', 
                             evaluation=evaluation,
                             user=user,
@@ -208,7 +255,8 @@ def eval_dashboard(id):
                             eId=eId,
                             ePortal=ePortal,
                             ePortalUrl=ePortalUrl,
-                            dimensions=dimensions)
+                            dimensions=dimensions,
+                            processed_tasks=processed_tasks)
     
 @app.route('/view_heatmap/<int:id>')
 def view_heatmap(id):
