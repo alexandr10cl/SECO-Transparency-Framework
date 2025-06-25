@@ -470,3 +470,136 @@ body {
 .procedures-list a{
     text-decoration: none;
 }
+
+
+.tasks-summary {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.tasks-summary h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    text-align: center;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1rem; 
+}
+
+.task-overview-card {
+    width: 100%; 
+    max-width: none; 
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.task-overview-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+}
+
+.task-overview-card h3 {
+        font-size: 1.5rem;
+        color: #005792;
+        margin-bottom: 1rem;
+}
+
+.task-overview-card p {
+        margin: 0.5rem 0;
+        font-size: 1rem;
+        color: #444;
+}
+
+.task-overview-card p strong {
+        color: #222;
+}
+
+.task-overview-card ul {
+        margin-top: 0.5rem;
+        padding-left: 1.2rem;
+        list-style-type: disc;
+}
+
+.task-overview-card li {
+        margin-bottom: 0.3rem;
+        font-size: 0.95rem;
+        color: #555;
+}
+
+.task-overview-card p:nth-child(3) {
+        font-weight: bold;
+        color: #2e7d32; /* verde */
+}
+
+.tasks-card {
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.08),
+        0 8px 16px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    background-color: hsl(var(--card));
+    transition: box-shadow 0.3s ease;
+}
+
+.tasks-card h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.tasks-card p {
+    color: hsl(var(--muted-foreground));
+    font-size: 1rem;
+    margin: 0;
+}
+
+
+
+
+.task-overview-card ul {
+    list-style: none;
+    padding-left: 0;
+    max-height: 150px; 
+    overflow-y: auto;  
+    background: #f9faff;
+    border: 1px solid #d1d9e6;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.task-overview-card ul li {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #e1e6f0;
+    font-style: italic;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.task-overview-card ul li:last-child {
+    border-bottom: none;
+}
+
+.task-overview-card ul::-webkit-scrollbar {
+    width: 8px;
+}
+
+.task-overview-card ul::-webkit-scrollbar-track {
+    background: #f1f3f7;
+    border-radius: 8px;
+}
+
+.task-overview-card ul::-webkit-scrollbar-thumb {
+    background-color: #a8b1c1;
+    border-radius: 8px;
+    border: 2px solid #f1f3f7;
+}

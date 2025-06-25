@@ -31,6 +31,9 @@ class PerformedTask(db.Model):
     # Foreign key to the task table
     task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
 
+    # Relationship com Task
+    task = db.relationship('Task', backref='performed_tasks')
+
 class Question(db.Model):
     __tablename__ = 'question'
     

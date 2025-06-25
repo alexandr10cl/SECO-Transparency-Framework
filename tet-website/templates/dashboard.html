@@ -177,7 +177,31 @@
     </div>
 
     <div class="performed-tasks-container">
-        performed-tasks-container
+        <div class="tasks-card">
+            <div class="tasks-header">
+                <h2>Performed Tasks</h2>
+                <p>List of tasks performed by developers during the evaluation, including their status and comments made by the developers</p>
+                <hr class="task-heatmap-divider">
+            </div>
+            <div class="tasks-summary">
+                <h2>Task Summary</h2>
+                {% for task in processed_tasks %}
+                    <div class="task-overview-card">
+                        <h3>{{ task.title }}</h3>
+                        <p><strong>Average time:</strong> {{ task.avg_time }} seconds</p>
+                        <p><strong>Success rate:</strong> {{ task.completion_rate }}%</p>
+                        <div>
+                            <strong>Developer comments:</strong>
+                            <ul>
+                                {% for comment in task.comments %}
+                                    <li>{{ comment }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
     <div class="hotspots-container">
