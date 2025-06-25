@@ -258,6 +258,7 @@ def eval_dashboard(id):
                             dimensions=dimensions,
                             processed_tasks=processed_tasks)
     
+
 @app.route('/view_heatmap/<int:id>')
 def view_heatmap(id):
     email = session['user_signed_in']
