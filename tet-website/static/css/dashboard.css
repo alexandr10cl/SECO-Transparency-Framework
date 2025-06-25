@@ -225,7 +225,7 @@ body {
 .dev-emotion,
 .developer-comments,
 .scores,
-.procedures-list {
+.procedures {
     background-color: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: 16px;
@@ -241,7 +241,7 @@ body {
 .dev-emotion h3,
 .developer-comments h3,
 .scores h3,
-.procedures-list h3 {
+.procedures h3 {
     font-size: 1.3rem;
     margin-bottom: 8px;
     color: hsl(var(--foreground));
@@ -251,7 +251,7 @@ body {
 .word-cloud p,
 .dev-emotion p,
 .developer-comments p,
-.procedures-list p {
+.procedures p {
     color: hsl(var(--muted-foreground));
     margin: 0;
     font-size: 0.95rem;

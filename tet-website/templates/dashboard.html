@@ -159,16 +159,19 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="procedures-list">
-                {% for p in seco_processes %}
-                    <a href="#">
-                        <div class="evaluation-info-card process p{{ p.seco_process_id }}">
-                            <h4>P{{ p.seco_process_id }}</h4>
-                            <p><strong>{{ p.description }}</strong></p>
-                            <p>Click for more info</p>
-                        </div>
-                    </a>
-                {% endfor %}
+            <div class="procedures">
+                <h3>Evaluated Procedures</h3>
+                <div class="procedures-list">
+                    {% for p in seco_processes %}
+                        <a href="#">
+                            <div class="evaluation-info-card process p{{ p.seco_process_id }}">
+                                <h4>P{{ p.seco_process_id }}</h4>
+                                <p><strong>{{ p.description }}</strong></p>
+                                <p>Click for more info</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
