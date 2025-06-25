@@ -224,7 +224,8 @@ body {
 .word-cloud,
 .dev-emotion,
 .developer-comments,
-.scores {
+.scores,
+.procedures-list {
     background-color: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: 16px;
@@ -239,7 +240,8 @@ body {
 .word-cloud h3,
 .dev-emotion h3,
 .developer-comments h3,
-.scores h3 {
+.scores h3,
+.procedures-list h3 {
     font-size: 1.3rem;
     margin-bottom: 8px;
     color: hsl(var(--foreground));
@@ -248,7 +250,8 @@ body {
 .overview-content p,
 .word-cloud p,
 .dev-emotion p,
-.developer-comments p {
+.developer-comments p,
+.procedures-list p {
     color: hsl(var(--muted-foreground));
     margin: 0;
     font-size: 0.95rem;
@@ -384,4 +387,86 @@ body {
     margin-top: 10px;
     margin-bottom: 50px;
     gap: 15px
+}
+
+.aside{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.d1 .percentage-bar div{
+    background-color: rgb(117, 0, 0);
+}
+
+.d1 a{
+    background-color: rgb(117, 0, 0);
+}
+
+.d2 .percentage-bar div{
+    background-color: green;
+}
+
+.d2 a{
+    background-color: green;
+}
+
+.d3 .percentage-bar div{
+    background-color: rgb(121, 121, 1);
+}
+
+.d3 a{
+    background-color: rgb(121, 121, 1);
+}
+
+.c1 .percentage-bar div{
+    background-color: purple;
+}
+
+.c1 a{
+    background-color: purple;
+}
+
+.c2 .percentage-bar div{
+    background-color: rgb(1, 122, 122);
+}
+
+.c2 a{
+    background-color: rgb(1, 122, 122);
+}
+
+.c3 .percentage-bar div{
+    background-color: orange;
+}
+
+.c3 a{
+    background-color: orange;
+}
+
+.c4 .percentage-bar div{
+    background-color: crimson;
+}
+
+.c4 a{
+    background-color: crimson;
+}
+
+.process{
+    max-width: 300px;
+    height: 150px;
+    transition: transform 0.2s ease;
+}
+
+.process:hover{
+    transform: translateY(-2px);
+}
+
+.procedures-list{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.procedures-list a{
+    text-decoration: none;
 }
