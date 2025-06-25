@@ -71,7 +71,7 @@
                 <h3>SECO Dimension</h3>
                 <div class="dimensions">
                     {% for d in dimensions %}
-                    <div class="evaluation-info-card">
+                    <div class="evaluation-info-card d{{ d.seco_dimension_id }}">
                         <h4>{{ d.name }} Dimension</h4>
                         <p>70%</p>
                         <span class="subWrite">Score</span>
@@ -84,7 +84,7 @@
                 </div>
                 <h3>DX category</h3>
                 <div class="dx_categorys">
-                    <div class="evaluation-info-card">
+                    <div class="evaluation-info-card c1">
                         <h4>Common Tecnological Platform</h4>
                         <p>70%</p>
                         <span class="subWrite">Score</span>
@@ -93,7 +93,7 @@
                         </div>
                         <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
-                    <div class="evaluation-info-card">
+                    <div class="evaluation-info-card c2">
                         <h4>Projects and Applications</h4>
                         <p>70%</p>
                         <span class="subWrite">Score</span>
@@ -102,7 +102,7 @@
                         </div>
                         <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
-                    <div class="evaluation-info-card">
+                    <div class="evaluation-info-card c3">
                         <h4>Community Interaction</h4>
                         <p>70%</p>
                         <span class="subWrite">Score</span>
@@ -111,7 +111,7 @@
                         </div>
                         <a href="#" class="view-guidelines">View Guidelines</a>
                     </div>
-                    <div class="evaluation-info-card">
+                    <div class="evaluation-info-card c4">
                         <h4>Expectations and Value of Contribuition</h4>
                         <p>70%</p>
                         <span class="subWrite">Score</span>
@@ -124,7 +124,7 @@
             </div>
             <div class="overview-content">
                 <div class="overview-profile">
-                    <h3>Participants’ Profile</h3>
+                    <h3>Participants' Profile</h3>
                     <p>Summary of academic background and experience of the evaluation participants.</p>
                     <div class="profilecharts">
                         <div class="academic">
@@ -136,15 +136,17 @@
                     </div>
                 </div>
             </div>
-            <div class="word-cloud">
-                <h3>Word Cloud</h3>
-                <p>Word cloud showing the terms most frequently cited by developers throughout the evaluation process.</p>
-                <img src="https://placehold.co/500x300" alt="Heatmap">
-            </div>
-            <div class="dev-emotion">
-                <h3>Developer Satisfaction</h3>
-                <p>Emotional feedback from developers based on their experience interacting with the portal.</p>
-                <canvas id="pieChart" width="800" height="400"></canvas>
+            <div class="aside">
+                <div class="word-cloud">
+                    <h3>Word Cloud</h3>
+                    <p>Word cloud showing the terms most frequently cited by developers throughout the evaluation process.</p>
+                    <img src="https://placehold.co/500x300" alt="Heatmap">
+                </div>
+                <div class="dev-emotion">
+                    <h3>Developer Satisfaction</h3>
+                    <p>Emotional feedback from developers based on their experience interacting with the portal.</p>
+                    <canvas id="pieChart" width="800" height="400"></canvas>
+                </div>
             </div>
             <div class="developer-comments">
                 <h3>Developer Comments</h3>
@@ -156,6 +158,17 @@
                     </div>
                     {% endfor %}
                 </div>
+            </div>
+            <div class="procedures-list">
+                {% for p in seco_processes %}
+                    <a href="#">
+                        <div class="evaluation-info-card process p{{ p.seco_process_id }}">
+                            <h4>P{{ p.seco_process_id }}</h4>
+                            <p><strong>{{ p.description }}</strong></p>
+                            <p>Click for more info</p>
+                        </div>
+                    </a>
+                {% endfor %}
             </div>
         </div>
     </div>
