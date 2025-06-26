@@ -196,6 +196,93 @@ def eval_dashboard(id):
     dimensions = SECO_dimension.query.all()
     
 
+    # Processar pontuação dos ksc e guidelines
+    result = []
+
+    for g in guidelines:
+        g_data = {
+            'title': g.title,
+            'description': g.description,
+            'key_success_criteria': [],
+            'average_score': None,
+            'status': None
+        }
+
+        ksc_scores = []
+
+        for ksc in g.key_success_criteria:
+            total_score = 0
+            total_answers = 0
+
+            ksc_data = {
+                'title': ksc.title,
+                'description': ksc.description,
+                'questions': [],
+                'porcentagem': None,
+                'score': None,
+                'status': None
+            }
+
+            for question in ksc.questions:
+                question_data = {
+                    'question': question.question,
+                    'answers': []
+                }
+
+                for answer in question.answers:
+                    normalized = answer.answer.strip().lower()
+                    if normalized == 'yes':
+                        score = 1.0
+                    elif normalized == 'partial':
+                        score = 0.5
+                    elif normalized == 'no':
+                        score = 0.0
+                    else:
+                        continue  # ignora respostas inválidas
+
+                    total_score += score
+                    total_answers += 1
+                    question_data['answers'].append(answer.answer)
+
+                ksc_data['questions'].append(question_data)
+
+            # Score individual do KSC
+            if total_answers > 0:
+                final_score = total_score / total_answers
+                ksc_data['score'] = round(final_score, 2) 
+                ksc_scores.append(final_score)
+                ksc_data['porcentagem'] = round(final_score * 100, 2)
+
+                if final_score >= 0.75:
+                    ksc_data['status'] = "Fulfilled"
+                elif final_score >= 0.5:
+                    ksc_data['status'] = "Partially Fulfilled"
+                else:
+                    ksc_data['status'] = "Not Fulfilled"
+            else:
+                ksc_data['score'] = None
+                ksc_data['status'] = "No Answers"
+
+            g_data['key_success_criteria'].append(ksc_data)
+
+        # Score médio da guideline
+        if ksc_scores:
+            avg = sum(ksc_scores) / len(ksc_scores)
+            g_data['average_score'] = round(avg * 100, 2)
+            if avg >= 0.75:
+                g_data['status'] = "Fulfilled"
+            elif avg >= 0.5:
+                g_data['status'] = "Partially Fulfilled"
+            else:
+                g_data['status'] = "Not Fulfilled"
+        else:
+            g_data['status'] = "No Answers"
+
+        result.append(g_data)
+
+
+
+
     # Processamento das tasks para facilitar o jinja
     # Reunir tasks únicas
     task_map = {}  # task_id → { title, comments[], avg_time, completion_rate }
@@ -239,9 +326,6 @@ def eval_dashboard(id):
             "completion_rate": completion_rate
         })
 
-
-
-    print(collected_data)
     return render_template('dashboard.html', 
                             evaluation=evaluation,
                             user=user,
@@ -256,7 +340,8 @@ def eval_dashboard(id):
                             ePortal=ePortal,
                             ePortalUrl=ePortalUrl,
                             dimensions=dimensions,
-                            processed_tasks=processed_tasks)
+                            processed_tasks=processed_tasks,
+                            result=result)
     
 
 @app.route('/view_heatmap/<int:id>')

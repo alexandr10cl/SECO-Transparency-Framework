@@ -123,6 +123,8 @@ class Key_success_criterion(db.Model):
     # Relationship with Question
     questions = db.relationship('Question', backref='key_success_criterion', lazy=True)
 
+
+
 class Example(db.Model):
     __tablename__ = 'example'
 

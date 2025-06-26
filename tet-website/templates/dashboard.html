@@ -235,7 +235,52 @@
     </div>
 
     <div class="guidelines-score-container">
-        guidelines-score-container
+        <div class="guidelines-card">
+            <div class="guidelines-header">
+                <h2>Guidelines Score</h2>
+                <p>Evaluation of the portal based on the SECO guidelines, including scores for each guideline.</p>
+                <hr class="task-heatmap-divider">
+            </div>
+
+            {% for g in result %}
+                <div class="guideline-info">
+                    <div class="guideline-info-header">
+                        <div>
+                            <h3>{{ g.title }}</h3>
+                            <p>{{ g.description }}</p>
+                            {% if g.average_score is not none %}
+                                <p><strong>Score based on KSC average:</strong> {{ g.average_score }}%</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="guideline-status">{{ g.status }}</p>
+                        </div>
+                    </div>
+                    <div class="guideline-ksc">
+                        <h3>Key Success Criterion</h3>
+                        {% for ksc in g.key_success_criteria %}
+                            <div class="ksc-card">
+                                <div>
+                                    <h4>{{ ksc.title }}</h4>
+                                    <p>{{ ksc.description }}</p>
+                                    {% if ksc.score is not none %}
+                                        <p><strong>Score:</strong> {{ ksc.porcentagem }}%</p>
+                                    {% else %}
+                                        <p><strong>Score:</strong> Sem respostas</p>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="guideline-status">{{ ksc.status }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+
+
+        </div>
     </div>
 </div>
 
