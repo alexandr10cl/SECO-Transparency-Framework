@@ -61,10 +61,10 @@
                 <div class="overall_score">
                     <div class="evaluation-info-card overall">
                         <h4>Overall Score</h4>
-                        <p>70%</p>
+                        <p>{{ score_geral }}%</p>
                         <span class="subWrite">Overall Score</span>
                         <div class="percentage-bar">
-                            <div></div>
+                            <div style="width: {{ score_geral }}%;"></div>
                         </div>
                     </div>
                 </div>
@@ -73,11 +73,15 @@
                     {% for d in dimensions %}
                     <div class="evaluation-info-card d{{ d.seco_dimension_id }}">
                         <h4>{{ d.name }} Dimension</h4>
-                        <p>70%</p>
-                        <span class="subWrite">Score</span>
-                        <div class="percentage-bar">
-                            <div></div>
-                        </div>
+                        {% if d in g_dimensions %}
+                            <p>70%</p>
+                            <span class="subWrite">Score</span>
+                            <div class="percentage-bar">
+                                <div></div>
+                            </div>
+                        {% else %}
+                            <p>Not related to the evaluation</p>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>

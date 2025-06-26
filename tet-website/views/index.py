@@ -188,6 +188,20 @@ def eval_dashboard(id):
                 
     count_collected_data = len(collected_data)
     
+    g_dimensions = []
+    
+    for g in guidelines:
+        for d in g.seco_dimensions:
+            if d not in g_dimensions:
+                g_dimensions.append(g.seco_dimensions)
+                
+    print(g_dimensions)
+    
+    from itertools import chain
+    
+    g_dimensions_flat = list(chain.from_iterable(g_dimensions))
+    
+    
     eName = evaluation.name
     eId = evaluation.evaluation_id
     ePortal = evaluation.seco_portal
@@ -195,7 +209,7 @@ def eval_dashboard(id):
     
     dimensions = SECO_dimension.query.all()
     
-
+    print(dimensions)
     # Processar pontuação dos ksc e guidelines
     result = []
 
@@ -280,8 +294,12 @@ def eval_dashboard(id):
 
         result.append(g_data)
 
-
-
+    scores_guideline = []
+    
+    for i in result:
+        scores_guideline.append(i['average_score'])
+        
+    score_geral = round(sum(scores_guideline) / len(scores_guideline))
 
     # Processamento das tasks para facilitar o jinja
     # Reunir tasks únicas
@@ -341,7 +359,9 @@ def eval_dashboard(id):
                             ePortalUrl=ePortalUrl,
                             dimensions=dimensions,
                             processed_tasks=processed_tasks,
-                            result=result)
+                            result=result,
+                            score_geral=score_geral,
+                            g_dimensions=g_dimensions_flat)
     
 
 @app.route('/view_heatmap/<int:id>')
