@@ -117,3 +117,36 @@ def api_satisfaction(id):
     }
     
     return jsonify(data)
+
+@app.route('/api/wordcloud/<int:id>')
+def api_wordcloud(id):
+    evaluation = Evaluation.query.get_or_404(id)
+    col_data = evaluation.collected_data
+    
+    comments = []
+    
+    for d in col_data:
+        for pt in d.performed_tasks:
+            comments.append(pt.comments)
+            
+        
+        comments.append(d.developer_questionnaire.comments)
+        
+        
+    texto_total = " ".join(comments)
+    
+    import re
+    palavras = re.findall(r'\b\w+\b', texto_total.lower())
+    
+    palavras_filtradas = [p for p in palavras if len(p) > 2]
+    
+    from collections import Counter
+    
+    frequencia = Counter(p for p in palavras_filtradas)
+    
+    lista = [[pa, con] for pa, con in frequencia.items()]
+    
+    print(lista)
+    
+    return jsonify(lista)
+    
