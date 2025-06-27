@@ -146,7 +146,6 @@ def api_wordcloud(id):
     
     lista = [[pa, con] for pa, con in frequencia.items()]
     
-    print(lista)
     
     return jsonify(lista)
     
