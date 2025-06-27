@@ -1,131 +1,117 @@
-# SECO Transparency Framework
+# SECO-TransP: Transparency Evaluation Framework for Software Ecosystems
 
-Collaborative repository between VU, UNIRIO and UFPA universities for developing tools to evaluate transparency in Software Ecosystem portals.
+## Overview
 
-## Prerequisites
+**SECO-TransP** is a framework for evaluating transparency in software ecosystem portals. It integrates a browser extension, Flask backend, relational database, and interactive dashboards for result analysis. The goal is to provide a robust solution for managers and communities to assess, monitor, and enhance developer experience and portal governance.
 
-Before running the application, ensure you have the following installed:
+---
 
-- Python 3.8 or higher
-- Node.js 14 or higher
-- npm 6 or higher
+## Key Features
 
-## Installation
+- Assessment Configuration: Portal managers define parameters, select procedures, and generate unique evaluation codes.  
+- Chrome Extension: Developers receive tasks, complete questionnaires, have navigation monitored, and provide real-time feedback.  
+- Multimodal Data Collection: Optional integration with UX-Tracking for capturing interactions, emotions, and navigation.  
+- Analytical Dashboards: Visualization of KPIs, scores per guideline, heatmaps, word clouds, and satisfaction charts.  
+- User and Assessment Management: Control over participants, evaluations, guidelines, and success criteria.  
+- RESTful API: Flask backend for data integration and persistence.  
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/SECO-Transparency-Framework.git
-   cd SECO-Transparency-Framework
-   ```
-
-2. Create a virtual environment and activate it:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install the required dependencies:
-   ```bash
-   pip install -r tet-website/requirements.txt
-   ```
-
-4. Build the SECO dashboard for integration:
-   ```bash
-   cd secodashboard
-   npm install
-   
-   # For Unix/Linux/macOS:
-   npm run build-for-flask
-   
-   # For Windows:
-   npm run build-for-flask-win
-   
-   cd ..
-   ```
-
-## Running the Application
-
-1. Start the Flask application:
-   ```bash
-   cd tet-website
-   python app.py
-   ```
-
-2. Open your browser and navigate to:
-   ```
-   http://localhost:5000
-   ```
-
-3. Sign in as a SECO manager to access the dashboard at:
-   ```
-   http://localhost:5000/seco_dashboard
-   ```
-
-## Development Workflow
-
-### Working on the Flask Application
-
-1. Make changes to the Flask application as needed
-2. Run the Flask server to see changes:
-   ```bash
-   cd tet-website
-   python app.py
-   ```
-
-### Working on the Dashboard
-
-For development of the dashboard component:
-
-1. In one terminal, start the Flask server:
-   ```bash
-   cd tet-website
-   python app.py
-   ```
-
-2. In another terminal, start the React development server:
-   ```bash
-   cd secodashboard
-   npm start
-   ```
-
-3. Access the dashboard development server at:
-   ```
-   http://localhost:3000
-   ```
-
-4. When you're ready to integrate your changes:
-   ```bash
-   # For Unix/Linux/macOS:
-   npm run build-for-flask
-   
-   # For Windows:
-   npm run build-for-flask-win
-   ```
+---
 
 ## Project Structure
 
-- `tet-website/`: Contains the main Flask application
-  - `app.py`: Entry point for the application
-  - `models/`: Database models
-  - `views/`: Route handlers and views
-  - `templates/`: HTML templates
-  - `static/`: Static files including the built dashboard
-  - `static/dashboard/`: Built React dashboard files
+tet-website/  
+├── app.py              # Flask initialization  
+├── database.py         # Database configuration  
+├── requirements.txt    # Python dependencies  
+├── models/             # ORM models (SQLAlchemy)  
+│   ├── collection_data.py  
+│   ├── enums.py  
+│   ├── evaluation.py  
+│   ├── guideline.py  
+│   ├── questionnaire.py  
+│   ├── task.py  
+│   └── user.py  
+├── views/              # Flask routes (MVC)  
+│   ├── index.py  
+│   ├── pages.py  
+│   └── auth.py  
+├── external/           # Auxiliary scripts (e.g., task integration)  
+│   └── tasks.py  
+├── static/             # Static files  
+│   ├── css/  
+│   ├── js/  
+│   ├── images/  
+│   └── dashboard/  
+├── templates/          # Jinja2 templates (HTML)  
+│   ├── index.html  
+│   ├── dashboard.html  
+│   ├── data_collected.html  
+│   ├── guidelines.html  
+│   ├── about.html  
+│   └── doc.html  
+└── migrations/         # Database version control (Alembic)  
 
-- `secodashboard/`: React dashboard source code
-  - `src/`: React component source files
-  - `public/`: Public assets
+---
 
-## Authentication
+## Running Locally
 
-- Only authenticated SECO managers can access the dashboard
-- Login through the main application interface
-- The dashboard provides visualizations and analysis of evaluation data
+1. Prerequisites:
 
-## Troubleshooting
+- Python 3.10+  
+- MySQL 
+- Chrome (for extension testing)  
 
-If you encounter issues with the dashboard:
+2. Install dependencies:
 
-1. Make sure the dashboard is properly built and copied to the Flask static folder
-2. Check browser console for JavaScript errors
-3. Verify that the API endpoints are returning data correctly
+    pip install -r requirements.txt
+
+3. Configure the database credentials:
+
+Edit the `.env` file with the correct credentials.
+
+4. Run the Flask server:
+
+    python app.py
+
+The backend will be available at http://localhost:5000
+
+5. Install the Chrome extension:
+
+- Open Chrome and go to chrome://extensions/  
+- Enable "Developer Mode"  
+- Click on "Load unpacked" and select the extension folder (tet-extension/)  
+
+---
+
+## Evaluation Workflow
+
+- Configuration: The manager registers an evaluation and selects procedures.  
+- Distribution: A unique code is generated and sent to developers.  
+- Execution: Developers access the extension, fill out the profile questionnaire, and execute tasks.  
+- Feedback: After each task, users provide quick feedback and comments.  
+- Review: At the end of the process, users answer detailed questions about key success criteria.  
+- Completion: The final questionnaire is submitted with all collected data.  
+- Analysis: Managers access the dashboard to explore results, charts, heatmaps, and word clouds.  
+
+---
+
+## Technologies Used
+
+- Backend: Python, Flask, SQLAlchemy, Alembic  
+- Frontend: HTML5, CSS3, JavaScript (ES6+), Jinja2  
+- Database: MySQL 
+- Chrome Extension: JavaScript, Manifest V3  
+- Visualization: Chart.js, WordCloud.js  
+- UX-Tracking: Integration with external tool  
+
+---
+
+## Documentation
+
+Full documentation is available in the `/doc` page at the website.
+
+---
+
+## Credits
+
+Project developed by the LabESC (Complex Systems Engineering Laboratory) at UNIRIO, with contributions from undergraduate, master's, and PhD students.
