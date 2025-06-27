@@ -70,14 +70,14 @@
                 </div>
                 <h3>SECO Dimension</h3>
                 <div class="dimensions">
-                    {% for d in dimensions %}
-                    <div class="evaluation-info-card d{{ d.seco_dimension_id }}">
+                    {% for d in dimension_scores %}
+                    <div class="evaluation-info-card d{{ d.id }}">
                         <h4>{{ d.name }} Dimension</h4>
-                        {% if d in g_dimensions %}
-                            <p>70%</p>
+                        {% if d.average_score is not none %}
+                            <p>{{ d.average_score }}%</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div></div>
+                                <div style="width: {{ d.average_score }}%;"></div>
                             </div>
                         {% else %}
                             <p>Not related to the evaluation</p>

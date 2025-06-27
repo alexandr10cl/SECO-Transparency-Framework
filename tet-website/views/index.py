@@ -343,6 +343,31 @@ def eval_dashboard(id):
             "avg_time": avg_time,
             "completion_rate": completion_rate
         })
+        
+    dimension_scores = []
+        
+    for d in g_dimensions_flat:
+        
+        dim_data = {
+            'id': d.seco_dimension_id,
+            'name': d.name,
+            'guidelines': [],
+            'average_score': None,
+        }
+        
+        scores = []
+        
+        for g in d.guidelines:
+            g_result = next((item for item in result if item['title'] == g.title), None)
+            if g_result and g_result['average_score'] is not None:
+                dim_data['guidelines'].append(g_result)
+                scores.append(g_result['average_score'])
+                
+        if scores:
+            dim_data['average_score'] = round(sum(scores) / len(scores))
+            
+        dimension_scores.append(dim_data)
+        print(dimension_scores)
 
     return render_template('dashboard.html', 
                             evaluation=evaluation,
@@ -361,7 +386,8 @@ def eval_dashboard(id):
                             processed_tasks=processed_tasks,
                             result=result,
                             score_geral=score_geral,
-                            g_dimensions=g_dimensions_flat)
+                            g_dimensions=g_dimensions_flat,
+                            dimension_scores=dimension_scores)
     
 
 @app.route('/view_heatmap/<int:id>')
