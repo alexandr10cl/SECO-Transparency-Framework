@@ -1,9 +1,269 @@
 {% extends "base.html" %}
 
+{% block head %}
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/documentation.css') }}">
+ <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+{% endblock %}
+
 {% block title %}Documentation{% endblock %}
 
 {% block content %}
-<br><br><br>
-    <h1>Welcome to the Documentation page</h1>
-    <p>This is the content of the documentation page.</p>
+<br><br>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span class="material-symbols-outlined">article</span>
+            <h2>Documentation</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#introduction" class="active">Introduction</a></li>
+            <li><a href="#evaluationflow">Evaluation Flow</a></li>
+            <li><a href="#chromeextension">Chrome Extension</a></li>
+            <li><a href="#uxt">How to use UX-Tracking</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <section id="introduction">
+            <h1>Introduction</h1>
+        </section>
+        <hr>
+        <section id="evaluationflow">
+              <h1>Evaluation Flow</h1>
+
+                <p>
+                The evaluation using the SECO-TransP framework is conducted in six main steps, starting with the initial setup by the portal manager and ending with the aggregated analysis of the developers' feedback. Below is the complete step-by-step guide:</p>
+                
+                <h2>Step 1 – Configure the Evaluation in SECO-TransP</h2>
+                <p>
+                <strong>At this stage, the portal manager defines the initial parameters of the evaluation:</strong><br>
+                – Provides basic information about the portal to be evaluated.<br>
+                – Selects the common software ecosystem procedures to be the focus of the evaluation, such as documentation access, communication channels, governance, etc.<br>
+                – Then, the manager saves this initial configuration in the system.</p>
+
+                <h2>Step 2 – Generate Evaluation Code and Link Tasks</h2>
+                <p>
+                    <strong>After configuring the evaluation, the portal manager:</strong><br>
+                    – Generates a unique evaluation code.<br>
+                    – Shares this code with the participating developers.<br>
+                    – SECO-TransP automatically generates evaluation tasks based on the selected procedures and links them to the generated code.
+                </p>
+
+                <h2>Step 3 – Developer Access and Profile Questionnaire</h2>
+                <p>
+                    <strong>Once the developer receives the evaluation code:</strong><br>
+                    – Accesses the SECO-TransP extension and enters the provided code.<br>
+                    – Completes a profile questionnaire with information such as education level, work sector, and development experience — data that help contextualize the evaluation results.
+                </p>
+
+                <h2>Step 4 – Task Execution and Quick Feedback</h2>
+                <p>
+                    <strong>For each assigned task:</strong><br>
+                    – The developer indicates whether they were able to complete the task.<br>
+                    – Optionally, the developer may add a short comment about the task.
+                </p>
+
+                <h2>Step 5 – Detailed Evaluation by Success Criteria</h2>
+                <p>
+                    <strong>After all tasks of a procedure are completed:</strong><br>
+                    – The developer answers detailed questions based on the Key Success Criteria (KSC) of each guideline linked to the procedure.<br>
+                    – Each question uses a response scale: “Yes,” “Partially,” or “No,” with an optional field for observations.<br>
+                    – At the end of each procedure, the developer also rates their satisfaction level using a slider from 0 to 10.
+                </p>
+
+                <h2>Step 6 – Calculation and Interpretation of Results</h2>
+                <p>
+                    <strong>Based on the developers’ responses:</strong><br>
+                    – Each answer is converted into a numerical value: Yes = 1, Partially = 0.5, No = 0.<br>
+                    – The system calculates average scores per criterion, guideline, and procedure.<br>
+                    – Guidelines are classified as:<br>
+                    &emsp;• Fulfilled if the average score is ≥ 0.75<br>
+                    &emsp;• Partially Fulfilled if the average score is between 0.5 and 0.75<br>
+                    &emsp;• Not Fulfilled if the average score is &lt; 0.5<br>
+                    – This approach is inspired by the System Usability Scale (SUS), ensuring objectivity and ease of interpretation.
+                </p>
+
+        </section>
+        <hr>
+        <section id="chromeextension">
+            <h1>Chrome extension guide for testers</h1>
+            <h2>Overview</h2>
+            <p><strong>SECO-TransP</strong> is a browser extension designed to evaluate the transparency of software ecosystem portals. It guides users through a structured process that includes authentication, session sync, task execution, and experience feedback collection focusing on user interaction and perception.</p>
+            <p>The extension allows users to:</p>
+            <ul>
+                <li>Authenticate using a unique evaluation code</li>
+                <li>Synchronize with UX-tracking</li>
+                <li>Execute guided tasks for evaluation purposes</li>
+                <li>Log user navigation in real time</li>
+                <li>Provide feedback after each task and at the end</li>
+                <li>Submit collected data to a backend server</li>
+            </ul>
+
+            <h2>How to Use</h2>
+
+            <h3>1. Extension Installation</h3>
+            <ul>
+                <li>Go to <code>chrome://extensions/</code> in Google Chrome</li>
+                <li>Enable <strong>Developer mode</strong></li>
+                <li>Click <strong>“Load unpacked”</strong> and select the folder with your extension files</li>
+                <li>The <strong>SECO-TransP</strong> icon will appear in the toolbar</li>
+            </ul>
+
+            <h3>2. Authentication</h3>
+            <p>Click on the extension icon to open the authentication screen:</p>
+            <ul>
+                <li>Enter the provided <strong>7-digit evaluation code</strong></li>
+                <li>Click <strong>“Verify”</strong></li>
+                <li>If the code is valid, you will be directed to the session synchronization step</li>
+                <li>If invalid, an error message will appear</li>
+            </ul>
+
+            <h3>3. Session Synchronization</h3>
+            <p>Before proceeding:</p>
+            <ul>
+                <li>Ensure the <strong>UX-Tracking system</strong> is active</li>
+                <li>Click <strong>“Synchronize”</strong></li>
+                <li>If successful, the evaluation overview page will load</li>
+                <li><strong>Note:</strong> The tool works even without UX-Tracking</li>
+            </ul>
+
+            <h3>4. Evaluation Stages</h3>
+
+            <h4>Step 1: Profile Questionnaire</h4>
+            <p>You will be asked about your academic background, work sector, and experience in software development. These responses help contextualize your feedback.</p>
+
+            <h4>Step 2: Task Execution</h4>
+            <p>Tasks will be displayed one at a time. For each:</p>
+            <ul>
+                <li>Read the task title and description</li>
+                <li>Click <strong>“Start Task”</strong></li>
+                <li>After completion, select one option:
+                <ul>
+                    <li><strong>Solved it</strong></li>
+                    <li><strong>Not sure</strong></li>
+                    <li><strong>Couldn't solve</strong></li>
+                </ul>
+                </li>
+            </ul>
+
+            <h4>Step 3: Task Review</h4>
+            <p>After each task, you’ll write a short comment about your experience and click <strong>“Next”</strong> to proceed.</p>
+
+            <h4>Step 4: Process Review</h4>
+            <p>Once all tasks of a process are completed, a brief multiple-choice questionnaire will ask if specific objectives were achieved.</p>
+
+            <h4>Step 5: Final Questionnaire</h4>
+            <p>Finally, you will provide overall feedback about your experience and rate how you felt using the portal using an emoji scale (from 😫 to 🤩).</p>
+
+            <h3>5. Finishing the Evaluation</h3>
+            <ul>
+                <li>Click the <strong>“Finish Evaluation”</strong> button</li>
+                <li>Your responses will be sent automatically to the backend server</li>
+                <li>A success message will confirm completion</li>
+            </ul>
+
+            <h2>What Data Is Collected?</h2>
+            <ul>
+                <li><strong>Task Responses:</strong> title, status, timestamps</li>
+                <li><strong>Feedback:</strong> text comments, radio button selections</li>
+                <li><strong>Navigation:</strong> URL history and tab switches</li>
+                <li><strong>Profile Info:</strong> academic level, sector, experience years</li>
+                <li><strong>Emotion:</strong> final emotion scale rating</li>
+            </ul>
+
+            <h2>Usage Tips</h2>
+            <ul>
+                <li>If synchronization fails, ensure UX-Tracking is properly started</li>
+                <li>Do not close the popup during the evaluation to prevent data loss</li>
+            </ul>
+        </section>
+        <hr>
+        <section id="uxt">
+            <h1>How to Use UX-Tracking</h1>
+            
+            <h2>What is UX-Tracking?</h2>
+            <p>UX-Tracking is a tool developed by researchers at the Federal University of Pará (UFPA) that enables detailed tracking of user interactions on web environments. It features multimodal capture, including facial expressions, mouse movements, keyboard input, and audio, allowing for deeper analysis of user experience (UX).</p>
+            <p>This solution is especially useful for usability studies and research, providing valuable data to understand user behavior and emotions during navigation.</p>
+            
+            <h2>Official UX-Tracking Documentation</h2>
+            <p>You can access the official website of the tool through the link below to learn how to use it properly:</p>
+            <p><a href="https://uxtracking.liis.com.br/guia" target="_blank">https://uxtracking.liis.com.br/guia</a></p>
+        </section>
+        <hr>
+        <section id="dashboard">
+            <h1>Dashboard Functionality</h1>
+
+            <h2>Purpose</h2>
+            <p>The dashboard is designed to organize and present data in an accessible and analytical way, allowing portal managers to visually analyze evaluation results, identify strengths and weaknesses of the assessed portal, and make data-driven decisions.</p>
+
+            <h2>Dashboard Structure</h2>
+            <p>The dashboard is divided into four main tabs, each focusing on specific aspects of the evaluation:</p>
+
+            <h3>1. Overview</h3>
+            <p>Provides a comprehensive summary of the evaluation:</p>
+            <ul>
+                <li>Overall evaluation score</li>
+                <li>Scores by SECO dimension (e.g., governance, communication)</li>
+                <li>Scores by Developer Experience (DX) category</li>
+                <li>Participant profile charts: academic background and experience</li>
+                <li>Word cloud with the most cited terms from comments</li>
+                <li>Emotion chart showing developers' overall satisfaction</li>
+            </ul>
+
+            <h3>2. Performed Tasks</h3>
+            <p>Displays details of all assigned tasks:</p>
+            <ul>
+                <li>Average completion time per task</li>
+                <li>Success rate (how many were able to solve it)</li>
+                <li>List of participant comments per task</li>
+            </ul>
+            <p>These insights help identify which tasks were most challenging or successful from the user’s perspective.</p>
+
+            <h3>3. Hotspots (Heatmaps)</h3>
+            <p>When multimodal tracking via UX-Tracking is enabled, this section presents heatmaps per task:</p>
+            <ul>
+                <li>Visualization of the most clicked or hovered areas</li>
+                <li>Helps identify zones of interest, confusion, or abandonment during task execution</li>
+            </ul>
+            <p>This visual layer complements the quantitative data with behavioral insights.</p>
+
+            <h3>4. Guidelines Score</h3>
+            <p>
+            The <strong>Guidelines Score</strong> section displays the evaluation results based on the transparency guidelines' <em>Key Success Criteria (KSCs)</em>. Each guideline is assessed through developer responses, which are translated into scores and statuses.
+            </p>
+
+            <p>
+            Each evaluated guideline is presented with:
+            </p>
+
+            <div class="guideline-info-card">
+                <h4>Evaluated Guidelines</h4>
+                <p>A complete list of the guidelines selected for assessment during the evaluation process.</p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Average Score</h4>
+                <p>The system calculates an average score for each guideline based on developer responses to its associated KSCs. Responses follow a three-point scale: <strong>Yes</strong>, <strong>Partially</strong>, and <strong>No</strong>.</p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Status Classification</h4>
+                <p>According to the average score, each guideline is classified as:</p>
+                <div class="status-blocks">
+                    <div class="status-label"><strong>Fulfilled</strong>: 75% or higher</div>
+                    <div class="status-label"><strong>Partially Fulfilled</strong>: between 50% and 74%</div>
+                    <div class="status-label"><strong>Not Fulfilled</strong>: below 50%</div>
+                </div>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>KSC Visualization</h4>
+                <p>Each guideline includes a breakdown of its KSCs, showing individual scores and status indicators. This helps identify precisely where the portal meets or falls short on transparency expectations.</p>
+            </div>
+
+            <p>
+            This section is essential for diagnosing specific transparency issues and guiding improvements in the software ecosystem portal.
+            </p>
+        </section>
+
+    </div>
 {% endblock %}
