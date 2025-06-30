@@ -26,11 +26,6 @@
             <li><a href="{{ url_for('admin_guidelines') }}">Admin</a></li>
             {% endif %}
             {% endif %}
-            {% if 'user_signed_in' in session and session['user_signed_in'] != None %}
-            {% if 'user_type' in session and session['user_type'] == 'seco_manager' %}
-            <li><a href="{{ url_for('seco_dashboard') }}">Dashboard</a></li>
-            {% endif %}
-            {% endif %}
         </ul>
         {% if 'user_signed_in' not in session or session['user_signed_in'] == None %}
         <div class="auth-buttons">
