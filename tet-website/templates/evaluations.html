@@ -29,7 +29,7 @@
                                 <h4>Related Processes</h4>
                                 <div class="processes-content">
                                     {% for p in e.seco_processes %}
-                                        <p>P{{ p.seco_process_id }}</p>
+                                        <p>P{{ p.seco_process_id }} - {{ p.description }}</p>
                                     {% endfor %}
                                 </div>
                             </div>
