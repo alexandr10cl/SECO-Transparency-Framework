@@ -28,6 +28,9 @@
         </section>
         <hr>
         <section id="evaluationflow">
+            <br>
+            <br>
+            <br>
               <h1>Evaluation Flow</h1>
 
                 <p>
@@ -35,14 +38,14 @@
                 
                 <h2>Step 1 – Configure the Evaluation in SECO-TransP</h2>
                 <p>
-                <strong>At this stage, the portal manager defines the initial parameters of the evaluation:</strong><br>
+                <strong>At this stage, a portal manager defines the initial parameters of the evaluation:</strong><br>
                 – Provides basic information about the portal to be evaluated.<br>
                 – Selects the common software ecosystem procedures to be the focus of the evaluation, such as documentation access, communication channels, governance, etc.<br>
                 – Then, the manager saves this initial configuration in the system.</p>
 
                 <h2>Step 2 – Generate Evaluation Code and Link Tasks</h2>
                 <p>
-                    <strong>After configuring the evaluation, the portal manager:</strong><br>
+                    <strong>After configuring the evaluation, a portal manager:</strong><br>
                     – Generates a unique evaluation code.<br>
                     – Shares this code with the participating developers.<br>
                     – SECO-TransP automatically generates evaluation tasks based on the selected procedures and links them to the generated code.
@@ -58,14 +61,14 @@
                 <h2>Step 4 – Task Execution and Quick Feedback</h2>
                 <p>
                     <strong>For each assigned task:</strong><br>
-                    – The developer indicates whether they were able to complete the task.<br>
+                    – A developer indicates whether they were able to complete the task.<br>
                     – Optionally, the developer may add a short comment about the task.
                 </p>
 
                 <h2>Step 5 – Detailed Evaluation by Success Criteria</h2>
                 <p>
                     <strong>After all tasks of a procedure are completed:</strong><br>
-                    – The developer answers detailed questions based on the Key Success Criteria (KSC) of each guideline linked to the procedure.<br>
+                    – A developer answers detailed questions based on the Key Success Criteria (KSC) of each guideline linked to the procedure.<br>
                     – Each question uses a response scale: “Yes,” “Partially,” or “No,” with an optional field for observations.<br>
                     – At the end of each procedure, the developer also rates their satisfaction level using a slider from 0 to 10.
                 </p>
@@ -85,6 +88,9 @@
         </section>
         <hr>
         <section id="chromeextension">
+            <br>
+            <br>
+            <br>
             <h1>Chrome extension guide for testers</h1>
             <h2>Overview</h2>
             <p><strong>SECO-TransP</strong> is a browser extension designed to evaluate the transparency of software ecosystem portals. It guides users through a structured process that includes authentication, session sync, task execution, and experience feedback collection focusing on user interaction and perception.</p>
@@ -178,6 +184,9 @@
         </section>
         <hr>
         <section id="uxt">
+            <br>
+            <br>
+            <br>
             <h1>How to Use UX-Tracking</h1>
             
             <h2>What is UX-Tracking?</h2>
@@ -190,6 +199,9 @@
         </section>
         <hr>
         <section id="dashboard">
+            <br>
+            <br>
+            <br>
             <h1>Dashboard Functionality</h1>
 
             <h2>Purpose</h2>
@@ -266,4 +278,15 @@
         </section>
 
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
+            sidebarLinks.forEach(link => {
+                link.addEventListener("click", function() {
+                    sidebarLinks.forEach(l => l.classList.remove("active"));
+                    this.classList.add("active");
+                });
+            });
+        });
+    </script>
 {% endblock %}

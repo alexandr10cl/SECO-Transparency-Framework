@@ -63,9 +63,10 @@
             the button below to synchronize the session.
         </p>
         <img src="/static/tutorial.png" alt="Tutorial image" style="width: 224px; height: 295px;">
+        <h2 class="highlight-message">When the 'Start Session' button turns red, it means the UX-tracking capture has started.</h2>
         <p><strong>ATTENTION:</strong> Start UX-Tracking before attempting to synchronize here.</p>
-        <button id="syncButton">Synchronize</button>
         <p id="syncStatus" class="sync-status">Sync didn’t work. Try again, and make sure UX tracking is turned on first.</p>
+        <button id="syncButton">Synchronize</button>
     </div>
 
     <div class="main_page">
@@ -146,7 +147,7 @@
                 </div>
             </div>
             <div class="question">
-                <label for="question-previus-experience">How often do you use the {Python} portal?</label>
+                <label for="question-previus-experience">How often do you use the evaluated portal?</label>
                 <div class="radio-group">
                     <label>
                         <input type="radio" name="previus-experience" value="never" required>
@@ -222,6 +223,8 @@
         </div>
         <hr style="border: 1px solid #ccc; width: 80%; margin-top: 30px;">
         <h2 class="highlight-message">Before leaving, please click the button to submit your answers and complete the evaluation.</h2>
+        <hr style="border: 1px solid #ccc; width: 80%;">
+        <h2 class="highlight-message">Attention! You can now end the UX-tracking capture.</h2>
         <hr style="border: 1px solid #ccc; width: 80%;">
         <button id="finishevaluationbtn">Finish evaluation</button>
     </div>

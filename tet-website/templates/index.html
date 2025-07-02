@@ -11,30 +11,32 @@
     <br><br>
     <header class="header-container">
         <div class="title_container">
-            <h1 data-aos="fade-up" class="title">Transparency Evaluation Framework for Software Ecosystems</h1>
+            <h1 data-aos="fade-up" class="title">Transparency Evaluation Framework for Software Ecosystems Portals</h1>
             <p data-aos="slide-up" class="subtitle">A technology solution to analyze, evaluate, and enhance transparency in software ecosystem portals.
                 Create an account now to start assessing your portal!</p>
             <div data-aos="zoom-in" class="btn-section">
-                <button class="primary-btn">
-                    About the Framework
-                </button>
-                <button class="secondary-btn">
-                    Documentation
-                </button>
+                <a href="#aboutlink">
+                    <button class="primary-btn">
+                        About the Framework
+                    </button>
+                </a>
+                <a href="{{ url_for('doc') }}">
+                    <button class="secondary-btn">Documentation</button>
+                </a>
             </div>
         </div>
     </header>
         <div class="about-bg">
-            <div class="about_container">
+            <div id="about" class="about_container">
                 <h2 class="about_title">About the Project</h2>
                 <hr data-aos="flip-left" id="about_hr">
                 <div class="about_content">
                     <div class="about_text_container">
-                        <p>SECO-TransP is a framework designed to evaluate the transparency of software ecosystem portals. It guides portal managers and developers through the configuration and execution of assessments based on common ecosystem practices, such as access to documentation, source code, governance information, and communication channels. From the selection of relevant procedures, the framework generates specific tasks that help measure the openness and clarity of the information provided by the portal.</p>
+                        <p>SECO-TransP is a framework designed to evaluate the transparency of software ecosystem (SECO) portals. It guides portal managers and developers through the configuration and execution of assessments based on common ecosystem practices, such as access to documentation, source code, governance information, and communication channels. From the selection of relevant procedures, the framework generates specific tasks that help assess the openness and clarity of the information provided by a SECO portal.</p>
                         <br>
-                        <p>During the evaluation process, participating developers receive a unique access code to interact with the evaluated portals and perform practical tasks. After each task, they provide quick feedback, and upon completing each procedure, they answer detailed Key Success Criteria (KSC) questions based on transparency guidelines. The responses are analyzed quantitatively using a method inspired by the System Usability Scale (SUS), ensuring a clear interpretation of the results.</p>
+                        <p>During the evaluation process, participating developers receive a unique access code to interact with the evaluated SECO portals and perform practical tasks. After each task, they provide quick feedback, and upon completing each procedure, they answer detailed Key Success Criteria (KSC) questions based on transparency guidelines. The responses are analyzed quantitatively using a method inspired by the System Usability Scale (SUS), ensuring a clear interpretation of the results.</p>
                         <br>
-                        <p>At the end of the evaluation, SECO-TransP consolidates the data into an interactive dashboard that displays performance by procedure, guideline, and evaluation dimension. Additionally, the system highlights critical issues and suggests improvements, making it a valuable tool for the continuous enhancement of transparency in software ecosystem portals. With SECO-TransP, managers and communities gain a solid foundation to diagnose and improve developer experience and ecosystem governance.</p>
+                        <p>At the end of the evaluation, SECO-TransP consolidates the data into an interactive dashboard that displays performance by procedure, guideline, and evaluation dimension. Additionally, the framework highlights critical issues and suggests improvements, making it a valuable tool for the continuous enhancement of transparency in SECO portals. With SECO-TransP, managers and developer communities gain a solid foundation to assess and improve developer experience and ecosystem governance.</p>
                     </div>
                     <image style="animation: floating 4s ease-in-out infinite; max-width: 500px; max-height: 500px;" src="{{ url_for('static', filename='images/ilustracao.png') }}"></image>
                 </div>
@@ -43,30 +45,37 @@
         <div class="tools_container">
             <h2 class="section_title">Framework Tools</h2>
             <hr>
-            <p style="text-align: center;">Discover the integrated solutions that make up the Transparency Assessment Framework.</p>
+            <p style="text-align: center;">Discover the integrated solutions that comprise the SECO-TransP Framework.</p>
             <div class="tools_cards_container">
                 <div data-aos="fade-up" data-aos-delay="300" class="tool_card" id="tool_card_1">
                     <image src="{{ url_for('static', filename='images/extensao_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>Browser Extension</h3>
-                    <p>A browser extension that guides developers through tasks, collects interaction data, and captures UX feedback to assess portal transparency.</p>
-                    <button>Learn More</button>
+                    <p>A browser extension that guides developers through tasks, collects interaction data, and captures developers experience (DX) feedback to assess portal transparency.</p>
+                    <a href="{{ url_for('doc') }}">
+                        <button>Learn more</button>
+                    </a>
                 </div>
                 <div data-aos="fade-up" data-aos-delay="400" class="tool_card" id="tool_card_2">
                     <image src="{{ url_for('static', filename='images/dashboard_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>Dashboard</h3>
-                    <p>Delivers powerful insights into analyzed portals with KPIs and a comprehensive transparency report based on established guidelines.</p>
-                    <button>Learn More</button>
+                    <p>Delivers powerful insights into analyzed portals with a comprehensive transparency report based on established guidelines.</p>
+                    <a href="{{ url_for('doc') }}">
+                        <button>Learn more</button>
+                    </a>
                 </div>
                 <div data-aos="fade-up" data-aos-delay="500" class="tool_card" id="tool_card_3">
                     <image src="{{ url_for('static', filename='images/uxt_ilustracao.png') }}" alt="Extensão de Navegador" style="height:min-content; width: 200px;"></image>
                     <h3>UX-Tracking</h3>
-                    <p>A tool that collects real-time user interaction data, maps user journeys, identifies key touchpoints, and delivers valuable UX insights for both web and mobile environments.</p>
-                    <button>Learn More</button>
+                    <p>A tool that collects real-time user interaction data, maps user journeys, identifies key touchpoints, and delivers valuable user experience (UX) insights for both web and mobile environments.</p>
+                    <a href="{{ url_for('doc') }}">
+                        <button>Learn more</button>
+                    </a>
                 </div>
             </div>
         </div>
+        <section id="aboutlink"></section>
         <div class="evaluation_tutorial_container">
-            <h2 class="section_title">How Does a Portal Transparency Evaluation Work?</h2>
+            <h2 class="section_title">How the SECO-TransP Evaluation Works</h2>
             <hr data-aos="flip-left">
             <p>Learn how to use our tools to assess the transparency of your software ecosystem portal.</p>
             <div class="timeline_container">
@@ -74,7 +83,7 @@
                 <div data-aos="fade-up" data-aos-delay="500" class="timeline_step">
                     <div class="timeline_circle"> <image src="{{ url_for('static', filename='images/info_icon.png') }}"></image></div>
                     <h3>1. Create Evaluation</h3>
-                    <p>After creating an account, you can start a new assessment for your portal by selecting the specific processes to be tested by developers.
+                    <p>After creating an account, you can start a new assessment for your portal by selecting the specific common ecosystem procedures to be tested by developers.
                         All you need to do is provide the link to your portal.</p>
                 </div>
                 <div data-aos="fade-up" data-aos-delay="500" class="timeline_step">
@@ -101,10 +110,10 @@
         <div class="demonstracao_container">
             <div class="demonstracao_text_container">
                 <h2>See the Extension in Action</h2>
-                <p>Watch the video below to learn how the extension works and how it can support the transparency assessment of your portal.</p>
+                <p>Watch the video below to learn how the extension works and how it can support the transparency assessment of your SECO portal.</p>
                 <ul class="custom-list">
-                    <li>The developer performs pre-defined tasks to evaluate key areas of the portal</li>
-                    <li>A questionnaire is used to assess the experience while interacting with the portal</li>
+                    <li>The developer performs pre-defined tasks to evaluate key areas of the SECO portal</li>
+                    <li>A questionnaire is used to assess the experience while interacting with the SECO portal</li>
                     <li>After completing the tasks, a final questionnaire about the overall experience must be filled out</li>
                 </ul>
             </div>
@@ -121,13 +130,13 @@
                         <p>Complex Systems Engineering Laboratory</p>
                     </div>
                     <div class="i">
-                        <h4>Contato</h4>
+                        <h4>Contact</h4>
                         <p>(21) 98765-4321</p>
                         <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
                     </div>
                 </div>
                 <div class="copy">
-                    <p>&copy; 2025 UNIRIO. Todos os direitos reservados.</p> 
+                    <p>&copy; 2025 UNIRIO.</p> 
                 </div>
             </div>
         </footer>
