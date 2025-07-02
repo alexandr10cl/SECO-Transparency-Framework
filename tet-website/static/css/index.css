@@ -418,3 +418,7 @@ ul.custom-list {
     transform: translateY(-50%);
     font-size: 1.2em;
 }
+
+.about_text_container {
+    text-align: justify;
+}
