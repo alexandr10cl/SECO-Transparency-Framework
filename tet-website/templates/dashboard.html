@@ -74,7 +74,7 @@
                     <div class="evaluation-info-card d{{ d.id }}">
                         <h4>{{ d.name }} Dimension</h4>
                         {% if d.average_score is not none %}
-                            <p>{{ d.average_score }}%</p>
+                            <p>{{ d.average_score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
                                 <div style="width: {{ d.average_score }}%;"></div>
@@ -85,11 +85,11 @@
                     </div>
                     {% endfor %}
                 </div>
-                <h3>DX category</h3>
+                <h3>Developer Experience Category</h3>
                 <div class="dx_categorys">
                     <div class="evaluation-info-card c1">
                         <h4>Common Tecnological Platform</h4>
-                        <p>70%</p>
+                        <p>70</p>
                         <span class="subWrite">Score</span>
                         <div class="percentage-bar">
                             <div></div>
@@ -97,7 +97,7 @@
                     </div>
                     <div class="evaluation-info-card c2">
                         <h4>Projects and Applications</h4>
-                        <p>70%</p>
+                        <p>70</p>
                         <span class="subWrite">Score</span>
                         <div class="percentage-bar">
                             <div></div>
@@ -105,7 +105,7 @@
                     </div>
                     <div class="evaluation-info-card c3">
                         <h4>Community Interaction</h4>
-                        <p>70%</p>
+                        <p>70%/p>
                         <span class="subWrite">Score</span>
                         <div class="percentage-bar">
                             <div></div>
@@ -113,7 +113,7 @@
                     </div>
                     <div class="evaluation-info-card c4">
                         <h4>Expectations and Value of Contribuition</h4>
-                        <p>70%</p>
+                        <p>70</p>
                         <span class="subWrite">Score</span>
                         <div class="percentage-bar">
                             <div></div>
@@ -122,7 +122,7 @@
                 </div>
             </div>
             <div class="procedures">
-                <h3>Evaluated Procedures</h3>
+                <h3>Evaluated Common Software Ecosystem Procedures</h3>
                 <div class="procedures-list">
                     {% for p in seco_processes %}
                         <div class="evaluation-info-card process p{{ p.seco_process_id }}">
@@ -144,6 +144,7 @@
                             <canvas id="educationChart" style="max-width: 600px; height: 300px; margin-top: 40px;"></canvas>
                         </div>
                     </div>
+                    <p>Based on Carver et al. (2016), participants with less than 3 years of professional experience were categorized in the low experience group, those with 3 to 5 years in the medium experience group, and those with more than 5 years in the high experience group.</p>
                 </div>
             </div>
             <div class="aside">
@@ -153,7 +154,7 @@
                     <canvas id="word-cloud" width="750px" height="450px"></canvas>
                 </div>
                 <div class="dev-emotion">
-                    <h3>Developer Satisfaction</h3>
+                    <h3>Developer Eomtions</h3>
                     <p>Emotional feedback from developers based on their experience interacting with the portal.</p>
                     <canvas id="pieChart" width="800" height="400"></canvas>
                 </div>
@@ -253,7 +254,7 @@
                             <h3>{{ g.title }}</h3>
                             <p>{{ g.description }}</p>
                             {% if g.average_score is not none %}
-                                <p><strong>Score based on KSC average:</strong> {{ g.average_score }}%</p>
+                                <p><strong>Score based on KSC average:</strong> {{ g.average_score }}</p>
                             {% endif %}
                         </div>
                         <div>
@@ -268,7 +269,7 @@
                                     <h4>{{ ksc.title }}</h4>
                                     <p>{{ ksc.description }}</p>
                                     {% if ksc.score is not none %}
-                                        <p><strong>Score:</strong> {{ ksc.porcentagem }}%</p>
+                                        <p><strong>Score:</strong> {{ ksc.porcentagem }}</p>
                                     {% else %}
                                         <p><strong>Score:</strong> Sem respostas</p>
                                     {% endif %}
