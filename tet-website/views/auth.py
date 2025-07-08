@@ -19,7 +19,7 @@ def signin():
 def auth():
     user = User.query.filter_by(email = request.form.get('email')).first()
     if user:
-        if request.form.get('passw') == user.passw:
+        if user.check_password(request.form.get('passw')):
             global message
             global messageEA
             global messageReg
@@ -32,7 +32,7 @@ def auth():
 
             uxt_dados = {
                 "email": user.email,
-                "password": user.passw
+                "password": request.form.get('passw')
             }
 
             resposta = requests.post(uxt_url, json=uxt_dados)
@@ -93,7 +93,8 @@ def register():
         cont = users[-1].user_id + 1
     
     # Define the default user type as UserType.SECO_MANAGER
-    new_account = User(email=email, username=name, passw=passw, type='seco_manager', user_id=cont)
+    new_account = User(email=email, username=name, type='seco_manager', user_id=cont)
+    new_account.set_password(passw)  # Use the set_password method to hash the password
     db.session.add(new_account)
     db.session.commit()
 
