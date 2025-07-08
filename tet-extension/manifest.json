@@ -10,6 +10,10 @@
   "background": {
     "service_worker": "background.js"
   },
+  "icons": {
+    "48": "logo2.png",
+    "96": "logo.png"
+  },
  "permissions": [
   "tabs",
   "activeTab",
