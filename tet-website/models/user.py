@@ -1,5 +1,6 @@
 from .enums import UserType
 from app import db
+import bcrypt
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -8,10 +9,18 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(100), nullable=False)
-    passw = db.Column(db.String(100), nullable=False)
+    passw = db.Column(db.LargeBinary(60), nullable=False) # Password hash
 
     # Discriminator to identify the user type
     type = db.Column(db.Enum(UserType), nullable=False)
+    
+    # Creates password hash
+    def set_password(self, password):
+        self.passw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+    # Checks if the password is correct
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.passw)
 
     # Polymorphic identity for User
     __mapper_args__ = {
