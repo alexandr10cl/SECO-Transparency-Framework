@@ -35,14 +35,14 @@ fetch(`/api/satisfaction/${id}`)
       type: 'pie',
       data: {
         labels: [
-          'Muito insatisfeito',
-          'Insatisfeito',
-          'Neutro',
-          'Satisfeito',
-          'Muito satisfeito'
+          'Very dissatisfied',
+          'Dissatisfied',
+          'Neither satisfied nor dissatisfied',
+          'Satisfied',
+          'Very satisfied'
         ],
         datasets: [{
-          label: 'Quantidade',
+          label: 'Quantity of developers',
           data: data.values,
           backgroundColor: [
             '#e74c3c',   // vermelho escuro
@@ -70,9 +70,9 @@ fetch(`/api/experience-data/${id}`)
     new Chart(experienceCtx, {
         type: 'bar',
         data: {
-          labels: ['0-1 ano', '2-3 anos', '4-5 anos', '6-10 anos', '10+ anos'],
+          labels: ['0-1 year', '2-3 years', '4-5 years', '6-10 years', '10+ years'],
           datasets: [{
-            label: 'Número de desenvolvedores',
+            label: 'Number of developers',
             data: data.values,  // dados aleatórios
             backgroundColor: 'rgba(75, 192, 192, 0.7)',
             borderColor: 'rgba(75, 192, 192, 1)',
@@ -94,7 +94,7 @@ fetch(`/api/experience-data/${id}`)
             },
             title: {
               display: true,
-              text: 'Anos de Experiência em Desenvolvimento de Software'
+              text: 'Years of Experience in Software Development'
             }
           }
         }
@@ -111,9 +111,9 @@ fetch(`/api/grau-academico/${id}`)
     new Chart(educationCtx, {
         type: 'bar',
         data: {
-          labels: ['Ensino Médio', 'Graduação', 'Mestrado', 'Doutorado'],
+          labels: ['High School', 'Graduation', 'Master', 'PhD'],
           datasets: [{
-            label: 'Número de pessoas',
+            label: 'Number of developers',
             data: data.values,
             backgroundColor: 'rgba(153, 102, 255, 0.7)',
             borderColor: 'rgba(153, 102, 255, 1)',
@@ -135,7 +135,7 @@ fetch(`/api/grau-academico/${id}`)
             },
             title: {
               display: true,
-              text: 'Grau Acadêmico'
+              text: 'Academic Degree of Developers'
             }
           }
         }

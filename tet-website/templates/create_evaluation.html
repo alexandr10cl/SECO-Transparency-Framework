@@ -13,9 +13,9 @@
     <div class="card">
         <div class="card-body">
             <form action="{{ url_for('add_evaluation') }}" method="post" class="evaluation-form">
-                <input type="text" name="name" id="name" placeholder="Evaluation Name" required>
-                <input type="text" name="seco_portal" id="seco_portal" placeholder="SECO Portal to be evaluated" required>
-                <input type="text" name="seco_portal_url" id="seco_portal_url" placeholder="SECO Portal URL" required>
+                <input class="i-text" type="text" name="name" id="name" placeholder="Evaluation Name" required>
+                <input class="i-text" type="text" name="seco_portal" id="seco_portal" placeholder="SECO Portal to be evaluated" required>
+                <input class="i-text" type="text" name="seco_portal_url" id="seco_portal_url" placeholder="SECO Portal URL" required>
                 
                 <div class="mb-3">
                     <h4 class="form-label">SECO Common Software Ecosystem Procedures to evaluate</h4>

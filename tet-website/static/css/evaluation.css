@@ -387,3 +387,7 @@ footer .footer-content{
     margin: 32px 0 0 0;
     border-top: 1px inset lightblue;
 }
+
+.i-text {
+    font-size: 17px;
+}
