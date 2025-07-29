@@ -14,6 +14,10 @@ class User(db.Model):
     # Discriminator to identify the user type
     type = db.Column(db.Enum(UserType), nullable=False)
     
+    # Email verification fields
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    verification_token = db.Column(db.String(255), nullable=True)
+    
     # Creates password hash
     def set_password(self, password):
         self.passw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())

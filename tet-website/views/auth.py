@@ -2,7 +2,8 @@ from flask import render_template, request, redirect, session, url_for, flash
 import requests
 from app import app, db
 from models import User
-from functions import isLogged, isAdmin
+from functions import isLogged, isAdmin, send_verification_email
+import secrets
 
 message = '' # Error sign in message
 messageReg = '' # Success sign up message
@@ -17,12 +18,19 @@ def signin():
 
 @app.route('/auth', methods=['POST',])
 def auth():
+    global message
+    global messageEA
+    global messageReg
+    
     user = User.query.filter_by(email = request.form.get('email')).first()
     if user:
         if user.check_password(request.form.get('passw')):
-            global message
-            global messageEA
-            global messageReg
+            # Check if user is verified
+            if not user.is_verified:
+                message = 'Please verify your email address before signing in. Check your inbox for a verification link.'
+                messageReg = ''
+                messageEA = ''
+                return redirect(url_for('signin'))
 
             session['user_signed_in'] = user.email
             session['user_type'] = user.type.value
@@ -72,134 +80,179 @@ def signup():
 
 @app.route('/register', methods=['POST',])
 def register():
+    global message
+    global messageReg
+    global messageEA
+    
     email = request.form.get('email')
     name = request.form.get('name')
     passw = request.form.get('passw')
 
     account = User.query.filter_by(email=email).first()
     if account:
-        global message
-        global messageReg
-        global messageEA
         message = ''
         messageReg = ''
-        messageEA = 'This email is already registered, sign in'
+        messageEA = 'This email is already registered, please sign in.'
         return redirect(url_for('signin'))
-    
-    users = User.query.all()
-    if not users:
-        cont = 1
-    else:
-        cont = users[-1].user_id + 1
-    
-    # Define the default user type as UserType.SECO_MANAGER
-    new_account = User(email=email, username=name, type='seco_manager', user_id=cont)
-    new_account.set_password(passw)  # Use the set_password method to hash the password
-    db.session.add(new_account)
-    db.session.commit()
 
-    message = ''
-    messageReg = 'Account created successfully'
-    messageEA = ''
-
+    # First, try to register the user in the UXTracking API
     uxt_url = 'https://uxt-stage.liis.com.br/auth/register'
-
     uxt_dados = {
         "email": email,
         "username": name,
         "password": passw,
         "role": 1
     }
-
     try:
         resposta = requests.post(uxt_url, json=uxt_dados)
-        if resposta.status_code == 201:
-            print(f"[UXT] Conta registrada com sucesso na API UXT para '{email}'.")
-
-            # Conta criada com sucesso. Agora, é necessário mudar a role padrão 1 para 2 (SECO Manager)
-            # PEGAR O TOKEN RETORNADO DO NOVO USUÁRIO
-            access_token = resposta.json().get('access_token')
-
-            if access_token:
-                # FAZER REQUISIÇÃO AUTENTICADA PARA /auth/me
-                headers = {
-                    'Authorization': f'Bearer {access_token}'
-                }
-
-                me_url = 'https://uxt-stage.liis.com.br/auth/me'
-                me_resp = requests.get(me_url, headers=headers)
-
-                if me_resp.status_code == 200:
-                    me_data = me_resp.json()
-                    print(f"[UXT] Dados do usuário logado: {me_data}")
-                else:
-                    print(f"[UXT] Falha ao acessar /auth/me: {me_resp.status_code}")
-                    print(f"[UXT] Resposta: {me_resp.text}")
+        if resposta.status_code != 201:
+            print(f"[UXT] Registration failed at UXT API (status {resposta.status_code}).")
+            print(f"[UXT] Response: {resposta.text}")
+            
+            # Provide specific error messages based on status code
+            if resposta.status_code == 502:
+                message = 'UXTracking service is temporarily unavailable. Please try again in a few minutes.'
+            elif resposta.status_code == 409:
+                message = 'This email is already registered in our tracking system. Please use a different email address.'
+            elif resposta.status_code == 400:
+                message = 'Invalid registration data. Please check your information and try again.'
+            elif resposta.status_code == 500:
+                message = 'UXTracking service is experiencing technical difficulties. Please try again later.'
+            elif resposta.status_code >= 500:
+                message = 'UXTracking service is temporarily unavailable. Please try again in a few minutes.'
             else:
-                print("[UXT] Nenhum token de acesso retornado.")
-
-            # Obter Token de administrador para mudar a role
-            uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
-
-            # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
-            credenciais_admin = {
-                "email": "vasco@gmail.com",
-                "password": "vasco123"
+                message = f'Registration failed (Error {resposta.status_code}). Please try again later.'
+            
+            messageReg = ''
+            messageEA = ''
+            return redirect(url_for('signin'))
+        print(f"[UXT] Account successfully registered at UXT API for '{email}'.")
+        access_token = resposta.json().get('access_token')
+        me_data = None
+        if access_token:
+            headers = {
+                'Authorization': f'Bearer {access_token}'
             }
-
-            resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
-            if resposta_admin.status_code == 200:
-                token = resposta_admin.json().get("access_token")
-                managerId = me_data.get("idUser")
-
-                # Atualizar a role do usuário para SECO Manager (role 2)
-                uxt_changeRole_url = 'https://uxt-stage.liis.com.br/auth/change-role'
-                dados_changeRole = {
-                    "userId": managerId,
-                    "newRole": 2 # SECO Manager
-                }
-
-                headers_admin = {
-                    'Authorization': f'Bearer {token}'
-                }
-
-                resposta_changeRole = requests.post(uxt_changeRole_url, json=dados_changeRole, headers=headers_admin)
-                if resposta_changeRole.status_code == 200:
-                    print(f"[UXT] Role do usuário '{email}' alterada para SECO Manager com sucesso.")
-                    message = 'Account created and registered in UXT successfully'
-                    messageReg = ''
-                    messageEA = ''
-                else:
-                    print(f"[UXT] Erro ao alterar a role do usuário: {resposta_changeRole.text}")
-                    message = 'Error changing user role in UXT'
-                    messageReg = ''
-                    messageEA = ''
-                    return redirect(url_for('signin'))
-
+            me_url = 'https://uxt-stage.liis.com.br/auth/me'
+            me_resp = requests.get(me_url, headers=headers)
+            if me_resp.status_code == 200:
+                me_data = me_resp.json()
+                print(f"[UXT] Logged in user data: {me_data}")
             else:
-                print(f"[UXT] Erro ao obter token de administrador: {resposta_admin.text}")
-                message = 'Error obtaining admin token for UXT'
+                print(f"[UXT] Failed to access /auth/me: {me_resp.status_code}")
+                print(f"[UXT] Response: {me_resp.text}")
+        else:
+            print("[UXT] No access token returned.")
+        # Get admin token to change role
+        uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
+        admin_credentials = {
+            "email": "vasco@gmail.com",
+            "password": "vasco123"
+        }
+        resposta_admin = requests.post(uxt_admin_login_url, json=admin_credentials)
+        if resposta_admin.status_code == 200 and me_data:
+            token = resposta_admin.json().get("access_token")
+            managerId = me_data.get("idUser")
+            uxt_changeRole_url = 'https://uxt-stage.liis.com.br/auth/change-role'
+            changeRole_data = {
+                "userId": managerId,
+                "newRole": 2 # SECO Manager
+            }
+            headers_admin = {
+                'Authorization': f'Bearer {token}'
+            }
+            resposta_changeRole = requests.post(uxt_changeRole_url, json=changeRole_data, headers=headers_admin)
+            if resposta_changeRole.status_code == 200:
+                print(f"[UXT] User role for '{email}' changed to SECO Manager successfully.")
+            else:
+                print(f"[UXT] Error changing user role: {resposta_changeRole.text}")
+                message = 'Account created but role assignment failed. Please contact support.'
                 messageReg = ''
                 messageEA = ''
                 return redirect(url_for('signin'))
-
         else:
-            print(f"[UXT] Erro ao registrar na API UXT (status {resposta.status_code}).")
-            print(f"[UXT] Resposta: {resposta.text}")
-            message = 'Local account created, but UXT registration failed. This user already exists.'
+            print(f"[UXT] Error obtaining admin token or user data: {resposta_admin.text if resposta_admin.status_code != 200 else 'No user data'}")
+            message = 'Account created but role assignment failed. Please contact support.'
             messageReg = ''
             messageEA = ''
-    except requests.exceptions.RequestException as e:
-        print(f"[UXT] Erro de conexão com a API UXT: {str(e)}")
-        message = 'Error connecting to UXT'
+            return redirect(url_for('signin'))
+    except requests.exceptions.ConnectionError:
+        print("[UXT] Connection error: Could not connect to UXTracking API")
+        message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
         messageReg = ''
         messageEA = ''
+        return redirect(url_for('signin'))
+    except requests.exceptions.Timeout:
+        print("[UXT] Timeout error: UXTracking API request timed out")
+        message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
+        messageReg = ''
+        messageEA = ''
+        return redirect(url_for('signin'))
+    except requests.exceptions.RequestException as e:
+        print(f"[UXT] Request error with UXT API: {str(e)}")
+        message = 'UXTracking service is temporarily unavailable. Please try again later.'
+        messageReg = ''
+        messageEA = ''
+        return redirect(url_for('signin'))
 
+    # Only create the local account if everything above succeeded
+    users = User.query.all()
+    cont = 1 if not users else users[-1].user_id + 1
+    
+    # Generate verification token
+    verification_token = secrets.token_urlsafe(32)
+    
+    new_account = User(
+        email=email, 
+        username=name, 
+        type='seco_manager', 
+        user_id=cont,
+        is_verified=False,
+        verification_token=verification_token
+    )
+    new_account.set_password(passw)
+    db.session.add(new_account)
+    db.session.commit()
+    
+    # Send verification email
+    verification_url = url_for('verify_email', token=verification_token, _external=True)
+    if send_verification_email(email, name, verification_url):
+        message = ''
+        messageReg = 'Account created successfully. Please check your email to verify your account.'
+        messageEA = ''
+    else:
+        message = 'Account created but verification email could not be sent. Please contact support.'
+        messageReg = ''
+        messageEA = ''
+    
     return redirect(url_for('signin'))
+
+@app.route('/verify/<token>')
+def verify_email(token):
+    global message
+    global messageReg
+    global messageEA
+    
+    user = User.query.filter_by(verification_token=token).first()
+    
+    if user:
+        user.is_verified = True
+        user.verification_token = None
+        db.session.commit()
+        
+        message = ''
+        messageReg = 'Your email has been verified successfully! You can now sign in.'
+        messageEA = ''
+        return redirect(url_for('signin'))
+    else:
+        message = 'Invalid or expired verification link.'
+        messageReg = ''
+        messageEA = ''
+        return redirect(url_for('signin'))
 
 @app.route('/logout')
 def logout():
     if isLogged():
         session['user_signed_in'] = None
         session['user_type'] = None
-        return redirect(url_for('index'))
+        return redirect(url_for('index')) 
