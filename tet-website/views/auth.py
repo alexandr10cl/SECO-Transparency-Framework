@@ -7,6 +7,10 @@ import secrets
 import os
 
 DEV_MODE = os.getenv('DEV_MODE', 'False') == 'True'
+admin_credentials = {
+    "email": os.getenv("ADMIN_EMAIL"),
+    "password": os.getenv("ADMIN_PASSWORD")
+}
 
 message = '' # Error sign in message
 messageReg = '' # Success sign up message
@@ -148,10 +152,6 @@ def register():
             print("[UXT] No access token returned.")
         # Get admin token to change role
         uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
-        admin_credentials = {
-            "email": "vasco@gmail.com",
-            "password": "vasco123"
-        }
         resposta_admin = requests.post(uxt_admin_login_url, json=admin_credentials)
         if resposta_admin.status_code == 200 and me_data:
             token = resposta_admin.json().get("access_token")
