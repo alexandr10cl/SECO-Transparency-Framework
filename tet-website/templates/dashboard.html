@@ -88,36 +88,52 @@
                 <h3>Developer Experience Category</h3>
                 <div class="dx_categorys">
                     <div class="evaluation-info-card c1">
-                        <h4>Common Tecnological Platform</h4>
-                        <p>70</p>
-                        <span class="subWrite">Score</span>
-                        <div class="percentage-bar">
-                            <div></div>
-                        </div>
+                        <h4>{{ dx_categories.common_technological_platform.name }}</h4>
+                        {% if dx_categories.common_technological_platform.score is not none %}
+                            <p>{{ dx_categories.common_technological_platform.score }}%</p>
+                            <span class="subWrite">Score</span>
+                            <div class="percentage-bar">
+                                <div style="width: {{ dx_categories.common_technological_platform.score }}%;"></div>
+                            </div>
+                        {% else %}
+                            <p>No data</p>
+                        {% endif %}
                     </div>
                     <div class="evaluation-info-card c2">
-                        <h4>Projects and Applications</h4>
-                        <p>70</p>
-                        <span class="subWrite">Score</span>
-                        <div class="percentage-bar">
-                            <div></div>
-                        </div>
+                        <h4>{{ dx_categories.projects_and_applications.name }}</h4>
+                        {% if dx_categories.projects_and_applications.score is not none %}
+                            <p>{{ dx_categories.projects_and_applications.score }}%</p>
+                            <span class="subWrite">Score</span>
+                            <div class="percentage-bar">
+                                <div style="width: {{ dx_categories.projects_and_applications.score }}%;"></div>
+                            </div>
+                        {% else %}
+                            <p>No data</p>
+                        {% endif %}
                     </div>
                     <div class="evaluation-info-card c3">
-                        <h4>Community Interaction</h4>
-                        <p>70%</p>
-                        <span class="subWrite">Score</span>
-                        <div class="percentage-bar">
-                            <div></div>
-                        </div>
+                        <h4>{{ dx_categories.community_interaction.name }}</h4>
+                        {% if dx_categories.community_interaction.score is not none %}
+                            <p>{{ dx_categories.community_interaction.score }}%</p>
+                            <span class="subWrite">Score</span>
+                            <div class="percentage-bar">
+                                <div style="width: {{ dx_categories.community_interaction.score }}%;"></div>
+                            </div>
+                        {% else %}
+                            <p>No data</p>
+                        {% endif %}
                     </div>
                     <div class="evaluation-info-card c4">
-                        <h4>Expectations and Value of Contribuition</h4>
-                        <p>70</p>
-                        <span class="subWrite">Score</span>
-                        <div class="percentage-bar">
-                            <div></div>
-                        </div>
+                        <h4>{{ dx_categories.expectations_and_value.name }}</h4>
+                        {% if dx_categories.expectations_and_value.score is not none %}
+                            <p>{{ dx_categories.expectations_and_value.score }}%</p>
+                            <span class="subWrite">Score</span>
+                            <div class="percentage-bar">
+                                <div style="width: {{ dx_categories.expectations_and_value.score }}%;"></div>
+                            </div>
+                        {% else %}
+                            <p>No data</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
