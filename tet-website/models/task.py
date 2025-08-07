@@ -53,7 +53,7 @@ class Answer(db.Model):
     
     # Main Rows
     answer_id = db.Column(db.Integer, primary_key=True)
-    answer = db.Column(db.String(1000), nullable=False)
+    answer = db.Column(db.Integer, nullable=False)  # Changed to Integer for 0-100 scale
 
     # Foreign key to the collected data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)

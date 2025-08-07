@@ -244,19 +244,27 @@ def eval_dashboard(id):
                 }
 
                 for answer in question.answers:
-                    normalized = answer.answer.strip().lower()
-                    if normalized == 'yes':
-                        score = 1.0
-                    elif normalized == 'partial':
-                        score = 0.5
-                    elif normalized == 'no':
-                        score = 0.0
+                    # Handle both old string format and new numeric format
+                    if isinstance(answer.answer, str):
+                        normalized = answer.answer.strip().lower()
+                        if normalized == 'yes':
+                            score = 1.0
+                        elif normalized == 'partial':
+                            score = 0.5
+                        elif normalized == 'no':
+                            score = 0.0
+                        else:
+                            continue  # ignora respostas inválidas
+                        display_value = answer.answer
                     else:
-                        continue  # ignora respostas inválidas
+                        # New numeric format (0-100 scale)
+                        numeric_value = int(answer.answer)
+                        score = numeric_value / 100.0  # Convert to 0-1 scale
+                        display_value = f"{numeric_value}/100"
 
                     total_score += score
                     total_answers += 1
-                    question_data['answers'].append(answer.answer)
+                    question_data['answers'].append(display_value)
 
                 ksc_data['questions'].append(question_data)
 
