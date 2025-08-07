@@ -664,11 +664,33 @@ body {
   border-radius: 999px; 
   font-size: 0.85rem;
   font-weight: 600;
-  background-color: rgba(0, 128, 0, 0.1); 
-  color: #0f5132; 
-  border: 1px solid rgba(0, 128, 0, 0.3);
   text-transform: uppercase; 
   white-space: nowrap;
+}
+
+/* Status específicos com cores diferentes */
+.guideline-status.status-fulfilled {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.guideline-status.status-partially {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.guideline-status.status-not-fulfilled {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.guideline-status.status-na {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #4b5563;
+  border: 1px solid rgba(107, 114, 128, 0.3);
 }
 
 .gd-hd-space {
