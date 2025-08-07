@@ -120,9 +120,9 @@ def register():
             elif resposta.status_code == 400:
                 message = 'Invalid registration data. Please check your information and try again.'
             elif resposta.status_code == 500:
-                message = 'UXTracking service is experiencing technical difficulties. Please try again later.'
+                message = 'UX-Tracking service is experiencing technical difficulties. Please try again later.'
             elif resposta.status_code >= 500:
-                message = 'UXTracking service is temporarily unavailable. Please try again in a few minutes.'
+                message = 'UX-Tracking service is temporarily unavailable. Please try again in a few minutes.'
             else:
                 message = f'Registration failed (Error {resposta.status_code}). Please try again later.'
             

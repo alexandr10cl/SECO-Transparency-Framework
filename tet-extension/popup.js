@@ -307,19 +307,21 @@ function renderAll() {
             <label for="process-question-${proc.process_id}-${i}">
               ${q.process_review_question_text}
             </label>
-            <div class="radio-group">
-              <label>
-                <input type="radio" name="process-question-${proc.process_id}-${i}" value="yes">
-                Yes
-              </label>
-              <label>
-                <input type="radio" name="process-question-${proc.process_id}-${i}" value="partial">
-                Partially
-              </label>
-              <label>
-                <input type="radio" name="process-question-${proc.process_id}-${i}" value="no">
-                No
-              </label>
+            <div class="slider-container">
+              <div class="slider-labels">
+                <span class="slider-label-left">Not at all (0)</span>
+                <span class="slider-label-right">Totally agree (100)</span>
+              </div>
+              <input type="range" 
+                     id="process-question-${proc.process_id}-${i}" 
+                     name="process-question-${proc.process_id}-${i}" 
+                     min="0" 
+                     max="100" 
+                     value="50" 
+                     class="slider">
+              <div class="slider-value">
+                <span id="slider-value-${proc.process_id}-${i}">50</span>
+              </div>
             </div>
           </div>
         `;
@@ -337,6 +339,26 @@ function renderAll() {
 
 // 3) Conecta todos os listeners de uma vez
 function attachListenersAll() {
+  // Adiciona listeners para os sliders dos process reviews
+  processes.forEach((proc) => {
+    proc.process_review.forEach((q, i) => {
+      const sliderId = `process-question-${proc.process_id}-${i}`;
+      const valueId = `slider-value-${proc.process_id}-${i}`;
+      
+      // Wait a bit for DOM to be ready
+      setTimeout(() => {
+        const slider = document.getElementById(sliderId);
+        const valueSpan = document.getElementById(valueId);
+        
+        if (slider && valueSpan) {
+          slider.addEventListener('input', function() {
+            valueSpan.textContent = this.value;
+          });
+        }
+      }, 100);
+    });
+  });
+
   processes.forEach((proc) => {
     proc.process_tasks.forEach((task) => {
       // Start Task
@@ -432,8 +454,8 @@ function saveTaskAnswer(processId, taskId) {
 function saveProcessAnswers(processId) {
   const proc = processes[currentProcessIndex];
   proc.process_review.forEach((q, i) => {
-    const selected = document.querySelector(`input[name="process-question-${processId}-${i}"]:checked`);
-    const answerValue = selected ? selected.value : null;
+    const slider = document.getElementById(`process-question-${processId}-${i}`);
+    const answerValue = slider ? parseInt(slider.value) : null;
     
     console.log(`Processo ${processId} - Pergunta ${q.process_review_question_id}: ${answerValue}`);
 
