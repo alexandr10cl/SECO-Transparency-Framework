@@ -1,9 +1,12 @@
 from flask import render_template, request, redirect, session, url_for, flash
 import requests
 from app import app, db
-from models import User
+from models import User, UserType
 from functions import isLogged, isAdmin, send_verification_email
 import secrets
+import os
+
+DEV_MODE = os.getenv('DEV_MODE', 'False') == 'True'
 
 message = '' # Error sign in message
 messageReg = '' # Success sign up message
@@ -26,7 +29,7 @@ def auth():
     if user:
         if user.check_password(request.form.get('passw')):
             # Check if user is verified
-            if not user.is_verified:
+            if not user.is_verified and not DEV_MODE:
                 message = 'Please verify your email address before signing in. Check your inbox for a verification link.'
                 messageReg = ''
                 messageEA = ''
@@ -196,24 +199,18 @@ def register():
         return redirect(url_for('signin'))
 
     # Only create the local account if everything above succeeded
-    users = User.query.all()
-    cont = 1 if not users else users[-1].user_id + 1
-    
-    # Generate verification token
     verification_token = secrets.token_urlsafe(32)
-    
-    new_account = User(
-        email=email, 
-        username=name, 
-        type='seco_manager', 
-        user_id=cont,
+    new_account = User( # Changed from SECO_MANAGER to User
+        email=email,
+        username=name,
+        type=UserType.SECO_MANAGER,
         is_verified=False,
         verification_token=verification_token
     )
     new_account.set_password(passw)
     db.session.add(new_account)
     db.session.commit()
-    
+
     # Send verification email
     verification_url = url_for('verify_email', token=verification_token, _external=True)
     if send_verification_email(email, name, verification_url):
@@ -224,7 +221,7 @@ def register():
         message = 'Account created but verification email could not be sent. Please contact support.'
         messageReg = ''
         messageEA = ''
-    
+
     return redirect(url_for('signin'))
 
 @app.route('/verify/<token>')
