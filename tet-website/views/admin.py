@@ -60,6 +60,7 @@ def add_guideline():
     dx_factor_ids = request.form.getlist('dx_factor_ids')
     seco_process_ids = request.form.getlist('seco_process_ids')
     seco_dimension_ids = request.form.getlist('seco_dimension_ids')
+    notes = request.form.get('notes', '')  # Optional field, default to empty string
     # Buscar os objetos relacionados
     conditioning_factors = Conditioning_factor_transp.query.filter(Conditioning_factor_transp.conditioning_factor_transp_id.in_(conditioning_factor_transp_ids)).all() if conditioning_factor_transp_ids else []
     dx_factors = DX_factor.query.filter(DX_factor.dx_factor_id.in_(dx_factor_ids)).all() if dx_factor_ids else []
@@ -73,7 +74,8 @@ def add_guideline():
         conditioning_factors=conditioning_factors,
         dx_factors=dx_factors,
         seco_processes=seco_processes,
-        seco_dimensions=seco_dimensions
+        seco_dimensions=seco_dimensions,
+        notes=notes
     )
     
     try:
