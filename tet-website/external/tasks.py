@@ -107,8 +107,26 @@ def submit_tasks():
             db.session.add(performed)
 
         elif item.get("type") == "process_review":
+            # Convert answer to integer for 0-100 scale
+            answer_value = item.get("answer")
+            if isinstance(answer_value, str):
+                # For backward compatibility, convert old string values
+                if answer_value == "yes":
+                    answer_value = 100
+                elif answer_value == "partial":
+                    answer_value = 50
+                elif answer_value == "no":
+                    answer_value = 0
+                else:
+                    try:
+                        answer_value = int(answer_value)
+                    except ValueError:
+                        answer_value = 50  # default value
+            elif answer_value is None:
+                answer_value = 50  # default value
+            
             answer = Answer(
-                answer              = item.get("answer"),
+                answer              = int(answer_value),
                 question_id         = item.get("question_id"),
                 collected_data_id   = collected.collected_data_id
             )
