@@ -210,6 +210,10 @@ def eval_dashboard(id):
     dimensions = SECO_dimension.query.all()
     
     print(dimensions)
+    
+    # Criar lista de IDs dos collected_data desta avaliação
+    evaluation_collected_data_ids = [cd.collected_data_id for cd in collected_data]
+    
     # Processar pontuação dos ksc e guidelines
     result = []
 
@@ -243,7 +247,12 @@ def eval_dashboard(id):
                     'answers': []
                 }
 
+                # CORREÇÃO: Filtrar apenas respostas desta avaliação
                 for answer in question.answers:
+                    # Verificar se a resposta pertence a esta avaliação
+                    if answer.collected_data_id not in evaluation_collected_data_ids:
+                        continue  # Pular respostas de outras avaliações
+                    
                     # Handle both old string format and new numeric format
                     if isinstance(answer.answer, str):
                         normalized = answer.answer.strip().lower()
@@ -305,9 +314,15 @@ def eval_dashboard(id):
     scores_guideline = []
     
     for i in result:
-        scores_guideline.append(i['average_score'])
-        
-    score_geral = round(sum(scores_guideline) / len(scores_guideline))
+        # CORREÇÃO: Excluir guidelines sem respostas (None) do cálculo
+        if i['average_score'] is not None:
+            scores_guideline.append(i['average_score'])
+    
+    # Calcular score_geral apenas se houver scores válidos    
+    if scores_guideline:
+        score_geral = round(sum(scores_guideline) / len(scores_guideline))
+    else:
+        score_geral = 0  # ou None, dependendo de como você quer tratar quando não há dados
 
     # Processamento das tasks para facilitar o jinja
     # Reunir tasks únicas
@@ -376,6 +391,52 @@ def eval_dashboard(id):
             
         dimension_scores.append(dim_data)
         print(dimension_scores)
+    
+    # Calcular pontuações para Developer Experience Categories
+    # Baseado nas guidelines e seus fatores DX relacionados
+    dx_categories = {
+        'common_technological_platform': {
+            'name': 'Common Technological Platform',
+            'guidelines': [],
+            'score': None
+        },
+        'projects_and_applications': {
+            'name': 'Projects and Applications', 
+            'guidelines': [],
+            'score': None
+        },
+        'community_interaction': {
+            'name': 'Community Interaction',
+            'guidelines': [],
+            'score': None
+        },
+        'expectations_and_value': {
+            'name': 'Expectations and Value of Contribution',
+            'guidelines': [],
+            'score': None
+        }
+    }
+    
+    # Mapear guidelines para categorias DX (você pode ajustar este mapeamento conforme necessário)
+    # Por enquanto, vamos distribuir as guidelines entre as categorias
+    for idx, g_result in enumerate(result):
+        if g_result['average_score'] is not None:
+            # Distribuir guidelines entre categorias (ajuste conforme sua lógica de negócio)
+            if idx % 4 == 0:
+                dx_categories['common_technological_platform']['guidelines'].append(g_result['average_score'])
+            elif idx % 4 == 1:
+                dx_categories['projects_and_applications']['guidelines'].append(g_result['average_score'])
+            elif idx % 4 == 2:
+                dx_categories['community_interaction']['guidelines'].append(g_result['average_score'])
+            else:
+                dx_categories['expectations_and_value']['guidelines'].append(g_result['average_score'])
+    
+    # Calcular média para cada categoria DX
+    for category in dx_categories.values():
+        if category['guidelines']:
+            category['score'] = round(sum(category['guidelines']) / len(category['guidelines']))
+        else:
+            category['score'] = 0
 
     return render_template('dashboard.html', 
                             evaluation=evaluation,
@@ -395,7 +456,8 @@ def eval_dashboard(id):
                             result=result,
                             score_geral=score_geral,
                             g_dimensions=g_dimensions_flat,
-                            dimension_scores=dimension_scores)
+                            dimension_scores=dimension_scores,
+                            dx_categories=dx_categories)
     
 
 @app.route('/view_heatmap/<int:id>')
