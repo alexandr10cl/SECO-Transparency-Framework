@@ -34,6 +34,7 @@ class Guideline(db.Model):
     guidelineID = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(500), nullable=False)
+    notes = db.Column(db.String(1000), nullable=True)
     
     # Relationship with Key_success_criterion
     key_success_criteria = db.relationship('Key_success_criterion', 
