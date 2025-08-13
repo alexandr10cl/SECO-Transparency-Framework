@@ -5,6 +5,13 @@ from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
 import requests
+import os
+
+# Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
+credenciais_admin = {
+    "email": os.getenv('ADMIN_EMAIL'),
+    "password": os.getenv('ADMIN_PASSWORD')
+}
 
 @app.route('/')
 def index():
@@ -466,52 +473,50 @@ def view_heatmap(id):
     user = User.query.filter_by(email=email).first()
     evaluation = Evaluation.query.get_or_404(id)
     
-    # Obter Token de administrador para mudar a role
-    uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
-
-    # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
-    credenciais_admin = {
-        "email": "vasco@gmail.com",
-        "password": "vasco123"
-    }
-
-    resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
-    if resposta_admin.status_code == 200:
-        token = resposta_admin.json().get("access_token")
-        
-        url_gethm = 'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
+    return render_template('heatmaps.html', evaluation=evaluation, user=user, id=id)
     
-        headers_admin = {
-                    'Authorization': f'Bearer {token}'
-                }
-        
-        resposta_heatmap = requests.get(url_gethm.format(id=evaluation.evaluation_id), headers=headers_admin)
-        
-        if resposta_heatmap.status_code == 200:
-            heatmap_data = resposta_heatmap.json()
-            # print(f"[UXT] Heatmap data for evaluation {evaluation.evaluation_id}: {type(jsonhm)}")
+    # # Obter Token de administrador para mudar a role
+    # uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
 
-            heat_maps = []
-            # print(type(jsonhm))
+    # resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
+    # if resposta_admin.status_code == 200:
+    #     token = resposta_admin.json().get("access_token")
+        
+    #     url_gethm = 'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
+    
+    #     headers_admin = {
+    #                 'Authorization': f'Bearer {token}'
+    #             }
+        
+    #     resposta_heatmap = requests.get(url_gethm.format(id=evaluation.evaluation_id), headers=headers_admin)
+        
+    #     if resposta_heatmap.status_code == 200:
+    #         heatmap_data = resposta_heatmap.json()
+    #         # print(f"[UXT] Heatmap data for evaluation {evaluation.evaluation_id}: {type(jsonhm)}")
 
-            # Se heatmap_data for um dicionário com a chave "page_images"
-            for item in heatmap_data:
-                page_images = item.get("page_images", [])
-                for i in page_images:
-                    if isinstance(i, dict):
-                        heat_maps.append({
-                            "height": i.get("height"),
-                            "image": i.get("image"),
-                            "points": i.get("points"),
-                            "scroll_positions": i.get("scroll_positions"),
-                            "url": i.get("url"),
-                            "width": i.get("width")
-                        })
-                else:
-                    heat_maps.append(i)
+    #         heat_maps = []
+    #         # print(type(jsonhm))
+
+    #         # Se heatmap_data for um dicionário com a chave "page_images"
+    #         for item in heatmap_data:
+    #             page_images = item.get("page_images", [])
+    #             for i in page_images:
+    #                 if isinstance(i, dict):
+    #                     heat_maps.append({
+    #                         "height": i.get("height"),
+    #                         "image": i.get("image"),
+    #                         "points": i.get("points"),
+    #                         "scroll_positions": i.get("scroll_positions"),
+    #                         "url": i.get("url"),
+    #                         "width": i.get("width")
+    #                     })
+    #                     print(f"Heatmap data: {i['height']}, {i['width']}, {i['points']}, {i['scroll_positions']}, {i['url']}")
+    #             else:
+    #                 heat_maps.append(i)
+                
+    #             print('teste')
             
-            
-            return render_template('heatmaps.html',heat_maps=heat_maps)
-        else:
-            print(f"[UXT] Error fetching heatmap data: {resposta_heatmap.text}")
-            return jsonify({"error": "Failed to fetch heatmap data"}), 500
+    #         return render_template('heatmaps.html',heat_maps=heat_maps)
+    #     else:
+    #         print(f"[UXT] Error fetching heatmap data: {resposta_heatmap.text}")
+    #         return jsonify({"error": "Failed to fetch heatmap data"}), 500

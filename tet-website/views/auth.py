@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, session, url_for, flash
 import requests
 from app import app, db
 from models import User, UserType
-from functions import isLogged, isAdmin, send_verification_email
+from functions import isLogged, isAdmin, send_verification_email, send_password_reset_email
 import secrets
 import os
 
@@ -253,3 +253,108 @@ def logout():
         session['user_signed_in'] = None
         session['user_type'] = None
         return redirect(url_for('index')) 
+    
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    global message
+    
+    if request.method == 'GET':
+        if not isLogged():
+            message = ''
+            return render_template('forgot_password.html', message=message)
+        else:
+            return redirect(url_for('index'))
+    
+    elif request.method == 'POST':
+        email = request.form.get('email')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            reset_url = url_for('reset_password', id=user.user_id, _external=True)
+            
+            uxt_url = 'https://uxt-stage.liis.com.br/auth/forgot-password'
+            
+            uxt_dados = {
+                "email": user.email
+            }
+            
+            try:
+                resposta = requests.post(uxt_url, json=uxt_dados)
+                if resposta.status_code == 200:
+                    print(f"[UXT] Password reset email sent successfully to '{user.email}'.")
+                    send = send_password_reset_email(user.email, user.username, reset_url)
+                    if send:
+                        message = 'If this email is registered, a password reset link has been sent to your inbox.'
+                        return render_template('forgot_password.html', message=message)
+                else:
+                    print(f"[UXT] Error sending password reset email (status {resposta.status_code}).")
+                    message = 'Error sending password reset email. Please try again later.'
+                    return render_template('forgot_password.html', message=message)
+            except requests.exceptions.ConnectionError:
+                print("[UXT] Connection error: Could not connect to UXTracking API")
+                message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
+                return render_template('forgot_password.html', message=message)
+            except requests.exceptions.Timeout:
+                print("[UXT] Timeout error: UXTracking API request timed out")
+                message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
+                return render_template('forgot_password.html', message=message)
+            except requests.exceptions.RequestException as e:
+                print(f"[UXT] Error sending password reset email: {str(e)}")
+                message = 'Error sending password reset email. Please try again later.'
+                return render_template('forgot_password.html', message=message)
+        else:
+            message = 'If this email is registered, a password reset link has been sent to your inbox.'
+        return render_template('forgot_password.html', message=message)
+
+@app.route('/reset-password/<int:id>', methods=['GET', 'POST'])
+def reset_password(id):
+    global message
+    
+    if request.method == 'GET':
+        if not isLogged():
+            message = ''
+            return render_template('reset_password.html', message=message, id=id)
+        else:
+            return redirect(url_for('index'))
+        
+    elif request.method == 'POST':
+        user = User.query.get_or_404(id)
+        newPassword = request.form.get('passw')
+        code = request.form.get('code')
+        
+        if user and newPassword and code:
+            uxt_url = 'https://uxt-stage.liis.com.br/auth/reset-password'
+            
+            uxt_dados = {
+                "email": user.email,
+                "code": code,
+                "newPassword":newPassword,
+                "confirmNewPassword": newPassword
+            }
+            
+            try:
+                resposta = requests.post(uxt_url, json=uxt_dados)
+                if resposta.status_code == 200:
+                    print(f"[UXT] Password reset successfully for '{user.email}'.")
+                    user.set_password(newPassword)
+                    db.session.commit()
+                    message = 'Your password has been reset successfully. You can now sign in.'
+                    return redirect(url_for('signin'))
+                else:
+                    print(f"[UXT] Error resetting password (status {resposta.status_code}).")
+                    message = 'Error resetting password. Please check the code and try again.'
+                    return render_template('reset_password.html', message=message, id=id)
+            except requests.exceptions.ConnectionError:
+                print("[UXT] Connection error: Could not connect to UXTracking API")
+                message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
+                return render_template('reset_password.html', message=message, id=id)
+            except requests.exceptions.Timeout:
+                print("[UXT] Timeout error: UXTracking API request timed out")
+                message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
+                return render_template('reset_password.html', message=message, id=id)
+            except requests.exceptions.RequestException as e:
+                print(f"[UXT] Error resetting password: {str(e)}")
+                message = 'Error resetting password. Please try again later.'
+                return render_template('reset_password.html', message=message, id=id)
+        else:
+            message = 'Invalid request. Please try again.'
+            return render_template('reset_password.html', message=message, id=id)

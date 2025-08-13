@@ -12,6 +12,8 @@
         <h2>Sign in</h2>
         <input type="email" name="email" id="email" placeholder="Type your email">
         <input type="password" name="passw" id="passw" placeholder="Type your password">
+        <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+        <a href="{{ url_for('signup') }}">Don't you have an account?</a>
         <button class="btn btn-submit">Sign in</button>
         {% if message != '' %}
         <p class="msg">{{ message }}</p>

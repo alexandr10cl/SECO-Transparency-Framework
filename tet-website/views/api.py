@@ -1,6 +1,13 @@
 from app import app
 from flask import jsonify
 from models import *
+import os
+import requests
+
+credenciais_admin = {
+    "email": os.getenv('ADMIN_EMAIL'),
+    "password": os.getenv('ADMIN_PASSWORD')
+}
 
 @app.route('/api/guideline/<int:id>')
 def api_get_guideline(id):
@@ -149,3 +156,42 @@ def api_wordcloud(id):
     
     return jsonify(lista)
     
+@app.route('/api/view_heatmap/<int:id>')
+def api_view_heatmap(id):
+    evaluation = Evaluation.query.get_or_404(id)
+    
+    # Obter token de admnistrador uxt
+    uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
+    
+    resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
+    if resposta_admin.status_code == 200:
+        token = resposta_admin.json().get('access_token')
+        
+        url_get_heatmap = f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
+        
+        headers_admin = {
+            'Authorization': f'Bearer {token}'
+        }
+        
+        resposta_heatmap = requests.get(url_get_heatmap, headers=headers_admin)
+        if resposta_heatmap.status_code == 200:
+            heatmap_data = resposta_heatmap.json()
+            
+            heatmaps = []
+            
+            for item in heatmap_data:
+                page_images = item.get('page_images', [])
+                for i in page_images:
+                    if isinstance(i, dict):
+                        heatmaps.append({
+                            "height": i.get("height"),
+                            "image": i.get("image"),
+                            "points": i.get("points"),
+                            "scroll_positions": i.get("scroll_positions"),
+                            "url": i.get("url"),
+                            "width": i.get("width")
+                        })
+
+            return jsonify(heatmaps)
+        else:
+            return jsonify({"error": "Failed to retrieve heatmap data"}), resposta_heatmap.status_code
