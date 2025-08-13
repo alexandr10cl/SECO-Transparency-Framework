@@ -6,9 +6,12 @@
     <title>Document</title>
 </head>
 <body>
-    {% for hm in heat_maps %}
-    <img src="data:image/png;base64,{{ hm.image }}">
-    {% endfor %}
+    <h1>Heatmaps de Avaliação</h1>
+    <p id="id-avaliacao">{{ id }}</p>
 
+    <div class="heatmaps"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/heatmaps.js') }}"></script>
 </body>
 </html>
