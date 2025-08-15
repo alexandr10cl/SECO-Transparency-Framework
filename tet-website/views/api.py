@@ -12,6 +12,7 @@ credenciais_admin = {
 @app.route('/api/guideline/<int:id>')
 def api_get_guideline(id):
     guideline = Guideline.query.get_or_404(id)
+    print(guideline.notes)
     return jsonify({
         "guidelineID": guideline.guidelineID,
         "title": guideline.title,
@@ -27,7 +28,8 @@ def api_get_guideline(id):
                 "examples": [{"description": e.description} for e in k.examples]
             }
             for k in guideline.key_success_criteria
-        ]
+        ],
+        "notes": guideline.notes
     })
     
 @app.route('/api/experience-data/<int:id>')

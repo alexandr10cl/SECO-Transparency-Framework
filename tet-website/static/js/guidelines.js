@@ -66,7 +66,24 @@ function openModal(id) {
 
                     scContainer.appendChild(div);
                 });
+
             }
+
+            console.log('agora vamos para as notas');
+
+            // Notes
+            if (g.notes && g.notes.length > 0) {
+                    const notesContainer = document.getElementById('modal-notes');
+                    if (notesContainer) {
+                        notesContainer.innerHTML = ''; // Limpa o container antes de preencher
+                        const note = document.createElement('p');
+                        note.className = 'note';
+                        note.textContent = g.notes;
+                        notesContainer.appendChild(note);
+                    } else {
+                        console.error('Elemento #modal-notes não encontrado no DOM');
+                    }
+                }
 
             // Esconde o loading e mostra o conteúdo
             if (loading) loading.style.display = 'none';
