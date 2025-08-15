@@ -27,7 +27,9 @@ body {
     color: var(--cor-2);
     position: fixed;
     width: 100%;
-    z-index: 1000;
+    z-index: 1005;
+    top: 0;
+    height: 50px;
 }
 
 .logo {
