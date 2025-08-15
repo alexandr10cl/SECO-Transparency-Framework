@@ -37,12 +37,12 @@ fetch(`/api/view_heatmap/${id}`)
             const points = heatmap.points.map(point => ({
                 x: point.x,
                 y: point.y,
-                value: point.intensity
+                value: point.intensity * 700
             }));
 
             // To define the data for the heatmap
             const data = {
-                max: 20,
+                max: 1000,
                 data: points
             };
 
