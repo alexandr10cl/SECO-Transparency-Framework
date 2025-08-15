@@ -274,3 +274,194 @@
     transform: translateY(-2px);
     box-shadow: 4px 8px 12px rgba(0,0,0,0.2);
 }
+
+/* Media Queries para responsividade mobile */
+@media screen and (max-width: 768px) {
+    .evaluation {
+        padding: 15px 20px;
+        margin: 50px 0;
+        width: 95%;
+    }
+    
+    .evaluation-header h2 {
+        font-size: 28px;
+    }
+    
+    .evaluation h3 {
+        font-size: 20px;
+    }
+    
+    .evaluation-content {
+        gap: 25px;
+    }
+    
+    .e-item {
+        padding: 10px 0;
+    }
+    
+    .e-item p {
+        font-size: 14px;
+        padding: 8px;
+    }
+    
+    .e-item .seco-portal {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .rel-proc {
+        flex-wrap: wrap;
+    }
+    
+    .modals {
+        padding: 15px;
+        gap: 8px;
+    }
+    
+    .modals button {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    .modal-content {
+        width: 90%;
+        margin: 10% auto;
+        padding: 20px;
+        gap: 20px;
+    }
+    
+    .modal-content h2 {
+        font-size: 24px;
+    }
+    
+    .modal-content h3 {
+        font-size: 18px;
+    }
+    
+    .details {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .details li {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+    
+    .details-flex li {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+    
+    .success-criterion {
+        padding: 12px;
+    }
+    
+    .success-criterion h4 {
+        font-size: 18px;
+    }
+    
+    .example {
+        padding: 8px;
+        font-size: 0.85em;
+    }
+    
+    .options {
+        gap: 20px;
+    }
+    
+    .options a {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .div-dash {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .btn-dash {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #4b66ff;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .evaluation {
+        padding: 10px 15px;
+        margin: 30px 0;
+        width: 98%;
+    }
+    
+    .evaluation-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .evaluation-header h2 {
+        font-size: 24px;
+    }
+    
+    .evaluation h3 {
+        font-size: 18px;
+    }
+    
+    .e-item p {
+        font-size: 13px;
+        word-break: break-all;
+    }
+    
+    .modals {
+        padding: 10px;
+    }
+    
+    .modals button {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 15px;
+    }
+    
+    .modal-content h2 {
+        font-size: 20px;
+    }
+    
+    .modal-content h3 {
+        font-size: 16px;
+    }
+    
+    .modal h4 {
+        font-size: 16px;
+        margin-top: 20px;
+    }
+    
+    .close {
+        font-size: 28px;
+    }
+    
+    .options {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .options a {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .advise {
+        font-size: 12px;
+        display: block;
+        margin-top: 5px;
+    }
+}

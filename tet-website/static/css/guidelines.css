@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
+/* Variables */
 :root {
     --cor-1: rgb(75, 102, 255);
     --cor-2: #f4f4f4;
@@ -9,67 +10,88 @@
     --cor-gray: gray;
 }
 
-.header{
-    margin-top: -7px;
+/* Reset and Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-family: "Montserrat", sans-serif;
+    font-size: 16px;
+    overflow-x: hidden;
+}
+
+body {
     width: 100%;
-    height: 250px;
-    background: linear-gradient(90deg, rgb(104, 126, 255), var(--cor-1), blue);
+    overflow-x: hidden;
+    background-color: white;
+}
+
+/* Content Container */
+.content {
+    width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 3rem;
+    padding-top: 50px;
+}
+
+/* Header Section - Mobile First */
+.header {
+    width: 100%;
+    padding: 3rem 1rem;
+    background: linear-gradient(90deg, rgb(104, 126, 255), var(--cor-1), blue);
+    display: flex;
     flex-direction: column;
-}
-
-.header h1{
-    font-size: 50px;
-    color: white;
-}
-
-.header p{
-    color: white;
-    font-size: 30px;
-    font-weight: 500;
-}
-
-.title{
-    font-size: 40px;
-    color: rgb(44, 44, 44);
-}
-
-.ic {
-    margin: 20px 0 0 0;
-    font-size: 30px;
+    justify-content: center;
+    align-items: center;
     text-align: center;
 }
 
-.content{
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 100px;
+.header h1 {
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 1rem;
 }
 
+.header p {
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    padding: 0 1rem;
+}
 
+.title {
+    font-size: 1.5rem;
+    color: rgb(44, 44, 44);
+    text-align: center;
+    padding: 0 1rem;
+}
+
+/* Guidelines Grid - Mobile First */
 .guidelines {
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 40px;
+    gap: 2rem;
+    padding: 0 1rem;
 }
 
-.g{
+.g {
     cursor: pointer;
     perspective: 1000px;
-    width: 300px;
+    width: 100%;
+    max-width: 350px;
     height: 200px;
 }
 
-.g-inner{
+.g-inner {
     position: relative;
     width: 100%;
     height: 100%;
@@ -77,11 +99,11 @@
     transform-style: preserve-3d;
 }
 
-.g:hover .g-inner{
+.g:hover .g-inner {
     transform: rotateY(180deg);
 }
 
-.g-front, .g-back{
+.g-front, .g-back {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -95,56 +117,68 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-.g-front{
+.g-front {
     background: linear-gradient(135deg, var(--cor-1) 0%, blue 100%);
     color: white;
 }
 
-.g-back{
+.g-front h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.g-front p {
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.g-back {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     color: #333;
     transform: rotateY(180deg);
 }
 
-.g-back h2{
-    font-weight: 600;
+.g-back h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
 }
 
-.modal{
+.g-back p {
+    font-size: 0.9rem;
+}
+
+.ic {
+    margin-top: 1rem;
+    font-size: 1.5rem;
+}
+
+/* Modal - Mobile First */
+.modal {
     position: fixed;
-    z-index: 100;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
     background-color: rgba(0,0,0,0.4);
+    padding: 1rem;
 }
 
-.modal-content{
+.modal-content {
     background-color: #f4f4f4;
-    margin: 5% auto;
-    padding: 30px;
+    margin: 2rem auto;
+    padding: 1.5rem;
     border-radius: 15px;
-    width: 80%;
-    width: 1000px;
+    width: 100%;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     animation: modalopen 0.5s;
     display: flex;
     flex-direction: column;
-    gap: 30px;
-}
-
-.modal-content h2{
-    color: rgb(44, 44, 44);
-    font-size: 30px;
-    width: fit-content;
-}
-
-.modal-content h3{
-    color: rgb(44, 44, 44);
-    font-size: 20px;
-    font-weight: 600;
+    gap: 1.5rem;
 }
 
 @keyframes modalopen {
@@ -152,159 +186,444 @@
     to {opacity: 1; transform: translateY(0);}
 }
 
-.details{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
+.modal-content h2 {
+    color: rgb(44, 44, 44);
+    font-size: 1.5rem;
+    word-wrap: break-word;
 }
 
-.details li{
-    list-style: none;
-    padding: 8px 12px 8px 12px;
-    margin: 8px 0 0 0;
-    border-radius: 3px;
-    background-color: rgba(128, 194, 255, 0.2);
+.modal-content h3 {
+    color: rgb(44, 44, 44);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.modal-content p {
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .close {
-    font-size: 35px;
+    font-size: 2rem;
     color: #aaa;
     text-align: right;
     font-weight: bold;
     cursor: pointer;
+    align-self: flex-end;
+    line-height: 1;
 }
 
 .close:hover {
     color: black;
 }
 
-.success-criteria{
+/* Modal Details Grid - Mobile First */
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.details > div {
     width: 100%;
 }
 
-.success-criterion{
-    padding: 15px;
-    margin: 16px 0 0 0;
+.details h3 {
+    margin-bottom: 0.5rem;
+}
+
+.details ul {
+    list-style: none;
+    padding: 0;
+}
+
+.details li {
+    padding: 0.5rem 0.75rem;
+    margin: 0.5rem 0;
+    border-radius: 3px;
+    background-color: rgba(128, 194, 255, 0.2);
+    font-size: 0.9rem;
+}
+
+/* Success Criteria */
+.ksch3 {
+    margin-top: 1.5rem;
+}
+
+.success-criteria {
+    width: 100%;
+}
+
+.success-criterion {
+    padding: 1rem;
+    margin: 1rem 0;
     background-color: rgba(128, 194, 255, 0.2);
     border-radius: 10px;
 }
 
-.ksch3{
-    margin: 20px 0 0 0;
+.success-criterion h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #333;
 }
 
-.success-criterion h4{
-    font-size: 20px;
-    margin: 0 0 5px 0;
-}
-
-.success-criterion p{
-    margin: 0 0 5px 0;
+.success-criterion p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
 }
 
 .example {
     background: #eef1f3;
-    padding: 10px;
+    padding: 0.75rem;
     border-left: 3px solid #667eea;
-    margin-top: 8px;
-    font-size: 0.9em;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
 }
 
-.references{
-    margin: 100px 0 0 0;
-    padding: 0 125px 0 125px;
+/* References Section - Mobile First */
+.references {
     width: 100%;
-    height: auto;
+    padding: 3rem 1rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    gap: 40px;
+    gap: 2rem;
 }
 
-.references h2{
-    font-size: 30px;
+.references h2 {
+    font-size: 1.5rem;
     color: rgb(44, 44, 44);
+    text-align: center;
 }
 
-.references h3{
-    text-align: left;
-    font-size: 25px;
+.references h3 {
+    font-size: 1.3rem;
     font-weight: 600;
     color: rgb(44, 44, 44);
+    margin-bottom: 0.5rem;
 }
 
-.references-space{
+.references p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.references-space {
     display: flex;
-    justify-content: center;
     flex-direction: column;
-    height: 100%;
+    width: 100%;
 }
 
-.references-content{
-    margin: 60px 0 60px 0;
+.references-content {
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
 }
 
-.item{
+.item {
     background-color: white;
-    width: 300px;
-    padding: 15px;
+    width: 100%;
+    max-width: 350px;
+    padding: 1rem;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
 }
 
-.item:hover{
+.item:hover {
     transform: translateY(-5px);
 }
 
-.item h4{
+.item h4 {
     color: var(--cor-1);
-    margin: 0 0 20px 0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
 }
 
-footer{
-    height: 250px;
+.item p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Footer - Mobile First */
+footer {
     width: 100%;
     background: linear-gradient(90deg, rgb(44, 60, 155), rgb(28, 39, 100));
     color: lightblue;
-    padding: 48px 0 48px 0;
+    padding: 2rem 1rem;
+    margin-top: 3rem;
 }
 
-footer .footer-content{
-    padding: 0 136px 0 136px;
+.footer-content {
+    width: 100%;
 }
 
-.footer-content .info{
+.footer-content .info {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
 }
 
 .i {
-    width: 50%;
-}
-
-.i h4{
-    margin: 0 0 20px 0;
-    font-size: 20px;
-}
-
-.i h4, .i p{
-    text-align: left;
-}
-
-.copy{
+    width: 100%;
     text-align: center;
-    padding: 32px 0 0 0;
-    border: 1px solid transparent;
-    margin: 32px 0 0 0;
-    border-top: 1px inset lightblue;
 }
 
+.i h4 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.i p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.copy {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid lightblue;
+}
+
+.copy p {
+    font-size: 0.85rem;
+}
+
+/* Utility */
 .inv {
     display: none !important;
+}
+
+/* Tablet Styles */
+@media screen and (min-width: 768px) {
+    .content {
+        gap: 4rem;
+    }
+    
+    .header {
+        padding: 4rem 2rem;
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .header p {
+        font-size: 1.3rem;
+        max-width: 700px;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .guidelines {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 0 2rem;
+        gap: 2.5rem;
+    }
+    
+    .g {
+        width: 300px;
+    }
+    
+    .modal-content {
+        margin: 3rem auto;
+        padding: 2rem;
+        max-width: 80%;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .references {
+        padding: 4rem 2rem;
+        gap: 3rem;
+    }
+    
+    .references h2 {
+        font-size: 1.8rem;
+    }
+    
+    .references-content {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .item {
+        width: calc(50% - 1rem);
+        max-width: 350px;
+    }
+    
+    footer {
+        padding: 3rem 2rem;
+    }
+    
+    .footer-content .info {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    
+    .i {
+        width: 45%;
+        text-align: left;
+    }
+}
+
+/* Desktop Styles */
+@media screen and (min-width: 1024px) {
+    .content {
+        gap: 5rem;
+    }
+    
+    .header {
+        padding: 5rem 2rem;
+        min-height: 350px;
+    }
+    
+    .header h1 {
+        font-size: 3rem;
+    }
+    
+    .header p {
+        font-size: 1.5rem;
+        max-width: 800px;
+    }
+    
+    .title {
+        font-size: 2.5rem;
+    }
+    
+    .guidelines {
+        gap: 3rem;
+    }
+    
+    .g-front h2 {
+        font-size: 1.8rem;
+    }
+    
+    .ic {
+        font-size: 2rem;
+    }
+    
+    .modal-content {
+        max-width: 1000px;
+        padding: 2.5rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 2rem;
+    }
+    
+    .modal-content h3 {
+        font-size: 1.3rem;
+    }
+    
+    .success-criterion h4 {
+        font-size: 1.3rem;
+    }
+    
+    .references {
+        padding: 5rem 8rem;
+    }
+    
+    .references h2 {
+        font-size: 2rem;
+    }
+    
+    .references h3 {
+        font-size: 1.5rem;
+    }
+    
+    .references-content {
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+    
+    .item {
+        width: 300px;
+    }
+    
+    footer {
+        padding: 3rem 8rem;
+    }
+    
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+}
+
+/* Large Desktop */
+@media screen and (min-width: 1440px) {
+    .guidelines {
+        max-width: 1400px;
+    }
+    
+    .references {
+        padding: 5rem 10rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+}
+
+/* Extra Small Screens */
+@media screen and (max-width: 380px) {
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header p {
+        font-size: 0.9rem;
+    }
+    
+    .g {
+        height: 180px;
+    }
+    
+    .modal-content {
+        padding: 1rem;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.3rem;
+    }
+    
+    .modal-content h3 {
+        font-size: 1rem;
+    }
+}
+
+/* Modal Scrollbar Styling */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
