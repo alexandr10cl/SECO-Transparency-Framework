@@ -8,8 +8,13 @@
 {% block title %}Documentation{% endblock %}
 
 {% block content %}
-<br><br>
-    <div class="sidebar">
+    <button class="hamburger-doc" id="hamburgerDoc">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar" id="sidebarDoc">
         <div class="sidebar-header">
             <span class="material-symbols-outlined">article</span>
             <h2>Documentation</h2>
@@ -280,11 +285,41 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Mobile sidebar toggle
+            const hamburgerDoc = document.getElementById('hamburgerDoc');
+            const sidebarDoc = document.getElementById('sidebarDoc');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (hamburgerDoc) {
+                hamburgerDoc.addEventListener('click', function() {
+                    hamburgerDoc.classList.toggle('active');
+                    sidebarDoc.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                });
+            }
+            
+            // Close sidebar when clicking overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    hamburgerDoc.classList.remove('active');
+                    sidebarDoc.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                });
+            }
+            
+            // Active link handling
             const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
             sidebarLinks.forEach(link => {
                 link.addEventListener("click", function() {
                     sidebarLinks.forEach(l => l.classList.remove("active"));
                     this.classList.add("active");
+                    
+                    // Close mobile sidebar after clicking a link
+                    if (window.innerWidth < 1024) {
+                        hamburgerDoc.classList.remove('active');
+                        sidebarDoc.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
                 });
             });
         });
