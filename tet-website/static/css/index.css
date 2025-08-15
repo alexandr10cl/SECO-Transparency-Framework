@@ -161,9 +161,11 @@ img, image {
     margin-bottom: 1rem;
 }
 
-.about_content image {
+.about_content image,
+.about-illustration {
     width: 80%;
-    max-width: 300px;
+    max-width: 250px;
+    height: auto;
     margin: 0 auto;
     animation: floating 4s ease-in-out infinite;
 }
@@ -491,7 +493,8 @@ footer {
         width: 55%;
     }
     
-    .about_content image {
+    .about_content image,
+    .about-illustration {
         width: 40%;
         max-width: 400px;
     }
@@ -620,7 +623,8 @@ footer {
         width: 50%;
     }
     
-    .about_content image {
+    .about_content image,
+    .about-illustration {
         max-width: 500px;
     }
     
