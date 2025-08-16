@@ -216,44 +216,28 @@
             </div>
         </div>
     </div>
+    <!-- elemento escondido com o id da avaliação (usado pelo JS) -->
+    <p id="id-avaliacao" style="display:none">{{ evaluation.evaluation_id }}</p>
 
     <div class="hotspots-container">
         <div class="hotspot-card">
             <div class="hotspots-header">
-                <h2>Heatmaps by Task</h2>
-                <p>Visualization of user interaction during the execution of each incomplete or partially completed task.</p>
+            <h2>Heatmaps by Task</h2>
+            <p>Visualização das interações dos participantes.</p>
             </div>
+
             <div class="task-heatmap-container">
-                <hr class="task-heatmap-divider">
-                <div class="task-heatmap">
-                    <h3>Task: Access Platform Documentation</h3>
-                    <p>Related procedure: Access to documentation, source code, and tools</p>
-                    <p>Task description:</p>
-                    <div class="heatmap-image">
-                        <img src="https://placehold.co/1280x720" alt="Heatmap">
-                    </div>
-                </div>
-                <hr class="task-heatmap-divider">
-                <div class="task-heatmap">
-                    <h3>Task: Access Platform Documentation</h3>
-                    <p>Related procedure: Access to documentation, source code, and tools</p>
-                    <p>Task description:</p>
-                    <div class="heatmap-image">
-                        <img src="https://placehold.co/1280x720" alt="Heatmap">
-                    </div>
-                </div>
-                <hr class="task-heatmap-divider">
-                <div class="task-heatmap">
-                    <h3>Task: Access Platform Documentation</h3>
-                    <p>Related procedure: Access to documentation, source code, and tools</p>
-                    <p>Task description:</p>
-                    <div class="heatmap-image">
-                        <img src="https://placehold.co/1280x720" alt="Heatmap">
-                    </div>
-                </div>
+            <hr class="task-heatmap-divider">
+
+            <!-- raiz onde os heatmaps vindos da API serão inseridos -->
+            <div id="heatmaps-root" class="heatmaps">
+                <p class="loading">Carregando heatmaps...</p>
+            </div>
+
             </div>
         </div>
     </div>
+
 
     <div class="guidelines-score-container">
         <div class="guidelines-card">
@@ -311,4 +295,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/hotspots_heatmaps.js') }}"></script>
 {% endblock %}
