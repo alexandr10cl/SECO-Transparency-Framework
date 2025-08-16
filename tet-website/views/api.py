@@ -3,6 +3,7 @@ from flask import jsonify
 from models import *
 import os
 import requests
+import json
 
 credenciais_admin = {
     "email": os.getenv('ADMIN_EMAIL'),
@@ -160,27 +161,37 @@ def api_wordcloud(id):
     
 @app.route('/api/view_heatmap/<int:id>')
 def api_view_heatmap(id):
+    print(f"\n--- 1. Rota /api/view_heatmap chamada com ID: {id} ---")
     evaluation = Evaluation.query.get_or_404(id)
     
-    # Obter token de admnistrador uxt
+    # Obter token de administrador uxt
     uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
     
+    print("--- 2. Tentando autenticar na API externa... ---")
     resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
+    
     if resposta_admin.status_code == 200:
         token = resposta_admin.json().get('access_token')
+        print("--- 3. Autenticação bem-sucedida! ---")
         
         url_get_heatmap = f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
+        headers_admin = {'Authorization': f'Bearer {token}'}
         
-        headers_admin = {
-            'Authorization': f'Bearer {token}'
-        }
-        
+        print(f"--- 4. Buscando dados do heatmap na URL: {url_get_heatmap} ---")
         resposta_heatmap = requests.get(url_get_heatmap, headers=headers_admin)
+        
         if resposta_heatmap.status_code == 200:
+            print("--- 5. SUCESSO! Dados do heatmap recebidos. ---")
             heatmap_data = resposta_heatmap.json()
+            
             
             heatmaps = []
             
+            if not isinstance(heatmap_data, list):
+                print("\n>>> ATENÇÃO: O dado recebido NÃO é uma lista! A lógica de loop pode falhar. <<<\n")
+
+            
+            print("--- 7. Iniciando processamento dos dados recebidos... ---")
             for item in heatmap_data:
                 page_images = item.get('page_images', [])
                 for i in page_images:
@@ -196,4 +207,10 @@ def api_view_heatmap(id):
 
             return jsonify(heatmaps)
         else:
+            print(f"--- ERRO [A]: Falha ao buscar dados do heatmap. Status: {resposta_heatmap.status_code} ---")
+            print(f"Resposta de erro da API: {resposta_heatmap.text}")
             return jsonify({"error": "Failed to retrieve heatmap data"}), resposta_heatmap.status_code
+    else:
+        print(f"--- ERRO [B]: Falha na autenticação. Status: {resposta_admin.status_code} ---")
+        print(f"Resposta de erro da API: {resposta_admin.text}")
+        return jsonify({"error": "Authentication failed"}), resposta_admin.status_code
