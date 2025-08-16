@@ -177,14 +177,14 @@ function applyStatusColors() {
         // Remove classes existentes
         element.classList.remove('status-fulfilled', 'status-partially', 'status-not-fulfilled', 'status-na');
         
-        // Aplica classe baseada no texto
-        if (text.includes('fulfilled') && !text.includes('not')) {
-            element.classList.add('status-fulfilled');
-        } else if (text.includes('partially')) {
+        // Aplica classe baseada no texto (COM ORDEM CORRIGIDA)
+        if (text.includes('partially')) { // 1. Checa 'partially' primeiro
             element.classList.add('status-partially');
-        } else if (text.includes('not') || text.includes('unfulfilled')) {
+        } else if (text.includes('fulfilled') && !text.includes('not')) { // 2. Depois checa 'fulfilled'
+            element.classList.add('status-fulfilled');
+        } else if (text.includes('not')) { // 3. Depois o 'not'
             element.classList.add('status-not-fulfilled');
-        } else if (text.includes('n/a') || text === 'na' || text === 'not applicable') {
+        } else if (text.includes('no answers')) { // 4. E por último o "sem respostas"
             element.classList.add('status-na');
         }
     });
