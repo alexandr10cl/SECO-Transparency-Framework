@@ -195,18 +195,15 @@ def eval_dashboard(id):
                 
     count_collected_data = len(collected_data)
     
+    # CORREÇÃO: construir lista de dimensões corretamente (adiciona cada dimensão, não a lista inteira)
     g_dimensions = []
-    
     for g in guidelines:
         for d in g.seco_dimensions:
             if d not in g_dimensions:
-                g_dimensions.append(g.seco_dimensions)
+                g_dimensions.append(d)
                 
-    print(g_dimensions)
-    
-    from itertools import chain
-    
-    g_dimensions_flat = list(chain.from_iterable(g_dimensions))
+    # agora g_dimensions já é flat
+    g_dimensions_flat = g_dimensions
     
     
     eName = evaluation.name
@@ -216,11 +213,61 @@ def eval_dashboard(id):
     
     dimensions = SECO_dimension.query.all()
     
-    print(dimensions)
-    
     # Criar lista de IDs dos collected_data desta avaliação
     evaluation_collected_data_ids = [cd.collected_data_id for cd in collected_data]
     
+    # Helper: parseia resposta para 0..1 (numeric) ou None
+    def parse_answer_to_fraction(ans):
+        """
+        Aceita int, float, '50', '50.0', '50%', '0.5', 'yes', 'partial', 'no'
+        Retorna float entre 0.0 e 1.0 ou None se inválido.
+        """
+        if ans is None:
+            return None
+
+        # se já é número
+        if isinstance(ans, (int, float)):
+            v = float(ans)
+            if 0.0 <= v <= 1.0:
+                return v
+            if 0.0 <= v <= 100.0:
+                return v / 100.0
+            return None
+
+        # string: tenta interpretar
+        if isinstance(ans, str):
+            s = ans.strip().lower()
+            # antigos tokens
+            if s in ('yes', 'y', 'sim'):
+                return 1.0
+            if s in ('partial', 'parcial'):
+                return 0.5
+            if s in ('no', 'n', 'não', 'nao'):
+                return 0.0
+            # remove '%' e tenta converter
+            s_clean = s.rstrip('%')
+            try:
+                v = float(s_clean)
+            except ValueError:
+                return None
+            if 0.0 <= v <= 1.0:
+                return v
+            if 0.0 <= v <= 100.0:
+                return v / 100.0
+            return None
+
+        # fallback
+        try:
+            v = float(ans)
+            if 0.0 <= v <= 1.0:
+                return v
+            if 0.0 <= v <= 100.0:
+                return v / 100.0
+        except Exception:
+            return None
+
+        return None
+
     # Processar pontuação dos ksc e guidelines
     result = []
 
@@ -236,7 +283,7 @@ def eval_dashboard(id):
         ksc_scores = []
 
         for ksc in g.key_success_criteria:
-            total_score = 0
+            total_score = 0.0
             total_answers = 0
 
             ksc_data = {
@@ -254,29 +301,18 @@ def eval_dashboard(id):
                     'answers': []
                 }
 
-                # CORREÇÃO: Filtrar apenas respostas desta avaliação
+                # Filtrar apenas respostas desta avaliação
                 for answer in question.answers:
                     # Verificar se a resposta pertence a esta avaliação
                     if answer.collected_data_id not in evaluation_collected_data_ids:
                         continue  # Pular respostas de outras avaliações
-                    
-                    # Handle both old string format and new numeric format
-                    if isinstance(answer.answer, str):
-                        normalized = answer.answer.strip().lower()
-                        if normalized == 'yes':
-                            score = 1.0
-                        elif normalized == 'partial':
-                            score = 0.5
-                        elif normalized == 'no':
-                            score = 0.0
-                        else:
-                            continue  # ignora respostas inválidas
-                        display_value = answer.answer
-                    else:
-                        # New numeric format (0-100 scale)
-                        numeric_value = int(answer.answer)
-                        score = numeric_value / 100.0  # Convert to 0-1 scale
-                        display_value = f"{numeric_value}/100"
+
+                    parsed = parse_answer_to_fraction(answer.answer)
+                    if parsed is None:
+                        continue  # ignora respostas inválidas
+
+                    score = parsed  # 0..1
+                    display_value = f"{round(score * 100)} / 100"
 
                     total_score += score
                     total_answers += 1
@@ -287,7 +323,7 @@ def eval_dashboard(id):
             # Score individual do KSC
             if total_answers > 0:
                 final_score = total_score / total_answers
-                ksc_data['score'] = round(final_score, 2) 
+                ksc_data['score'] = round(final_score, 2)
                 ksc_scores.append(final_score)
                 ksc_data['porcentagem'] = round(final_score * 100, 2)
 
@@ -321,7 +357,7 @@ def eval_dashboard(id):
     scores_guideline = []
     
     for i in result:
-        # CORREÇÃO: Excluir guidelines sem respostas (None) do cálculo
+        # Excluir guidelines sem respostas (None) do cálculo
         if i['average_score'] is not None:
             scores_guideline.append(i['average_score'])
     
@@ -340,8 +376,11 @@ def eval_dashboard(id):
             task_id = pt.task_id
             task_title = pt.task.title
 
-            # tempo em segundos
-            exec_time = (pt.final_timestamp - pt.initial_timestamp).total_seconds()
+            # tempo em segundos (proteção básica)
+            try:
+                exec_time = (pt.final_timestamp - pt.initial_timestamp).total_seconds()
+            except Exception:
+                exec_time = 0
 
             if task_id not in task_map:
                 task_map[task_id] = {
@@ -353,12 +392,13 @@ def eval_dashboard(id):
                 }
 
             task_info = task_map[task_id]
-            if pt.comments:
+            if getattr(pt, "comments", None):
                 task_info["comments"].append(pt.comments)
 
             task_info["times"].append(exec_time)
             task_info["total_count"] += 1
-            if pt.status.name == "SOLVED":
+            # proteção contra pt.status ser None
+            if getattr(pt, "status", None) and getattr(pt.status, "name", None) == "SOLVED":
                 task_info["solved_count"] += 1
 
     # Processar média de tempo e taxa de completude
@@ -397,10 +437,8 @@ def eval_dashboard(id):
             dim_data['average_score'] = round(sum(scores) / len(scores))
             
         dimension_scores.append(dim_data)
-        print(dimension_scores)
     
     # Calcular pontuações para Developer Experience Categories
-    # Baseado nas guidelines e seus fatores DX relacionados
     dx_categories = {
         'common_technological_platform': {
             'name': 'Common Technological Platform',
@@ -424,11 +462,9 @@ def eval_dashboard(id):
         }
     }
     
-    # Mapear guidelines para categorias DX (você pode ajustar este mapeamento conforme necessário)
-    # Por enquanto, vamos distribuir as guidelines entre as categorias
+    # Distribuir guidelines entre categorias DX (mantive sua lógica atual)
     for idx, g_result in enumerate(result):
         if g_result['average_score'] is not None:
-            # Distribuir guidelines entre categorias (ajuste conforme sua lógica de negócio)
             if idx % 4 == 0:
                 dx_categories['common_technological_platform']['guidelines'].append(g_result['average_score'])
             elif idx % 4 == 1:

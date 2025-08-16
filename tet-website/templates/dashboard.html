@@ -61,7 +61,7 @@
                 <div class="overall_score">
                     <div class="evaluation-info-card overall">
                         <h4>Overall Score</h4>
-                        <p>{{ score_geral }}%</p>
+                        <p>{{ score_geral }}</p>
                         <span class="subWrite">Overall Score</span>
                         <div class="percentage-bar">
                             <div style="width: {{ score_geral }}%;"></div>
@@ -90,7 +90,7 @@
                     <div class="evaluation-info-card c1">
                         <h4>{{ dx_categories.common_technological_platform.name }}</h4>
                         {% if dx_categories.common_technological_platform.score is not none %}
-                            <p>{{ dx_categories.common_technological_platform.score }}%</p>
+                            <p>{{ dx_categories.common_technological_platform.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
                                 <div style="width: {{ dx_categories.common_technological_platform.score }}%;"></div>
@@ -102,7 +102,7 @@
                     <div class="evaluation-info-card c2">
                         <h4>{{ dx_categories.projects_and_applications.name }}</h4>
                         {% if dx_categories.projects_and_applications.score is not none %}
-                            <p>{{ dx_categories.projects_and_applications.score }}%</p>
+                            <p>{{ dx_categories.projects_and_applications.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
                                 <div style="width: {{ dx_categories.projects_and_applications.score }}%;"></div>
@@ -114,7 +114,7 @@
                     <div class="evaluation-info-card c3">
                         <h4>{{ dx_categories.community_interaction.name }}</h4>
                         {% if dx_categories.community_interaction.score is not none %}
-                            <p>{{ dx_categories.community_interaction.score }}%</p>
+                            <p>{{ dx_categories.community_interaction.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
                                 <div style="width: {{ dx_categories.community_interaction.score }}%;"></div>
@@ -126,7 +126,7 @@
                     <div class="evaluation-info-card c4">
                         <h4>{{ dx_categories.expectations_and_value.name }}</h4>
                         {% if dx_categories.expectations_and_value.score is not none %}
-                            <p>{{ dx_categories.expectations_and_value.score }}%</p>
+                            <p>{{ dx_categories.expectations_and_value.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
                                 <div style="width: {{ dx_categories.expectations_and_value.score }}%;"></div>
@@ -271,7 +271,7 @@
                                     {% if ksc.score is not none %}
                                         <p><strong>Score:</strong> {{ ksc.porcentagem }}</p>
                                     {% else %}
-                                        <p><strong>Score:</strong> Sem respostas</p>
+                                        <p><strong>Score:</strong> No Answers</p>
                                     {% endif %}
                                 </div>
                                 <div>

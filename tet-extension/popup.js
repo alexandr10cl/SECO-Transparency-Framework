@@ -320,7 +320,7 @@ function renderAll() {
                      value="50" 
                      class="slider">
               <div class="slider-value">
-                <span id="slider-value-${proc.process_id}-${i}">50</span>
+                <span id="slider-value-${proc.process_id}-${i}" style="display: none;">50</span>
               </div>
             </div>
           </div>
