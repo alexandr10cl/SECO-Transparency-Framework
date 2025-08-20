@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
-from app import app, db
+from index import app, db
 from datetime import datetime
 from models import (
     User, Task, Evaluation, CollectedData, Guideline, SECO_process,

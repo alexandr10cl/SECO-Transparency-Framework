@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, flash
-from app import app, db
+from index import app, db
 from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question, Example
 from functions import isLogged, isAdmin
 

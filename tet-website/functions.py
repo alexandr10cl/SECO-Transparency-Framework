@@ -1,5 +1,5 @@
 from models import User
-from app import db
+from index import db
 from flask import session
 import smtplib
 from email.mime.text import MIMEText
