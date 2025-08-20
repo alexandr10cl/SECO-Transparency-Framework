@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, flash
 import requests
-from app import app, db
+from index import app, db
 from models import User, UserType
 from functions import isLogged, isAdmin, send_verification_email, send_password_reset_email
 import secrets

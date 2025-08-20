@@ -1,5 +1,5 @@
 from .enums import UserType
-from app import db
+from index import db
 import bcrypt
 
 class User(db.Model):

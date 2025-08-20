@@ -1,5 +1,5 @@
 from .enums import PerformedTaskStatus
-from app import db
+from index import db
 
 class Task(db.Model):
     __tablename__ = 'task'

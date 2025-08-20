@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
-from app import app, db
+from index import app, db
 from functions import isLogged, isAdmin
 from models import User, Guideline, SECO_process, SECO_dimension, Conditioning_factor_transp, Key_success_criterion, DX_factor
 

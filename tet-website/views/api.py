@@ -1,4 +1,4 @@
-from app import app
+from index import app
 from flask import jsonify
 from models import *
 import os

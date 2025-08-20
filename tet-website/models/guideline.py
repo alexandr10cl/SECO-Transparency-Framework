@@ -1,4 +1,4 @@
-from app import db
+from index import db
 from models.evaluation import evaluation_SECO_process
 
 # Association Tables

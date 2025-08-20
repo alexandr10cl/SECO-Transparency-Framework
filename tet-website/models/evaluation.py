@@ -1,4 +1,4 @@
-from app import db
+from index import db
 
 # Association Tables
 evaluation_SECO_process = db.Table('evaluation_SECO_process',

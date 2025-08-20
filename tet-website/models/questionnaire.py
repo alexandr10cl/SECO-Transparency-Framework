@@ -1,4 +1,4 @@
-from app import db
+from index import db
 from models.enums import AcademicLevel, PreviousExperience, SegmentType
 
 class DeveloperQuestionnaire(db.Model):
