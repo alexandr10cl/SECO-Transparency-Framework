@@ -6,6 +6,9 @@ from datetime import datetime
 import random as rd
 import requests
 import os
+from sqlalchemy.exc import IntegrityError
+from secrets import token_urlsafe
+from flask import session
 
 # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
 credenciais_admin = {
@@ -33,73 +36,127 @@ def evaluations():
     evaluations = user.evaluations
     return render_template('evaluations.html', evaluations=evaluations)
 
-@app.route('/evaluations/create_evaluation')
+@app.route('/evaluations/create_evaluation', methods=['GET'])
 def create_evaluation():
-    email = session['user_signed_in']
-    user = User.query.filter_by(email=email).first()
+    email = session.get('user_signed_in')
+    user = User.query.filter_by(email=email).first() if email else None
     seco_processes = SECO_process.query.all()
-    return render_template('create_evaluation.html', user=user, seco_processes=seco_processes)
+
+    token = token_urlsafe(16)
+    session['eval_form_token'] = token
+
+    return render_template(
+        'create_evaluation.html',
+        user=user,
+        seco_processes=seco_processes,
+        form_token=token
+    )
+
+
 
 @app.route('/evaluations/create_evaluation/add_evaluation', methods=['POST'])
 def add_evaluation():
+    # local imports for this handler
+    from sqlalchemy.exc import IntegrityError
+    import random as rd
+    import requests
 
-    # getting the form data
-    name = request.form.get('name')
-    seco_portal = request.form.get('seco_portal')
-    seco_portal_url = request.form.get('seco_portal_url')
-    email = session['user_signed_in']
-    user = SECO_MANAGER.query.filter_by(email=email).first()
-    user_id = user.user_id
+    # one-time form token check
+    token = request.form.get('form_token')
+    saved = session.pop('eval_form_token', None)
+    if not token or token != saved:
+        return redirect(url_for('evaluations'))
 
-    # setting the evaluation_id
+    # read form data
+    name = request.form.get('name', '').strip()
+    seco_portal = request.form.get('seco_portal', '').strip()
+    seco_portal_url = request.form.get('seco_portal_url', '').strip()
+    seco_process_ids = request.form.getlist('seco_process_ids')
+    # must select at least one process
+    if not seco_process_ids:
+        values = {
+            "name": name,
+            "seco_portal": seco_portal,
+            "seco_portal_url": seco_portal_url
+        }
+        error_msg = "Please select at least one process"
+        seco_processes = SECO_process.query.all()
+        return render_template(
+            "create_evaluation.html",
+            user=user,
+            seco_processes=seco_processes,
+            values=values,
+            error_msg=error_msg,
+            form_token=token  # pass the token again
+        )
 
-    # Gerar código de Avaliação Único usando API
-    uxt_url_generate = 'https://uxt-stage.liis.com.br/generate-code?horas=730' # 730 horas = 30 dias
 
-    access_token = session.get('uxt_access_token')
-
-    if not access_token:
-        print("[UXT] No access token found in session. Please log in again.")
+    # resolve user
+    email = session.get('user_signed_in')
+    if not email:
+        return redirect(url_for('signin'))
+    user = User.query.filter_by(email=email).first()
+    if not user:
         return redirect(url_for('signin'))
 
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
+    # prevent duplicate by content
+    existing = Evaluation.query.filter_by(
+        name=name,
+        seco_portal=seco_portal,
+        seco_portal_url=seco_portal_url,
+        user_id=user.user_id
+    ).first()
+    if existing:
+        return redirect(url_for('evaluations'))
 
-    resposta_generatecode = requests.post(uxt_url_generate, headers=headers)
-    if resposta_generatecode.status_code == 201:
-        evaluation_id = resposta_generatecode.json().get('cod')
-        print("Generated evaluation ID from API:", evaluation_id)
-    else:
-        # If the API call fails, we can still use the random ID
-        print("Failed to generate evaluation ID from API, using random ID instead.")
-        print("Response from API:", resposta_generatecode.status_code, resposta_generatecode.text)
+    # generate evaluation_id via UXT API, fallback to unique 6-digit
+    evaluation_id = None
+    access_token = session.get('uxt_access_token')
+    if access_token:
+        try:
+            r = requests.post(
+                'https://uxt-stage.liis.com.br/generate-code?horas=730',
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=10
+            )
+            if r.status_code == 201:
+                data = r.json() or {}
+                evaluation_id = data.get('cod')
+        except Exception:
+            evaluation_id = None
+
+    if not evaluation_id:
         while True:
             evaluation_id = ''.join(rd.choices('0123456789', k=6))
             if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
                 break
 
-    # getting the selected SECO_process IDs
-    seco_process_ids = request.form.getlist('seco_process_ids')
-
-    # getting the selected SECO_process objects
+    # map selected processes
+    seco_processes = []
     if seco_process_ids:
-        seco_processes = SECO_process.query.filter(SECO_process.seco_process_id.in_(seco_process_ids)).all()
+        seco_processes = SECO_process.query.filter(
+            SECO_process.seco_process_id.in_(seco_process_ids)
+        ).all()
 
-    # creating the new evaluation object
-    new_evaluation = Evaluation(evaluation_id=evaluation_id,
-                                name=name, 
-                                user_id=user_id, 
-                                seco_processes=seco_processes,
-                                seco_portal=seco_portal,
-                                seco_portal_url=seco_portal_url)
-    
-    # adding the new evaluation to the database
-    db.session.add(new_evaluation)
-    db.session.commit()
+    # create and save
+    new_evaluation = Evaluation(
+        evaluation_id=evaluation_id,
+        name=name,
+        user_id=user.user_id,
+        seco_processes=seco_processes,
+        seco_portal=seco_portal,
+        seco_portal_url=seco_portal_url
+    )
 
-    # redirecting to the evaluations page
+    try:
+        db.session.add(new_evaluation)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return redirect(url_for('evaluations'))
+
     return redirect(url_for('evaluations'))
+
 
 @app.route('/evaluations/<int:id>/edit')
 def edit_evaluation(id):

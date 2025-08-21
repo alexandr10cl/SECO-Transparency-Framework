@@ -3,11 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 
+
 # Load environment variables from .env file
 load_dotenv()
 
 # Initialize the Flask app
 app = Flask(__name__)
+
+import os
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
 app.config.from_pyfile('database.py')
 
 # Initialize the database
@@ -34,4 +38,4 @@ init_db()
 
 # Run the app
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
