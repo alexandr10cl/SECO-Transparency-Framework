@@ -274,7 +274,7 @@ def load_tasks():
         print("Resultado:", result)
         return jsonify(result), 200
     else:
-        print("Código de avaliação inválido:", evaluation_code)
+        print("Invalid evaluation code:", evaluation_code)
         return jsonify({"message": "Invalid"}), 401
 
 

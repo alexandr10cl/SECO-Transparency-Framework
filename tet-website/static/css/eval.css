@@ -1,7 +1,8 @@
 .evaluation {
-    padding: 20px 50px 20px 50px;
-    margin: 100px 0 100px 0;
+    padding: 2rem;
+    margin: 2rem auto;
     width: 80%;
+    max-width: 900px;
     border-radius: 10px;
     box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
     display: flex;
@@ -10,6 +11,13 @@
     align-items: center;
     border-left: 5px solid #4b66ff;
     background-color: #f4f4f4;
+}
+
+@media (max-width: 600px) {
+    .evaluation {
+        padding: 1rem;
+        margin: 1rem auto;
+    }
 }
 
 .evaluation-header{
@@ -22,19 +30,19 @@
 }
 
 .evaluation-header h2{
-    font-size: 45px;
+    font-size: clamp(2rem, 5vw, 2.8rem);
     color: #4b66ff;
 }
 
 .evaluation h3{
-    font-size: 25px;
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
 }
 
 .evaluation-content{
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 30px;
 }
 
 .e-item{
@@ -74,15 +82,14 @@
 }
 
 .modals{
-    display: flex;
-    justify-content: left;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 10px;
     margin-top: 10px;
     padding: 20px;
     border-radius: 20px;
     border: 1px solid lightgray;
-    background-color: #e6e6e6;
-    flex-wrap: wrap;
+    background-color: #e6e6e6
 }
 
 .modals button{
@@ -99,12 +106,29 @@
     background-color: #4b66ff;
     color: #f4f4f4;
     font-size: 15px;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
 }
 
-.advise{
-    color: gray;
+.code {
+    font-family: monospace;
+}
+
+.warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #b71c1c;
     font-size: 15px;
-    font-weight: 400;
+    font-weight: 500;
+    background-color: #fdecea;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.warning-icon {
+    font-size: 1.2em;
 }
 
 .modals button:hover{
@@ -112,16 +136,21 @@
     box-shadow: 4px 8px 12px rgba(0,0,0,0.2);
 }
 
-.modal{
-    display: none;
+.modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: fixed;
-    z-index: 100;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0,0,0,0.5); /* donkere achtergrond */
+}
+
+.modal.inv {
+    display: none;
 }
 
 .modal h4{
@@ -129,18 +158,18 @@
     margin-top: 30px;
 }
 
-.modal-content{
+.modal-content {
     background-color: #f4f4f4;
-    margin: 5% auto;
     padding: 30px;
     border-radius: 15px;
     width: 80%;
-    max-width: 700px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     animation: modalopen 0.5s;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
+    position: relative;
 }
 
 .modal-content h2{
@@ -189,15 +218,37 @@
 }
 
 .close {
-    font-size: 35px;
-    color: #aaa;
-    text-align: right;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 22px;
+    color: #777;
     font-weight: bold;
     cursor: pointer;
+    line-height: 1;
 }
 
 .close:hover {
-    color: black;
+    color: #333;
+}
+
+/* Settings modal specific tweaks */
+#modalConfig .modal-content {
+    text-align: center;
+    align-items: center;
+    max-width: 480px;
+}
+
+#modalConfig .options {
+    margin-top: 10px;
+}
+
+/* Guideline modal layout */
+.modal[id^="modalG"] .modal-content {
+    max-width: 900px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .success-criteria{
@@ -246,31 +297,33 @@
 
 .options{
     display: flex;
-    flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 100px;
+    gap: 1.5rem;
 }
 
 .options a{
-    padding: 10px;
-    font-size: 30px;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 10px;
     box-shadow: 2px 4px 6px rgba(0,0,0,0.1);
     border: none;
-    border-left: 3px solid #2e3e9b;
-    border-bottom: 3px solid #2e3e9b;
-    transition: all 0.1s ease;
-    cursor: pointer;
-    background-color: #4b66ff;
+    text-decoration: none;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.options a.btn-warning{
+    background-color: #ffc107;
+    color: #222;
+}
+
+.options a.btn-danger{
+    background-color: #dc3545;
     color: #f4f4f4;
-    font-size: 15px;
 }
 
 .options a:hover{
-    background-color: #4b66ff;
-    color: #f4f4f4;
     transform: translateY(-2px);
     box-shadow: 4px 8px 12px rgba(0,0,0,0.2);
 }
@@ -326,7 +379,7 @@
     
     .modal-content {
         width: 90%;
-        margin: 10% auto;
+        margin: 0;
         padding: 20px;
         gap: 20px;
     }
@@ -368,12 +421,12 @@
     }
     
     .options {
-        gap: 20px;
+        gap: 1rem;
     }
-    
+
     .options a {
-        padding: 8px;
-        font-size: 14px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
     }
     
     .div-dash {
@@ -428,7 +481,7 @@
     
     .modal-content {
         width: 95%;
-        margin: 5% auto;
+        margin: 0;
         padding: 15px;
     }
     
@@ -451,7 +504,7 @@
     
     .options {
         flex-direction: column;
-        gap: 15px;
+        gap: 0.75rem;
     }
     
     .options a {
@@ -459,9 +512,11 @@
         text-align: center;
     }
     
-    .advise {
+    .warning {
         font-size: 12px;
-        display: block;
         margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
     }
 }
