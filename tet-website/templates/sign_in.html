@@ -16,11 +16,11 @@
         <a href="{{ url_for('signup') }}">Don't you have an account?</a>
         <button class="btn btn-submit">Sign in</button>
         {% if message != '' %}
-        <p class="msg">{{ message }}</p>
+        <p class="msg {{ messageType }}">{{ message }}</p>
         {% elif messageCE != '' %}
-        <p class="msg">{{ messageEA }}</p>
+        <p class="msg {{ messageType }}">{{ messageEA }}</p>
         {% elif messageReg != '' %}
-        <p class="msgR">{{ messageReg }}</p>
+        <p class="msgR {{ messageType }}">{{ messageReg }}</p>
         {% endif %}
     </form>
 </div>
