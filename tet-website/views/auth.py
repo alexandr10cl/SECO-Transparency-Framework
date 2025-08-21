@@ -12,6 +12,7 @@ admin_credentials = {
     "password": os.getenv("ADMIN_PASSWORD")
 }
 
+messageType = ''
 message = '' # Error sign in message
 messageReg = '' # Success sign up message
 messageEA = '' # Existent account message
@@ -19,7 +20,7 @@ messageEA = '' # Existent account message
 @app.route('/signin')
 def signin():
     if not isLogged():
-        return render_template('sign_in.html', message = message, messageEA = messageEA, messageReg = messageReg)
+        return render_template('sign_in.html', message = message, messageEA = messageEA, messageReg = messageReg, messageType=messageType)
     else:
         return redirect(url_for('index'))
 
@@ -28,6 +29,7 @@ def auth():
     global message
     global messageEA
     global messageReg
+    global messageType
     
     user = User.query.filter_by(email = request.form.get('email')).first()
     if user:
@@ -68,11 +70,13 @@ def auth():
             messageEA = ''
             return redirect(url_for('index'))
         else:
+            messageType = 'error'
             message = 'Email or password are incorrect'
             messageReg = ''
             messageEA = ''
             return redirect(url_for('signin'))
     else:
+        messageType = 'error'
         message = 'Email or password are incorrect'
         messageReg = ''
         messageEA = ''
@@ -81,7 +85,7 @@ def auth():
 @app.route('/signup')
 def signup():
     if not isLogged():
-        return render_template('sign_up.html', message = message, messageEA = messageEA, messageReg = messageReg)
+        return render_template('sign_up.html', message = message, messageEA = messageEA, messageReg = messageReg, messageType = messageType)
     else:
         return redirect(url_for('index'))
 
@@ -90,6 +94,7 @@ def register():
     global message
     global messageReg
     global messageEA
+    global messageType
     
     email = request.form.get('email')
     name = request.form.get('name')
@@ -97,6 +102,7 @@ def register():
 
     account = User.query.filter_by(email=email).first()
     if account:
+        messageType = 'error'
         message = ''
         messageReg = ''
         messageEA = 'This email is already registered, please sign in.'
@@ -118,16 +124,22 @@ def register():
             
             # Provide specific error messages based on status code
             if resposta.status_code == 502:
+                messageType = 'error'
                 message = 'UXTracking service is temporarily unavailable. Please try again in a few minutes.'
             elif resposta.status_code == 409:
+                messageType = 'error'
                 message = 'This email is already registered in our tracking system. Please use a different email address.'
             elif resposta.status_code == 400:
+                messageType = 'error'
                 message = 'Invalid registration data. Please check your information and try again.'
             elif resposta.status_code == 500:
+                messageType = 'error'
                 message = 'UX-Tracking service is experiencing technical difficulties. Please try again later.'
             elif resposta.status_code >= 500:
+                messageType = 'error'
                 message = 'UX-Tracking service is temporarily unavailable. Please try again in a few minutes.'
             else:
+                messageType = 'error'
                 message = f'Registration failed (Error {resposta.status_code}). Please try again later.'
             
             messageReg = ''
@@ -169,30 +181,35 @@ def register():
                 print(f"[UXT] User role for '{email}' changed to SECO Manager successfully.")
             else:
                 print(f"[UXT] Error changing user role: {resposta_changeRole.text}")
+                messageType = 'error'
                 message = 'Account created but role assignment failed. Please contact support.'
                 messageReg = ''
                 messageEA = ''
                 return redirect(url_for('signin'))
         else:
             print(f"[UXT] Error obtaining admin token or user data: {resposta_admin.text if resposta_admin.status_code != 200 else 'No user data'}")
+            messageType = 'error'
             message = 'Account created but role assignment failed. Please contact support.'
             messageReg = ''
             messageEA = ''
             return redirect(url_for('signin'))
     except requests.exceptions.ConnectionError:
         print("[UXT] Connection error: Could not connect to UXTracking API")
+        messageType = 'error'
         message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
         messageReg = ''
         messageEA = ''
         return redirect(url_for('signin'))
     except requests.exceptions.Timeout:
         print("[UXT] Timeout error: UXTracking API request timed out")
+        messageType = 'error'
         message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
         messageReg = ''
         messageEA = ''
         return redirect(url_for('signin'))
     except requests.exceptions.RequestException as e:
         print(f"[UXT] Request error with UXT API: {str(e)}")
+        messageType = 'error'
         message = 'UXTracking service is temporarily unavailable. Please try again later.'
         messageReg = ''
         messageEA = ''
@@ -214,10 +231,12 @@ def register():
     # Send verification email
     verification_url = url_for('verify_email', token=verification_token, _external=True)
     if send_verification_email(email, name, verification_url):
+        messageType = 'success'
         message = ''
         messageReg = 'Account created successfully. Please check your email to verify your account.'
         messageEA = ''
     else:
+        messageType = 'error'
         message = 'Account created but verification email could not be sent. Please contact support.'
         messageReg = ''
         messageEA = ''
@@ -229,6 +248,7 @@ def verify_email(token):
     global message
     global messageReg
     global messageEA
+    global messageType
     
     user = User.query.filter_by(verification_token=token).first()
     
@@ -237,11 +257,13 @@ def verify_email(token):
         user.verification_token = None
         db.session.commit()
         
+        messageType = 'success'
         message = ''
         messageReg = 'Your email has been verified successfully! You can now sign in.'
         messageEA = ''
         return redirect(url_for('signin'))
     else:
+        messageType = 'error'
         message = 'Invalid or expired verification link.'
         messageReg = ''
         messageEA = ''
@@ -257,11 +279,12 @@ def logout():
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     global message
+    global messageType
     
     if request.method == 'GET':
         if not isLogged():
             message = ''
-            return render_template('forgot_password.html', message=message)
+            return render_template('forgot_password.html', message=message, messageType=messageType)
         else:
             return redirect(url_for('index'))
     
@@ -281,43 +304,51 @@ def forgot_password():
                 resposta = requests.post(uxt_url, json=uxt_dados)
                 if resposta.status_code == 200:
                     print(f"[UXT] Password reset email sent successfully to '{email}'.")
+                    messageType = 'success'
                     message = 'If an account with that email exists, a password reset code has been sent.'
                     return redirect(url_for('reset_password', id=user.user_id))
                 else:
                     print(f"[UXT] Error sending password reset email (status {resposta.status_code}).")
+                    messageType = 'error'
                     message = 'Error sending password reset email. Please try again later.'
-                    return render_template('forgt_password.html', message=message)
+                    return render_template('forgt_password.html', message=message, messageType=messageType)
             except requests.exceptions.ConnectionError:
                 print("[UXT] Connection error: Could not connect to UXTracking API")
+                messageType = 'error'
                 message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
-                return render_template('forgt_password.html', message=message)
+                return render_template('forgt_password.html', message=message, messageType=messageType)
             except requests.exceptions.Timeout:
                 print("[UXT] Timeout error: UXTracking API request timed out")
+                messageType = 'error'
                 message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
-                return render_template('forgt_password.html', message=message)
+                return render_template('forgt_password.html', message=message, messageType=messageType)
             except requests.exceptions.RequestException as e:
                 print(f"[UXT] Error sending password reset email: {str(e)}")
+                messageType = 'error'
                 message = 'Error sending password reset email. Please try again later.'
-                return render_template('forgt_password.html', message=message)
+                return render_template('forgt_password.html', message=message, messageType=messageType)
         else:
+            messageType = 'success'
             message = 'If an account with that email exists, a password reset code has been sent.'
             return redirect(url_for('reset_password', id=0))
 
 @app.route('/reset-password/<int:id>', methods=['GET', 'POST'])
 def reset_password(id):
     global message
+    global messageType
     
     if request.method == 'GET':
         if not isLogged():
-            return render_template('reset_password.html', message=message, id=id)
+            return render_template('reset_password.html', message=message, id=id, messageType=messageType)
         else:
             return redirect(url_for('index'))
         
     elif request.method == 'POST':
         print(f"[UXT] Resetting password for user ID: {id}")
         if id == 0:
+            messageType = 'error'
             message = 'Invalid user ID. Please try again later.'
-            return render_template('reset_password.html', message=message, id=id)
+            return render_template('reset_password.html', message=message, id=id, messageType=messageType)
         user = User.query.get_or_404(id)
         newPassword = request.form.get('password')
         code = request.form.get('code')
@@ -340,25 +371,31 @@ def reset_password(id):
                     print(f"[UXT] Password reset successfully for '{user.email}'.")
                     user.set_password(newPassword)
                     db.session.commit()
+                    messageType = 'success'
                     message = 'Your password has been reset successfully. You can now sign in.'
                     return redirect(url_for('signin'))
                 else:
                     print(f"[UXT] Error resetting password (status {resposta.status_code}).")
+                    messageType = 'error'
                     message = 'Error resetting password. Please check the code and try again.'
                     return render_template('reset_password.html', message=message, id=id)
             except requests.exceptions.ConnectionError:
                 print("[UXT] Connection error: Could not connect to UXTracking API")
+                messageType = 'error'
                 message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
                 return render_template('reset_password.html', message=message, id=id)
             except requests.exceptions.Timeout:
                 print("[UXT] Timeout error: UXTracking API request timed out")
+                messageType = 'error'
                 message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
                 return render_template('reset_password.html', message=message, id=id)
             except requests.exceptions.RequestException as e:
                 print(f"[UXT] Error resetting password: {str(e)}")
+                messageType = 'error'
                 message = 'Error resetting password. Please try again later.'
-                return render_template('reset_password.html', message=message, id=id)
+                return render_template('reset_password.html', message=message, id=id, messageType=messageType)
         else:
+            messageType = 'error'
             message = 'Invalid request. Please try again.'
             print("Reset password: Missing user, new password, or code.")
             return render_template('reset_password.html', message=message, id=id)
