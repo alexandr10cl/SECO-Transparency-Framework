@@ -487,6 +487,36 @@ footer {
     text-align: center;
     padding-top: 1.5rem;
     border-top: 1px solid lightblue;
+
+    }
+
+    .d-none {
+        display: none;
+    }
+
+    .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading {
+        color: transparent;
+    }
+
+    .loading .spinner {
+        display: inline-block;
+    
 }
 
 .copy p {
@@ -503,6 +533,8 @@ footer {
 .i-text {
     font-size: 1rem;
 }
+
+
 
 .process-list {
     padding: 1rem;
@@ -792,3 +824,42 @@ footer {
 .checkbox-group::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* === Evaluation form error styles === */
+.form-error {
+    margin-top: 0.5rem;
+    color: #d92d20;        /* red, matches error state */
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.checkbox-group.has-error {
+    border: 1px solid #d92d20;
+    border-radius: 10px;
+    padding: 0.5rem;
+    box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.1);
+}
+
+/* Evaluation Code Block */
+.evaluation-code {
+    display: inline-block;
+    padding: 12px 20px;
+    margin: 10px 0 20px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #1e1e2f;
+    background: #f7f9fc;
+    border: 2px solid #4a6cf7;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  
+  .evaluation-code-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: normal;
+    margin-bottom: 6px;
+    color: #555;
+  }
+  

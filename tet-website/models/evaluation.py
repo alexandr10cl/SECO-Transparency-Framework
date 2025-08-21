@@ -8,6 +8,15 @@ evaluation_SECO_process = db.Table('evaluation_SECO_process',
 
 class Evaluation(db.Model):
     __tablename__ = 'evaluation'
+    __table_args__ = (
+        db.UniqueConstraint(
+            'name',
+            'seco_portal',
+            'seco_portal_url',
+            'user_id',
+            name='uq_evaluation_details'
+        ),
+    )
 
     # Main Rows
     evaluation_id = db.Column(db.BigInteger, primary_key=True)
