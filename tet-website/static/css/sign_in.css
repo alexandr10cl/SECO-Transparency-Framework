@@ -129,32 +129,36 @@ body {
 /* Messages */
 .msg {
     margin: 0;
-    color: var(--cor-red);
     font-weight: bold;
     font-size: 0.9rem;
     text-align: center;
     padding: 0.5rem;
-    background-color: #ffe6e6;
     border-radius: 5px;
     width: 100%;
 }
 
 .msgR {
     margin: 0;
-    color: var(--cor-green);
     font-weight: bold;
     font-size: 0.9rem;
     text-align: center;
     padding: 0.5rem;
-    background-color: #e6ffe6;
     border-radius: 5px;
     width: 100%;
 }
 
 /* Error State */
-.input-error {
+.error {
+    color: var(--cor-red);
     border: 2px solid red !important;
     background-color: #ffe6e6 !important;
+}
+
+/* Success State */
+.success {
+    color: var(--cor-green);
+    border: 2px solid green !important;
+    background-color: #e6ffe6 !important;
 }
 
 /* Small Tablets */
