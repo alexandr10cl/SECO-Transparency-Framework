@@ -64,7 +64,7 @@
                         <p>{{ score_geral }}</p>
                         <span class="subWrite">Overall Score</span>
                         <div class="percentage-bar">
-                            <div style="width: {{ score_geral }}%;"></div>
+                            <div class="bar-fill" data-pct="{{ score_geral }}"></div>
                         </div>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                             <p>{{ d.average_score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ d.average_score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ d.average_score }}"></div>
                             </div>
                         {% else %}
                             <p>Not related to the evaluation</p>
@@ -93,7 +93,7 @@
                             <p>{{ dx_categories.common_technological_platform.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.common_technological_platform.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.common_technological_platform.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -105,7 +105,7 @@
                             <p>{{ dx_categories.projects_and_applications.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.projects_and_applications.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.projects_and_applications.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -117,7 +117,7 @@
                             <p>{{ dx_categories.community_interaction.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.community_interaction.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.community_interaction.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -129,7 +129,7 @@
                             <p>{{ dx_categories.expectations_and_value.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.expectations_and_value.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.expectations_and_value.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -231,7 +231,7 @@
 
             <!-- raiz onde os heatmaps vindos da API serão inseridos -->
             <div id="heatmaps-root" class="heatmaps">
-                <p class="loading">Carregando heatmaps...</p>
+                <p class="loading">Loading heatmaps...</p>
             </div>
 
             </div>
@@ -297,4 +297,17 @@
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
     <script src="{{ url_for('static', filename='js/hotspots_heatmaps.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.percentage-bar .bar-fill').forEach(function (el) {
+                var pct = el.getAttribute('data-pct');
+                if (pct !== null && pct !== '') {
+                    var value = parseFloat(pct);
+                    if (!isNaN(value)) {
+                        el.style.width = value + '%';
+                    }
+                }
+            });
+        });
+    </script>
 {% endblock %}

@@ -126,7 +126,7 @@ def add_guideline():
                     cont_key_success_criterion += 1
                 except Exception as e:
                     db.session.rollback()
-                    admin_message = f'Erro ao adicionar critério de sucesso: {str(e)}'
+                    admin_message = f'Error adding success criterion: {str(e)}'
                     message_type = 'danger'
 
     return redirect(url_for('admin_guidelines'))
@@ -180,11 +180,11 @@ def update_guideline(id):
         guideline.seco_processes = seco_processes
         guideline.seco_dimensions = seco_dimensions
         db.session.commit()
-        admin_message = 'Guideline atualizada com sucesso!'
+        admin_message = 'Guideline updated successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao atualizar guideline: {str(e)}'
+        admin_message = f'Error updating guideline: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -234,11 +234,11 @@ def add_seco_process():
         new_process = SECO_process(seco_process_id=cont_seco_process, description=description)
         db.session.add(new_process)
         db.session.commit()
-        admin_message = 'Processo SECO adicionado com sucesso!'
+        admin_message = 'SECO process added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao adicionar processo: {str(e)}'
+        admin_message = f'Error adding process: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -264,11 +264,11 @@ def update_seco_process(id):
     try:
         seco_process.description = description
         db.session.commit()
-        admin_message = 'Processo SECO atualizado com sucesso!'
+        admin_message = 'SECO process updated successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao atualizar processo: {str(e)}'
+        admin_message = f'Error updating process: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -284,11 +284,11 @@ def delete_seco_process(id):
     try:
         db.session.delete(seco_process)
         db.session.commit()
-        admin_message = 'Processo SECO excluído com sucesso!'
+        admin_message = 'SECO process successfully deleted!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao excluir processo: {str(e)}'
+        admin_message = f'Error deleting process: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -312,11 +312,11 @@ def add_seco_dimension():
         new_dimension = SECO_dimension(seco_dimension_id=cont_seco_dimension, name=name)
         db.session.add(new_dimension)
         db.session.commit()
-        admin_message = 'Dimensão SECO adicionada com sucesso!'
+        admin_message = 'SECO dimension added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao adicionar dimensão: {str(e)}'
+        admin_message = f'Error adding dimension: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -342,11 +342,11 @@ def update_seco_dimension(id):
     try:
         seco_dimension.name = name
         db.session.commit()
-        admin_message = 'Dimensão SECO atualizada com sucesso!'
+        admin_message = 'SECO dimension updated successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao atualizar dimensão: {str(e)}'
+        admin_message = f'Error updating dimension: {str(e)}'
         message_type = 'danger'
 
     return redirect(url_for('admin_guidelines'))
@@ -362,11 +362,11 @@ def delete_seco_dimension(id):
     try:
         db.session.delete(seco_dimension)
         db.session.commit()
-        admin_message = 'Dimensão SECO excluída com sucesso!'
+        admin_message = 'SECO dimension deleted successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao excluir dimensão: {str(e)}'
+        admin_message = f'Error deleting dimension: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -390,11 +390,11 @@ def add_conditioning_factor():
         new_factor = Conditioning_factor_transp(conditioning_factor_transp_id=cont_conditioning_factor, description=description)
         db.session.add(new_factor)
         db.session.commit()
-        admin_message = 'Fator de condicionamento adicionado com sucesso!'
+        admin_message = 'Conditioning factor added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao adicionar fator de condicionamento: {str(e)}'
+        admin_message = f'Error adding conditioning factor: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -420,11 +420,11 @@ def update_conditioning_factor(id):
     try:
         conditioning_factor.description = description
         db.session.commit()
-        admin_message = 'Fator de condicionamento atualizado com sucesso!'
+        admin_message = 'Conditioning factor updated successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao atualizar fator de condicionamento: {str(e)}'
+        admin_message = f'Error updating conditioning factor: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -440,11 +440,11 @@ def delete_conditioning_factor(id):
     try:
         db.session.delete(conditioning_factor)
         db.session.commit()
-        admin_message = 'Fator de condicionamento excluído com sucesso!'
+        admin_message = 'Conditioning factor deleted successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao excluir fator de condicionamento: {str(e)}'
+        admin_message = f'Error deleting conditioning factor: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -468,11 +468,11 @@ def add_dx_factor():
         new_factor = DX_factor(dx_factor_id=cont_dx_factor, description=description)
         db.session.add(new_factor)
         db.session.commit()
-        admin_message = 'Fator DX adicionado com sucesso!'
+        admin_message = 'DX factor added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao adicionar fator DX: {str(e)}'
+        admin_message = f'Error adding DX factor: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -498,11 +498,11 @@ def update_dx_factor(id):
     try:
         dx_factor.description = description
         db.session.commit()
-        admin_message = 'Fator DX atualizado com sucesso!'
+        admin_message = 'DX factor updated successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao atualizar fator DX: {str(e)}'
+        admin_message = f'Error updating DX factor: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -518,11 +518,11 @@ def delete_dx_factor(id):
     try:
         db.session.delete(dx_factor)
         db.session.commit()
-        admin_message = 'Fator DX excluído com sucesso!'
+        admin_message = 'DX factor deleted successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao excluir fator DX: {str(e)}'
+        admin_message = f'Error deleting DX factor: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -548,11 +548,11 @@ def add_key_success_criterion():
         new_criterion = Key_success_criterion(key_success_criterion_id=cont_key_success_criterion, title=title, description=description, guideline_id=guideline_id)
         db.session.add(new_criterion)
         db.session.commit()
-        admin_message = 'Critério de sucesso adicionado com sucesso!'
+        admin_message = 'Success criterion added successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao adicionar critério de sucesso: {str(e)}'
+        admin_message = f'Error adding success criterion: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -580,11 +580,11 @@ def update_key_success_criterion(id):
         key_success_criterion.title = title
         key_success_criterion.description = description
         db.session.commit()
-        admin_message = 'Critério de sucesso atualizado com sucesso!'
+        admin_message = 'Success criterion updated successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao atualizar critério de sucesso: {str(e)}'
+        admin_message = f'Error updating success criterion: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))
@@ -606,11 +606,11 @@ def delete_key_success_criterion(id):
         
         db.session.delete(key_success_criterion)
         db.session.commit()
-        admin_message = 'Critério de sucesso excluído com sucesso!'
+        admin_message = 'Success criterion deleted successfully!'
         message_type = 'success'
     except Exception as e:
         db.session.rollback()
-        admin_message = f'Erro ao excluir critério de sucesso: {str(e)}'
+        admin_message = f'Error deleting success criterion: {str(e)}'
         message_type = 'danger'
     
     return redirect(url_for('admin_guidelines'))

@@ -73,4 +73,4 @@ fetch(`/api/view_heatmap/${id}`)
             heatmapInstance.setData(heatmapConfig);
         });
     })
-    .catch(error => console.error('Erro ao carregar ou processar dados do heatmap:', error));
+    .catch(error => console.error('Error loading or processing heatmap data:', error));
