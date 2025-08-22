@@ -698,3 +698,162 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+
+/* Task Badge Styles */
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.attention-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: var(--critical-alert);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    animation: pulse 2s infinite;
+}
+
+.attention-badge .material-symbols-outlined {
+    font-size: 16px !important;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.task-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background-color: hsl(var(--muted));
+    border-radius: 8px;
+    border: 1px solid hsl(var(--border));
+}
+
+.metric-label {
+    flex: 1;
+    font-size: 1rem;
+}
+
+.metric-badge {
+    flex-shrink: 0;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+    transition: all 0.2s ease;
+}
+
+.badge-excellent {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.badge-good {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.badge-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.badge-critical {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Critical Task Styling */
+.critical-task {
+    border: 3px solid var(--critical-alert) !important;
+    background-color: rgba(239, 68, 68, 0.02);
+    position: relative;
+    box-shadow: 
+        0 4px 6px rgba(239, 68, 68, 0.1),
+        0 8px 16px rgba(239, 68, 68, 0.08) !important;
+}
+
+.critical-task::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, 
+        var(--critical-alert) 0%, 
+        rgba(239, 68, 68, 0.7) 50%, 
+        var(--critical-alert) 100%);
+    border-radius: 20px 20px 0 0;
+    animation: critical-glow 3s ease-in-out infinite;
+}
+
+@keyframes critical-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.task-comments {
+    margin-top: 1rem;
+}
+
+.task-comments strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: hsl(var(--foreground));
+}
+
+/* Responsive Design for Task Badges */
+@media (max-width: 768px) {
+    .task-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .metric-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .metric-badge {
+        align-self: flex-end;
+    }
+    
+    .attention-badge {
+        font-size: 0.7rem;
+        padding: 0.375rem 0.625rem;
+    }
+}
