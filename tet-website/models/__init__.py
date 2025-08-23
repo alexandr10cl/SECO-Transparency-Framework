@@ -1,4 +1,4 @@
-from .enums import UserType, PerformedTaskStatus
+from .enums import UserType, PerformedTaskStatus, SECOType
 from .user import User, Admin, SECO_MANAGER
 from .evaluation import Evaluation
 from .collection_data import CollectedData, Navigation
@@ -9,6 +9,7 @@ from .guideline import Guideline, Key_success_criterion, Example, Conditioning_f
 __all__ = [
     'UserType',
     'PerformedTaskStatus',
+    'SECOType',
     'User',
     'Admin',
     'SECO_MANAGER',
