@@ -32,6 +32,6 @@ class SegmentType(Enum):
     BOTH = 'both'
 
 class SECOType(Enum):
-    OPEN_SOURCE = "open_source"
-    HYBRID = "hybrid"
-    PROPRIETARY = "proprietary"
+    OPEN_SOURCE = "OPEN_SOURCE"
+    HYBRID = "HYBRID"
+    PROPRIETARY = "PROPRIETARY"
