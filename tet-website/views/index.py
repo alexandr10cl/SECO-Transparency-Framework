@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from index import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -49,7 +49,8 @@ def create_evaluation():
         'create_evaluation.html',
         user=user,
         seco_processes=seco_processes,
-        form_token=token
+        form_token=token,
+        seco_types=SECOType 
     )
 
 
@@ -72,12 +73,17 @@ def add_evaluation():
     seco_portal = request.form.get('seco_portal', '').strip()
     seco_portal_url = request.form.get('seco_portal_url', '').strip()
     seco_process_ids = request.form.getlist('seco_process_ids')
+    seco_type_str = request.form.get('seco_type')
+
+    seco_type = SECOType(seco_type_str)
+
     # must select at least one process
     if not seco_process_ids:
         values = {
             "name": name,
             "seco_portal": seco_portal,
-            "seco_portal_url": seco_portal_url
+            "seco_portal_url": seco_portal_url,
+            "seco_type": seco_type_str
         }
         error_msg = "Please select at least one process"
         seco_processes = SECO_process.query.all()
@@ -87,7 +93,8 @@ def add_evaluation():
             seco_processes=seco_processes,
             values=values,
             error_msg=error_msg,
-            form_token=token  # pass the token again
+            form_token=token,  # pass the token again
+            seco_types=SECOType
         )
 
 
@@ -145,7 +152,8 @@ def add_evaluation():
         user_id=user.user_id,
         seco_processes=seco_processes,
         seco_portal=seco_portal,
-        seco_portal_url=seco_portal_url
+        seco_portal_url=seco_portal_url,
+        seco_type=seco_type
     )
 
     try:
@@ -164,7 +172,7 @@ def edit_evaluation(id):
     user = User.query.filter_by(email=email).first()
     evaluation = Evaluation.query.get_or_404(id)
     seco_processes = SECO_process.query.all()
-    return render_template('edit_evaluation.html', evaluation=evaluation, user=user, seco_processes=seco_processes)
+    return render_template('edit_evaluation.html', evaluation=evaluation, user=user, seco_processes=seco_processes, seco_types=SECOType)
 
 @app.route('/evaluations/<int:id>/update', methods=['POST'])
 def update_evaluation(id):
@@ -172,6 +180,12 @@ def update_evaluation(id):
     name = request.form.get('name')
     seco_portal = request.form.get('seco_portal')
     seco_portal_url = request.form.get('seco_portal_url')
+    seco_type_str = request.form.get('seco_type')
+
+    try:
+        seco_type = SECOType(seco_type_str)
+    except Exception:
+        seco_type = None
     
     # getting the selected SECO_process IDs
     seco_process_ids = request.form.getlist('seco_process_ids')
@@ -186,6 +200,7 @@ def update_evaluation(id):
     evaluation.seco_portal = seco_portal
     evaluation.seco_portal_url = seco_portal_url
     evaluation.seco_processes = seco_processes
+    evaluation.seco_type = seco_type 
     
     # committing the changes to the database
     db.session.commit()

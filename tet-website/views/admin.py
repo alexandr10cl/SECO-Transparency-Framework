@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, session, url_for, flash
 from index import app, db
-from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question, Example
+from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question, Example, SECOType
+from models.task import task_seco_type
 from functions import isLogged, isAdmin
 
 # Messages
@@ -24,6 +25,13 @@ def admin_guidelines():
         tasks = Task.query.all()
         questions = Question.query.all()
         examples = Example.query.all()
+
+        rows = db.session.execute(
+            db.select(task_seco_type.c.task_id, task_seco_type.c.seco_type)
+        ).all()
+        task_types = {}
+        for task_id, seco_type in rows:
+            task_types.setdefault(task_id, []).append(seco_type)
         
         return render_template('admin_guidelines.html', 
                             guidelines=guidelines,
@@ -37,7 +45,9 @@ def admin_guidelines():
                             is_admin=is_admin,
                             tasks=tasks,
                             questions=questions,
-                            examples=examples)
+                            examples=examples,
+                            task_types=task_types,
+                            seco_types=SECOType)
     else:
         return redirect(url_for('signin'))
 
@@ -631,8 +641,8 @@ def add_task():
     # Get form data
     task_title = request.form.get('title')
     task_description = request.form.get('description')
-    
     process_ids = request.form.getlist('process_ids')
+    seco_type_names = request.form.getlist('seco_types')
 
     if process_ids:
         processes = SECO_process.query.filter(SECO_process.seco_process_id.in_(process_ids)).all()
@@ -642,6 +652,21 @@ def add_task():
         new_task = Task(title=task_title, description=task_description, task_id=task_id, seco_processes=processes)
         # Add the task to the session and commit
         db.session.add(new_task)
+        db.session.commit()
+
+        if seco_type_names:
+            for name in seco_type_names:
+                try:
+                    enum_member = SECOType[name] 
+                except KeyError:
+                    continue 
+
+                db.session.execute(
+                    task_seco_type.insert().values(
+                        task_id=new_task.task_id,
+                        seco_type=enum_member.value
+                    )
+                )
         db.session.commit()
         print('Task added successfully!')
         admin_message = 'Task added successfully!'
@@ -657,29 +682,62 @@ def add_task():
 @app.route('/admin/edit_task/<int:id>')
 def edit_task(id):
     task = Task.query.get_or_404(id)
-    guidelines = Guideline.query.all()
-    guideline_ids = [guideline.guidelineID for guideline in task.guidelines]
-    return render_template('edit_task.html', task=task, guidelines=guidelines, message=admin_message, message_type=message_type, guideline_ids=guideline_ids)
+
+    seco_processes = SECO_process.query.all()
+    selected_process_ids = {p.seco_process_id for p in task.seco_processes}
+
+
+    rows = db.session.execute(
+        db.select(task_seco_type.c.seco_type).where(task_seco_type.c.task_id == task.task_id)
+    ).scalars().all()
+
+    selected_seco_types = set(rows)
+
+    return render_template(
+        'edit_task.html',
+        task=task,
+        seco_processes=seco_processes,
+        selected_process_ids=selected_process_ids,
+        seco_types=SECOType,
+        selected_seco_types=selected_seco_types)
 
 @app.route('/admin/update_task/<int:id>', methods=['POST'])
 def update_task(id):
-    global admin_message
-    global message_type
+    global admin_message, message_type
     
     task = Task.query.get_or_404(id)
     task_title = request.form.get('title')
     task_description = request.form.get('description')
-    
-    guidelines_ids = request.form.getlist('guideline_ids')
 
-    if guidelines_ids:
-        guidelines = Guideline.query.filter(Guideline.guidelineID.in_(guidelines_ids)).all()
+    process_ids = request.form.getlist('process_ids')
+    processes = SECO_process.query.filter(
+        SECO_process.seco_process_id.in_(process_ids)
+    ).all() if process_ids else []
+
+    seco_type_names = request.form.getlist('seco_types')
 
     try:
         task.title = task_title
         task.description = task_description
-        task.guidelines = guidelines
+        task.seco_processes = processes
         db.session.commit()
+
+        db.session.execute(
+            task_seco_type.delete().where(task_seco_type.c.task_id == task.task_id)
+        )
+        for name in seco_type_names:
+            try:
+                enum_member = SECOType[name]  
+            except KeyError:
+                continue
+            db.session.execute(
+                task_seco_type.insert().values(
+                    task_id=task.task_id,
+                    seco_type=enum_member.name  
+                )
+            )
+        db.session.commit()
+
         admin_message = 'Task updated successfully!'
         message_type = 'success'
     except Exception as e:
@@ -698,6 +756,14 @@ def delete_task(id):
     tasks = Task.query.all()
     
     try:
+
+        db.session.execute(
+            task_seco_type.delete().where(task_seco_type.c.task_id == task.task_id)
+        )
+
+        db.session.execute(
+            process_task.delete().where(process_task.c.task_id == task.task_id)
+        )
         
         questions = Question.query.filter_by(task_id=id).all()
         
