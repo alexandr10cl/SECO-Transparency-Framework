@@ -857,3 +857,84 @@ body {
         padding: 0.375rem 0.625rem;
     }
 }
+
+/* Badge Legend Styles */
+.badge-legend {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.badge-legend h4 {
+    margin: 0 0 0.75rem 0;
+    color: hsl(var(--foreground));
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legend-section strong {
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.legend-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.legend-items .badge {
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+    min-width: 80px;
+    text-align: center;
+}
+
+.attention-badge-small {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--warning-alert), #ff6b35);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    min-width: 100px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+}
+
+/* Responsive adjustments for legend */
+@media (max-width: 768px) {
+    .legend-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .legend-items {
+        gap: 0.25rem;
+    }
+    
+    .badge-legend {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+}
