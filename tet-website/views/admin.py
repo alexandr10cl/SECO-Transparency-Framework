@@ -1,4 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, flash
+from sqlalchemy import Table
 from index import app, db
 from models import Guideline, Key_success_criterion, Conditioning_factor_transp, DX_factor, SECO_process, SECO_dimension, Task, Question, Example, SECOType
 from models.task import task_seco_type
@@ -754,6 +755,8 @@ def delete_task(id):
     
     task = Task.query.get_or_404(id)
     tasks = Task.query.all()
+
+    process_task_tbl   = Table('process_task', db.metadata, autoload_with=db.engine)
     
     try:
 
@@ -762,13 +765,8 @@ def delete_task(id):
         )
 
         db.session.execute(
-            process_task.delete().where(process_task.c.task_id == task.task_id)
+            db.delete(process_task_tbl).where(process_task_tbl.c.task_id == task.task_id)
         )
-        
-        questions = Question.query.filter_by(task_id=id).all()
-        
-        for q in questions:
-            db.session.delete(q)
         
         db.session.delete(task)
         db.session.commit()
