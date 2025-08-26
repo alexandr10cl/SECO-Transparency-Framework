@@ -198,6 +198,38 @@
             </div>
             <div class="tasks-summary">
                 <h2>Task Summary</h2>
+                
+                <!-- Badge Legend -->
+                <div class="badge-legend">
+                    <h4>Badge Criteria:</h4>
+                    <div class="legend-grid">
+                        <div class="legend-section">
+                            <strong>Time Performance:</strong>
+                            <div class="legend-items">
+                                <span class="badge badge-excellent">Fast</span> ≤30s
+                                <span class="badge badge-good">Moderate</span> 31-60s
+                                <span class="badge badge-warning">Slow</span> 61-120s
+                                <span class="badge badge-critical">Very Slow</span> >120s
+                            </div>
+                        </div>
+                        <div class="legend-section">
+                            <strong>Success Rate:</strong>
+                            <div class="legend-items">
+                                <span class="badge badge-excellent">High Success</span> ≥90%
+                                <span class="badge badge-good">Good Success</span> 70-89%
+                                <span class="badge badge-warning">Low Success</span> 50-69%
+                                <span class="badge badge-critical">Poor Success</span> <50%
+                            </div>
+                        </div>
+                        <div class="legend-section">
+                            <strong>Attention:</strong>
+                            <div class="legend-items">
+                                <span class="attention-badge-small">Needs Attention</span> Time >120s AND Success <50%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 {% for task in processed_tasks %}
                     {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
                     {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
