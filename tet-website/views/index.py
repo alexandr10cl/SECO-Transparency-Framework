@@ -119,24 +119,46 @@ def add_evaluation():
     # generate evaluation_id via UXT API, fallback to unique 6-digit
     evaluation_id = None
     access_token = session.get('uxt_access_token')
+    
+    print(f"=== LOG: Iniciando geração de código de avaliação ===")
+    print(f"LOG: Access token disponível: {bool(access_token)}")
+    if access_token:
+        print(f"LOG: Access token: {access_token[:20]}...")  # Mostra só os primeiros caracteres por segurança
+    
     if access_token:
         try:
+            print(f"LOG: Fazendo chamada para API UXT...")
             r = requests.post(
                 'https://uxt-stage.liis.com.br/generate-code?horas=730',
                 headers={'Authorization': f'Bearer {access_token}'},
                 timeout=10
             )
+            print(f"LOG: Resposta da API UXT - Status: {r.status_code}")
+            print(f"LOG: Resposta da API UXT - Conteúdo: {r.text}")
+            
             if r.status_code == 201:
                 data = r.json() or {}
                 evaluation_id = data.get('cod')
-        except Exception:
+                print(f"LOG: Código gerado pela API UXT: {evaluation_id}")
+            else:
+                print(f"LOG: API UXT não retornou status 201. Status: {r.status_code}")
+        except Exception as e:
+            print(f"LOG: ERRO ao chamar API UXT: {str(e)}")
             evaluation_id = None
+    else:
+        print(f"LOG: Sem access token disponível, usando fallback")
 
     if not evaluation_id:
+        print(f"LOG: Usando geração aleatória de código (fallback)")
         while True:
             evaluation_id = ''.join(rd.choices('0123456789', k=6))
             if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
                 break
+        print(f"LOG: Código gerado aleatoriamente: {evaluation_id}")
+    
+    print(f"LOG: Código final da avaliação: {evaluation_id}")
+    print(f"LOG: SECO Type da avaliação: {seco_type}")
+    print(f"=== LOG: Fim da geração de código ===")    
 
     # map selected processes
     seco_processes = []
