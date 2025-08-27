@@ -62,6 +62,10 @@ def auth():
                 if access_token:
                     session['uxt_access_token'] = access_token
                     print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
+                    message = ''
+                    messageEA = ''
+                    messageReg = ''
+                    messageType = ''
                 else:
                     print("[UXT] Nenhum token de acesso retornado.")
             else:
@@ -262,8 +266,8 @@ def verify_email(token):
         db.session.commit()
         
         messageType = 'success'
-        message = ''
-        messageReg = 'Your email has been verified successfully! You can now sign in.'
+        message = 'Your email has been verified successfully! You can now sign in.'
+        messageReg = ''
         messageEA = ''
         return redirect(url_for('signin'))
     else:
