@@ -29,7 +29,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - 50px);
+    min-height: 100vh;
     flex-direction: column;
     padding: 2rem 1rem;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
