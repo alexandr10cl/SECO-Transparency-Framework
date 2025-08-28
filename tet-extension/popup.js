@@ -6,6 +6,17 @@ let login_page = document.querySelector(".login_page");
 let sync_page = document.querySelector(".sync_page");
 let overlay = document.getElementById('overlay');
 
+// API Configuration
+// Change isDevelopment to false for production deployment
+const CONFIG = {
+  isDevelopment: true, // Set to false for production
+  DEVELOPMENT_URL: "http://127.0.0.1:5000",
+  PRODUCTION_URL: "https://seco-tranp-website.vercel.app/", // deployed URL
+  get API_BASE_URL() {
+    return this.isDevelopment ? this.DEVELOPMENT_URL : this.PRODUCTION_URL;
+  }
+};
+
 // Variáveis globais
 let data_collection = {
   "evaluation_code" : "123456",
@@ -188,7 +199,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
 });
 
 function auth_evaluation(code) {
-  return fetch("http://127.0.0.1:5000/auth_evaluation", {
+  return fetch(`${CONFIG.API_BASE_URL}/auth_evaluation`, {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
@@ -223,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // Fetch tasks
 // 1) Carrega os processos e tarefas e já adiciona listeners
 function fetchtasks(code) {
-  fetch("http://127.0.0.1:5000/load_tasks", {
+  fetch(`${CONFIG.API_BASE_URL}/load_tasks`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code })
@@ -309,8 +320,8 @@ function renderAll() {
             </label>
             <div class="slider-container">
               <div class="slider-labels">
-                <span class="slider-label-left">Not at all (0)</span>
-                <span class="slider-label-right">Totally agree (100)</span>
+                <span class="slider-label-left">Not at all</span>
+                <span class="slider-label-right">Totally agree</span>
               </div>
               <input type="range" 
                      id="process-question-${proc.process_id}-${i}" 
@@ -612,7 +623,7 @@ document.getElementById("finishevaluationbtn").addEventListener("click", functio
 
 // Enviar dados da coleta para o Flask
 function sendData() {
-  fetch("http://127.0.0.1:5000/submit_tasks", {
+  fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {
     method: "POST",
     headers: {
         "Content-Type": "application/json" // informar ao flask que o dado que esta sendo enviado é um json
