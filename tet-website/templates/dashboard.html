@@ -359,6 +359,28 @@
                                     <p class="guideline-status">{{ ksc.status }}</p>
                                 </div>
                             </div>
+                            
+                            <!-- Examples for unfulfilled or partially fulfilled KSC -->
+                            {% if ksc.status in ["Not Fulfilled", "Partially Fulfilled"] and ksc.examples %}
+                                <div class="ksc-examples-container {% if ksc.status == 'Partially Fulfilled' %}partially-fulfilled{% else %}not-fulfilled{% endif %}">
+                                    <div class="ksc-examples-header">
+                                        <span class="material-symbols-outlined">lightbulb</span>
+                                        <h5>
+                                            {% if ksc.status == "Partially Fulfilled" %}
+                                                Improvement Actions
+                                            {% else %}
+                                                Guidance Actions
+                                            {% endif %}
+                                        </h5>
+                                    </div>
+                                    {% for example in ksc.examples %}
+                                        <div class="ksc-example-item">
+                                            <span class="material-symbols-outlined">arrow_right</span>
+                                            <p>{{ example.description }}</p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>

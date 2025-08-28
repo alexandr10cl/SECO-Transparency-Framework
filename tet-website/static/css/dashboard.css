@@ -938,3 +938,160 @@ body {
         margin-bottom: 1rem;
     }
 }
+
+/* KSC Examples Styling */
+.ksc-examples-container {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    background-color: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-left: 4px solid var(--warning-alert);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+}
+
+/* Styling for "Partially Fulfilled" examples (less critical) */
+.ksc-examples-container.partially-fulfilled {
+    background-color: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-left: 4px solid #3b82f6;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Styling for "Not Fulfilled" examples (more critical) */
+.ksc-examples-container.not-fulfilled {
+    background-color: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-left: 4px solid var(--warning-alert);
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+}
+
+.ksc-examples-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: #d97706;
+}
+
+/* Header styling for partially fulfilled */
+.ksc-examples-container.partially-fulfilled .ksc-examples-header {
+    color: #1d4ed8;
+}
+
+.ksc-examples-header .material-symbols-outlined {
+    font-size: 18px !important;
+    color: var(--warning-alert);
+}
+
+/* Icon color for partially fulfilled */
+.ksc-examples-container.partially-fulfilled .ksc-examples-header .material-symbols-outlined {
+    color: #3b82f6;
+}
+
+.ksc-examples-header h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #d97706;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Header text color for partially fulfilled */
+.ksc-examples-container.partially-fulfilled .ksc-examples-header h5 {
+    color: #1d4ed8;
+}
+
+.ksc-example-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+    border: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+/* Example item styling for partially fulfilled */
+.ksc-examples-container.partially-fulfilled .ksc-example-item {
+    border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.ksc-example-item:last-child {
+    margin-bottom: 0;
+}
+
+.ksc-example-item .material-symbols-outlined {
+    font-size: 16px !important;
+    color: var(--warning-alert);
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+/* Example item icon for partially fulfilled */
+.ksc-examples-container.partially-fulfilled .ksc-example-item .material-symbols-outlined {
+    color: #3b82f6;
+}
+
+.ksc-example-item p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: hsl(var(--foreground));
+    font-style: italic;
+}
+
+/* Dark theme adjustments for examples */
+@media (prefers-color-scheme: dark) {
+    .ksc-examples-container {
+        background-color: rgba(245, 158, 11, 0.08);
+        border-color: rgba(245, 158, 11, 0.25);
+    }
+    
+    .ksc-examples-container.partially-fulfilled {
+        background-color: rgba(59, 130, 246, 0.08);
+        border-color: rgba(59, 130, 246, 0.25);
+    }
+    
+    .ksc-example-item {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-color: rgba(245, 158, 11, 0.2);
+    }
+    
+    .ksc-examples-container.partially-fulfilled .ksc-example-item {
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+}
+
+/* Responsive design for examples */
+@media (max-width: 768px) {
+    .ksc-examples-container {
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .ksc-examples-header h5 {
+        font-size: 0.85rem;
+    }
+    
+    .ksc-example-item {
+        padding: 0.375rem;
+        gap: 0.375rem;
+    }
+    
+    .ksc-example-item p {
+        font-size: 0.85rem;
+    }
+    
+    .ksc-examples-header .material-symbols-outlined {
+        font-size: 16px !important;
+    }
+    
+    .ksc-example-item .material-symbols-outlined {
+        font-size: 14px !important;
+    }
+}
