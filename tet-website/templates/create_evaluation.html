@@ -16,6 +16,18 @@
                 <input class="i-text" type="text" name="name" id="name" placeholder="Evaluation Name" required value="{{ values.name if values else '' }}">
                 <input class="i-text" type="text" name="seco_portal" id="seco_portal" placeholder="SECO Portal to be evaluated" required value="{{ values.seco_portal if values else '' }}">
                 <input class="i-text" type="text" name="seco_portal_url" id="seco_portal_url" placeholder="SECO Portal URL" required value="{{ values.seco_portal_url if values else '' }}">
+                <div class="mb-3">
+                    <h4 class="form-label">SECO Type</h4>
+                    <select class="form-select" name="seco_type" id="seco_type" required>
+                        <option value="" disabled selected>Select a SECO Type</option>
+                        {% for opt in seco_types %}
+                        <option value="{{ opt.value }}"
+                            {% if values and values.seco_type == opt.value %}selected{% endif %}>
+                            {{ opt.name.replace("_", " ").title() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
                 <div class="mb-3">
                     <h4 class="form-label">SECO Common Software Ecosystem Procedures to evaluate</h4>

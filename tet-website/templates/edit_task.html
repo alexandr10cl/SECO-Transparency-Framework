@@ -21,13 +21,38 @@
                         <input type="text" class="form-control" name="title" placeholder="Title" required value="{{ task.title }}">
                         <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ task.description }}</textarea>
                         <div class="mb-3">
-                            <h4 class="form-label">Related guidelines</h4>
+                        <h4 class="form-label">SECO Types</h4>
                             <div class="checkbox-group">
-                                {% for guideline in guidelines %}
+                               {% for opt in seco_types %}
                                 <div class="checkbox-item">
-                                    <label for="guideline_{{ guideline.guidelineID }}" title="G{{ guideline.guidelineID }}">G{{ guideline.guidelineID }}</label>
-                                    <input type="checkbox" id="guideline_{{ guideline.guidelineID }}" name="guideline_ids" value="{{ guideline.guidelineID }}" {% if guideline.guidelineID in guideline_ids %} checked {% endif %}>
-                                    
+                                    <label for="seco_type_{{ opt.name }}" title="{{ opt.name }}">
+                                    {{ opt.name.replace('_', ' ').title() }}
+                                    </label>
+                                    <input type="checkbox"
+                                        id="seco_type_{{ opt.name }}"
+                                        name="seco_types"
+                                        value="{{ opt.name }}"
+                                        {% if selected_seco_types and opt in selected_seco_types %}checked{% endif %}>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h4 class="form-label">Related Processes</h4>
+                            <div class="checkbox-group">
+                                {% for p in seco_processes %}
+                                <div class="checkbox-item">
+                                    <label for="process_{{ p.seco_process_id }}" title="P{{ p.seco_process_id }}">
+                                    P{{ p.seco_process_id }} - {{ p.description }}
+                                    </label>
+                                    <input
+                                    type="checkbox"
+                                    id="process_{{ p.seco_process_id }}"
+                                    name="process_ids"
+                                    value="{{ p.seco_process_id }}"
+                                    {% if p.seco_process_id in selected_process_ids %}checked{% endif %}
+                                    >
                                 </div>
                                 {% endfor %}
                             </div>

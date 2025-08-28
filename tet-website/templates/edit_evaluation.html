@@ -3,6 +3,9 @@
 {% block head %}
 <link rel="stylesheet" href="/static/css/evaluation.css">
 {% endblock %}
+{% block scripts %}
+<script src="/static/js/evaluation.js"></script>
+{% endblock %}
 
 {% block title %}{{ evaluation.name}}{% endblock %}
 
@@ -16,7 +19,18 @@
                 <input type="text" name="name" id="name" placeholder="Evaluation Name" value="{{ evaluation.name }}" required>
                 <input type="text" name="seco_portal" id="seco_portal" placeholder="SECO Portal to be evaluated" value="{{ evaluation.seco_portal }}" required>
                 <input type="text" name="seco_portal_url" id="seco_portal_url" placeholder="SECO Portal URL" value="{{ evaluation.seco_portal_url }}" required>
-                
+                <div class="mb-3">
+                    <h4 class="form-label">SECO Type</h4>
+                    <select class="i-text" name="seco_type" id="seco_type" required>
+                        <option value="" disabled>Select a SECO Type</option>
+                        {% for opt in seco_types %}
+                        <option value="{{ opt.value }}"
+                            {% if evaluation.seco_type and evaluation.seco_type.value == opt.value %}selected{% endif %}>
+                            {{ opt.name.replace('_', ' ').title() }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div class="mb-3">
                     <h4 class="form-label">SECO Processes to evaluate</h4>
                     <div class="checkbox-group">
@@ -29,6 +43,7 @@
                         </div>
                         {% endfor %}
                     </div>
+                    <div id="process-error" class="form-error d-none"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Update Guideline</button>
             </form>

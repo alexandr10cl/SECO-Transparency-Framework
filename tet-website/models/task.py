@@ -1,5 +1,22 @@
 from .enums import PerformedTaskStatus
 from index import db
+from models import SECOType
+
+task_seco_type = db.Table(
+    'task_seco_type',
+    db.Column('task_id', db.Integer, db.ForeignKey('task.task_id'), primary_key=True),
+    db.Column(
+        'seco_type',
+        db.Enum(
+            SECOType,
+            name="task_seco_type_enum",
+            values_callable=lambda e: [m.value for m in e]
+        ),
+        primary_key=True,
+        index=True
+    ),
+    db.UniqueConstraint('task_id', 'seco_type', name='uq_task_seco_type')
+)
 
 class Task(db.Model):
     __tablename__ = 'task'

@@ -190,7 +190,97 @@ function applyStatusColors() {
     });
 }
 
+// Enhanced task badge interactions
+function enhanceTaskBadges() {
+    const taskCards = document.querySelectorAll('.task-overview-card');
+    const criticalTasks = document.querySelectorAll('.critical-task');
+    
+    // Add hover effects for all task cards
+    taskCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-2px)';
+            card.style.transition = 'all 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0)';
+        });
+    });
+    
+    // Enhanced critical task attention effects
+    criticalTasks.forEach(task => {
+        const attentionBadge = task.querySelector('.attention-badge');
+        if (attentionBadge) {
+            attentionBadge.addEventListener('click', () => {
+                // Flash effect when clicked
+                attentionBadge.style.animation = 'none';
+                setTimeout(() => {
+                    attentionBadge.style.animation = 'pulse 2s infinite';
+                }, 100);
+            });
+        }
+    });
+    
+    // Add badge tooltips with performance insights
+    const badges = document.querySelectorAll('.badge');
+    badges.forEach(badge => {
+        let tooltipText = '';
+        const badgeText = badge.textContent.toLowerCase();
+        
+        // Define tooltip messages based on badge type
+        if (badgeText.includes('fast')) {
+            tooltipText = 'Excellent performance - task completed quickly';
+        } else if (badgeText.includes('moderate')) {
+            tooltipText = 'Good performance - reasonable completion time';
+        } else if (badgeText.includes('slow')) {
+            tooltipText = 'Consider optimization - task takes longer than expected';
+        } else if (badgeText.includes('very slow')) {
+            tooltipText = 'Needs immediate attention - significantly long completion time';
+        } else if (badgeText.includes('high success')) {
+            tooltipText = 'Excellent success rate - most developers complete this task';
+        } else if (badgeText.includes('good success')) {
+            tooltipText = 'Good success rate - majority of developers succeed';
+        } else if (badgeText.includes('low success')) {
+            tooltipText = 'Concerning success rate - many developers struggle';
+        } else if (badgeText.includes('poor success')) {
+            tooltipText = 'Critical issue - most developers fail this task';
+        }
+        
+        if (tooltipText) {
+            badge.title = tooltipText;
+        }
+    });
+    
+    // Count and display summary statistics
+    const totalTasks = taskCards.length;
+    const criticalTasksCount = criticalTasks.length;
+    
+    if (criticalTasksCount > 0) {
+        console.log(`Dashboard Alert: ${criticalTasksCount} out of ${totalTasks} tasks need attention`);
+        
+        // Create summary badge in the header if there are critical tasks
+        const tasksHeader = document.querySelector('.tasks-header h2');
+        if (tasksHeader && criticalTasksCount > 0) {
+            const summaryBadge = document.createElement('span');
+            summaryBadge.className = 'critical-summary-badge';
+            summaryBadge.textContent = `${criticalTasksCount} Critical`;
+            summaryBadge.style.cssText = `
+                background-color: var(--critical-alert);
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin-left: 1rem;
+                animation: pulse 2s infinite;
+            `;
+            tasksHeader.appendChild(summaryBadge);
+        }
+    }
+}
+
 window.onload = function() {
     gerarNuvem();
     applyStatusColors();
+    enhanceTaskBadges();
 };

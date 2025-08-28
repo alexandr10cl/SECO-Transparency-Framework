@@ -64,7 +64,7 @@
                         <p>{{ score_geral }}</p>
                         <span class="subWrite">Overall Score</span>
                         <div class="percentage-bar">
-                            <div style="width: {{ score_geral }}%;"></div>
+                            <div class="bar-fill" data-pct="{{ score_geral }}"></div>
                         </div>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                             <p>{{ d.average_score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ d.average_score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ d.average_score }}"></div>
                             </div>
                         {% else %}
                             <p>Not related to the evaluation</p>
@@ -93,7 +93,7 @@
                             <p>{{ dx_categories.common_technological_platform.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.common_technological_platform.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.common_technological_platform.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -105,7 +105,7 @@
                             <p>{{ dx_categories.projects_and_applications.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.projects_and_applications.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.projects_and_applications.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -117,7 +117,7 @@
                             <p>{{ dx_categories.community_interaction.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.community_interaction.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.community_interaction.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -129,7 +129,7 @@
                             <p>{{ dx_categories.expectations_and_value.score }}</p>
                             <span class="subWrite">Score</span>
                             <div class="percentage-bar">
-                                <div style="width: {{ dx_categories.expectations_and_value.score }}%;"></div>
+                                <div class="bar-fill" data-pct="{{ dx_categories.expectations_and_value.score }}"></div>
                             </div>
                         {% else %}
                             <p>No data</p>
@@ -198,12 +198,93 @@
             </div>
             <div class="tasks-summary">
                 <h2>Task Summary</h2>
+                
+                <!-- Badge Legend -->
+                <div class="badge-legend">
+                    <h4>Badge Criteria:</h4>
+                    <div class="legend-grid">
+                        <div class="legend-section">
+                            <strong>Time Performance:</strong>
+                            <div class="legend-items">
+                                <span class="badge badge-excellent">Fast</span> ≤30s
+                                <span class="badge badge-good">Moderate</span> 31-60s
+                                <span class="badge badge-warning">Slow</span> 61-120s
+                                <span class="badge badge-critical">Very Slow</span> >120s
+                            </div>
+                        </div>
+                        <div class="legend-section">
+                            <strong>Success Rate:</strong>
+                            <div class="legend-items">
+                                <span class="badge badge-excellent">High Success</span> ≥90%
+                                <span class="badge badge-good">Good Success</span> 70-89%
+                                <span class="badge badge-warning">Low Success</span> 50-69%
+                                <span class="badge badge-critical">Poor Success</span> <50%
+                            </div>
+                        </div>
+                        <div class="legend-section">
+                            <strong>Attention:</strong>
+                            <div class="legend-items">
+                                <span class="attention-badge-small">Needs Attention</span> Time >120s AND Success <50%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 {% for task in processed_tasks %}
-                    <div class="task-overview-card">
-                        <h3>{{ task.title }}</h3>
-                        <p><strong>Average time:</strong> {{ task.avg_time }} seconds</p>
-                        <p><strong>Success rate:</strong> {{ task.completion_rate }}%</p>
-                        <div>
+                    {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
+                    {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
+                    {% set time_critical = avg_time > 120 %}
+                    {% set success_critical = completion_rate < 50 %}
+                    {% set needs_attention = time_critical and success_critical %}
+                    
+                    <div class="task-overview-card {{ 'critical-task' if needs_attention else '' }}">
+                        <div class="task-header">
+                            <h3>{{ task.title }}</h3>
+                            {% if needs_attention %}
+                                <div class="attention-badge">
+                                    <span class="material-symbols-outlined">warning</span>
+                                    Needs Attention
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="task-metrics">
+                            <div class="metric-item">
+                                <div class="metric-label">
+                                    <strong>Average Time:</strong> {{ avg_time }} seconds
+                                </div>
+                                <div class="metric-badge">
+                                    {% if avg_time <= 30 %}
+                                        <span class="badge badge-excellent">Fast</span>
+                                    {% elif avg_time <= 60 %}
+                                        <span class="badge badge-good">Moderate</span>
+                                    {% elif avg_time <= 120 %}
+                                        <span class="badge badge-warning">Slow</span>
+                                    {% else %}
+                                        <span class="badge badge-critical">Very Slow</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="metric-item">
+                                <div class="metric-label">
+                                    <strong>Success Rate:</strong> {{ completion_rate }}%
+                                </div>
+                                <div class="metric-badge">
+                                    {% if completion_rate >= 90 %}
+                                        <span class="badge badge-excellent">High Success</span>
+                                    {% elif completion_rate >= 70 %}
+                                        <span class="badge badge-good">Good Success</span>
+                                    {% elif completion_rate >= 50 %}
+                                        <span class="badge badge-warning">Low Success</span>
+                                    {% else %}
+                                        <span class="badge badge-critical">Poor Success</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="task-comments">
                             <strong>Developer comments:</strong>
                             <ul>
                                 {% for comment in task.comments %}
@@ -231,7 +312,7 @@
 
             <!-- raiz onde os heatmaps vindos da API serão inseridos -->
             <div id="heatmaps-root" class="heatmaps">
-                <p class="loading">Carregando heatmaps...</p>
+                <p class="loading">Loading heatmaps...</p>
             </div>
 
             </div>
@@ -278,6 +359,28 @@
                                     <p class="guideline-status">{{ ksc.status }}</p>
                                 </div>
                             </div>
+                            
+                            <!-- Examples for unfulfilled or partially fulfilled KSC -->
+                            {% if ksc.status in ["Not Fulfilled", "Partially Fulfilled"] and ksc.examples %}
+                                <div class="ksc-examples-container {% if ksc.status == 'Partially Fulfilled' %}partially-fulfilled{% else %}not-fulfilled{% endif %}">
+                                    <div class="ksc-examples-header">
+                                        <span class="material-symbols-outlined">lightbulb</span>
+                                        <h5>
+                                            {% if ksc.status == "Partially Fulfilled" %}
+                                                Improvement Actions
+                                            {% else %}
+                                                Guidance Actions
+                                            {% endif %}
+                                        </h5>
+                                    </div>
+                                    {% for example in ksc.examples %}
+                                        <div class="ksc-example-item">
+                                            <span class="material-symbols-outlined">arrow_right</span>
+                                            <p>{{ example.description }}</p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>
@@ -297,4 +400,17 @@
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
     <script src="{{ url_for('static', filename='js/hotspots_heatmaps.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.percentage-bar .bar-fill').forEach(function (el) {
+                var pct = el.getAttribute('data-pct');
+                if (pct !== null && pct !== '') {
+                    var value = parseFloat(pct);
+                    if (!isNaN(value)) {
+                        el.style.width = value + '%';
+                    }
+                }
+            });
+        });
+    </script>
 {% endblock %}

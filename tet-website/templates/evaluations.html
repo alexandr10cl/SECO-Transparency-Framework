@@ -24,6 +24,12 @@
                                 <h4>Portal</h4>
                                 <p>{{ e.seco_portal }}  ● <span>{{ e.seco_portal_url }}</span></p>
                             </div>
+                            <div class="portal">
+                                <h4>SECO Type</h4>
+                                <p>
+                                    {{ e.seco_type.name.replace('_', ' ').title() if e.seco_type else 'Not defined' }}
+                                </p>
+                            </div>
                             <div class="processes">
                                 <h4>Related Processes</h4>
                                 <div class="processes-content">

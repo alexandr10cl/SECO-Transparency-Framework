@@ -22,12 +22,21 @@
         <div class="evaluation-content">
                 <div class="e-item">
                     <h3>Evaluation Code</h3>
-                    <span class="advise">*This code will be available only for the first 30 days after creating the evalutaion</span>
+                    <div class="warning" role="alert">
+                        <span class="warning-icon" aria-hidden="true">⚠️</span>
+                        <span>This code will be available only for the first 30 days after creating the evaluation</span>
+                    </div>
                     <p>{{ evaluation.evaluation_id }}</p>
                 </div>
                 <div class="e-item">
                     <h3>Portal</h3>
                     <div class="seco-portal"><p>{{ evaluation.seco_portal }}</p> ● <a href="{{ evaluation.seco_portal_url }}">{{ evaluation.seco_portal_url }}</a></div>
+                </div>
+                <div class="portal">
+                    <h4>SECO Type</h4>
+                    <p>
+                        {{ evaluation.seco_type.name.replace('_', ' ').title() if evaluation.seco_type else 'Not defined' }}
+                    </p>
                 </div>
                 <div class="e-item">
                     <h3>Related Common Software Ecosystem Procedures</h3>
@@ -194,8 +203,8 @@
             <span class="close">&times;</span>
             <h2 id="modal-title">Settings of {{ evaluation.name }}</h2>
             <div class="options">
-                <a href="{{ url_for('edit_evaluation', id=evaluation.evaluation_id) }}" class="btn btn-sm btn-warning">Edit</a></li>
-                <a href="{{ url_for('delete_evaluation', id=evaluation.evaluation_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this example?')">Delete</a></li>
+                <a href="{{ url_for('edit_evaluation', id=evaluation.evaluation_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{{ url_for('delete_evaluation', id=evaluation.evaluation_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this example?')">Delete</a>
             </div>
         </div>
     </div>

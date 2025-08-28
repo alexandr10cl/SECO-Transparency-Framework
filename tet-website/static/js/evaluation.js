@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.querySelector('.evaluation-form')
-  const button = document.getElementById('create-btn')
-  if (!form || !button) return
+  if (!form) return
+  const button = form.querySelector('button[type="submit"], input[type="submit"]')
 
   let submitted = false
 
@@ -28,8 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return
     }
     submitted = true
-    button.disabled = true
-    const spinner = button.querySelector('.spinner')
-    if (spinner) spinner.classList.remove('d-none')
+    if (button) {
+      button.disabled = true
+      const spinner = button.querySelector?.('.spinner')
+      if (spinner) spinner.classList.remove('d-none')
+    }
   })
 })
