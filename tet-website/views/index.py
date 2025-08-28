@@ -386,7 +386,8 @@ def eval_dashboard(id):
                 'questions': [],
                 'porcentagem': None,
                 'score': None,
-                'status': None
+                'status': None,
+                'examples': []
             }
 
             for question in ksc.questions:
@@ -430,6 +431,13 @@ def eval_dashboard(id):
             else:
                 ksc_data['score'] = None
                 ksc_data['status'] = "No Answers"
+
+            # Adicionar exemplos para KSC "Not Fulfilled" e "Partially Fulfilled"
+            if ksc_data['status'] in ["Not Fulfilled", "Partially Fulfilled"]:
+                for example in ksc.examples:
+                    ksc_data['examples'].append({
+                        'description': example.description
+                    })
 
             g_data['key_success_criteria'].append(ksc_data)
 
