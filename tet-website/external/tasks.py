@@ -69,6 +69,40 @@ def submit_tasks():
     if not evaluation:
         return jsonify({"error": "Evaluation not found"}), 404
 
+    # Idempotency guard: ignore replays of the SAME run (not new runs)
+    session_raw = data.get("uxt_sessionId")
+    try:
+        session_id = int(session_raw) if session_raw is not None else None
+    except (TypeError, ValueError):
+        session_id = None
+
+    # Use combination of (evaluation, session or cod, start_time, end_time)
+    # to detect duplicates of the same evaluation run.
+    start_time_iso = data.get("startTime")
+    end_time_iso = data.get("endTime")
+    existing = None
+    if session_id is not None:
+        existing = CollectedData.query.filter(
+            CollectedData.evaluation_id == evaluation.evaluation_id,
+            CollectedData.sessionId == session_id,
+            CollectedData.start_time == datetime.fromisoformat(start_time_iso),
+            CollectedData.end_time == datetime.fromisoformat(end_time_iso)
+        ).first()
+    else:
+        # Fallback to cod when sessionId is unavailable
+        existing = CollectedData.query.filter(
+            CollectedData.evaluation_id == evaluation.evaluation_id,
+            CollectedData.cod == data.get("uxt_cod"),
+            CollectedData.start_time == datetime.fromisoformat(start_time_iso),
+            CollectedData.end_time == datetime.fromisoformat(end_time_iso)
+        ).first()
+
+    if existing:
+        return jsonify({
+            "message": "Already submitted. Duplicate ignored.",
+            "collected_data_id": existing.collected_data_id
+        }), 200
+
 
     # Cria o objeto CollectedData
     collected = CollectedData(
