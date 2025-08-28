@@ -1,14 +1,10 @@
 from index import app
-from flask import jsonify
+from flask import jsonify, session
 from models import *
+from functions import isLogged
 import os
 import requests
 import json
-
-credenciais_admin = {
-    "email": os.getenv('ADMIN_EMAIL'),
-    "password": os.getenv('ADMIN_PASSWORD')
-}
 
 @app.route('/api/guideline/<int:id>')
 def api_get_guideline(id):
@@ -161,56 +157,141 @@ def api_wordcloud(id):
     
 @app.route('/api/view_heatmap/<int:id>')
 def api_view_heatmap(id):
-    print(f"\n--- 1. Rota /api/view_heatmap chamada com ID: {id} ---")
+    print(f"\n=== INICIO DEBUG BACKEND HEATMAPS ===")
+    print(f"--- 1. Rota /api/view_heatmap chamada com ID: {id} ---")
+    print(f"--- Timestamp: {json.dumps(str(__import__('datetime').datetime.now()))} ---")
+    
+    # Verificar se o usuário está logado
+    if not isLogged():
+        print("--- ERRO: Usuário não está logado ---")
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    # Obter token da sessão do usuário logado
+    token = session.get('uxt_access_token')
+    if not token:
+        print("--- ERRO: Token UXT não encontrado na sessão ---")
+        return jsonify({"error": "UXT authentication token not found"}), 401
+    
     evaluation = Evaluation.query.get_or_404(id)
+    print(f"--- Avaliação encontrada: {evaluation} ---")
     
-    # Obter token de administrador uxt
-    uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
+    print("--- 2. Usando token da sessão do usuário logado ---")
+    print(f"--- Token da sessão (primeiros 20 chars): {token[:20] if token else 'N/A'}... ---")
+        
+    url_get_heatmap = f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
+    headers_user = {'Authorization': f'Bearer {token}'}
     
-    print("--- 2. Tentando autenticar na API externa... ---")
-    resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
+    print(f"--- 3. Buscando dados do heatmap na URL: {url_get_heatmap} ---")
+    print(f"--- Headers: Authorization: Bearer {token[:20] if token else 'N/A'}... ---")
     
-    if resposta_admin.status_code == 200:
-        token = resposta_admin.json().get('access_token')
-        print("--- 3. Autenticação bem-sucedida! ---")
+    try:
+        resposta_heatmap = requests.get(url_get_heatmap, headers=headers_user, timeout=60)
+        print(f"--- Status da requisição heatmap: {resposta_heatmap.status_code} ---")
+        print(f"--- Content-Type da resposta: {resposta_heatmap.headers.get('content-type', 'N/A')} ---")
+        print(f"--- Tamanho da resposta: {len(resposta_heatmap.content)} bytes ---")
+    except requests.exceptions.RequestException as e:
+        print(f"--- ERRO na requisição do heatmap: {e} ---")
+        return jsonify({"error": "Heatmap request failed"}), 500
+    
+    if resposta_heatmap.status_code == 200:
+        print("--- 4. SUCESSO! Dados do heatmap recebidos. ---")
         
-        url_get_heatmap = f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
-        headers_admin = {'Authorization': f'Bearer {token}'}
-        
-        print(f"--- 4. Buscando dados do heatmap na URL: {url_get_heatmap} ---")
-        resposta_heatmap = requests.get(url_get_heatmap, headers=headers_admin)
-        
-        if resposta_heatmap.status_code == 200:
-            print("--- 5. SUCESSO! Dados do heatmap recebidos. ---")
+        try:
             heatmap_data = resposta_heatmap.json()
-            
-            
-            heatmaps = []
-            
-            if not isinstance(heatmap_data, list):
-                print("\n>>> ATENÇÃO: O dado recebido NÃO é uma lista! A lógica de loop pode falhar. <<<\n")
-
-            
-            print("--- 7. Iniciando processamento dos dados recebidos... ---")
-            for item in heatmap_data:
-                page_images = item.get('page_images', [])
-                for i in page_images:
-                    if isinstance(i, dict):
-                        heatmaps.append({
-                            "height": i.get("height"),
-                            "image": i.get("image"),
-                            "points": i.get("points"),
-                            "scroll_positions": i.get("scroll_positions"),
-                            "url": i.get("url"),
-                            "width": i.get("width")
-                        })
-
-            return jsonify(heatmaps)
+            print("--- 5. Dados JSON parseados com sucesso ---")
+        except json.JSONDecodeError as e:
+            print(f"--- ERRO ao parsear JSON: {e} ---")
+            print(f"--- Primeiros 500 chars da resposta: {resposta_heatmap.text[:500]} ---")
+            return jsonify({"error": "Invalid JSON response"}), 500
+        
+        print(f"--- Tipo dos dados recebidos: {type(heatmap_data)} ---")
+        print(f"--- É lista?: {isinstance(heatmap_data, list)} ---")
+        
+        if isinstance(heatmap_data, list):
+            print(f"--- Quantidade de items na lista: {len(heatmap_data)} ---")
+            for idx, item in enumerate(heatmap_data[:3]):  # Mostra só os primeiros 3
+                print(f"--- Item {idx}: tipo = {type(item)}, keys = {list(item.keys()) if isinstance(item, dict) else 'N/A'} ---")
         else:
-            print(f"--- ERRO [A]: Falha ao buscar dados do heatmap. Status: {resposta_heatmap.status_code} ---")
-            print(f"Resposta de erro da API: {resposta_heatmap.text}")
-            return jsonify({"error": "Failed to retrieve heatmap data"}), resposta_heatmap.status_code
+            print(f"--- Dados não são lista. Keys disponíveis: {list(heatmap_data.keys()) if isinstance(heatmap_data, dict) else 'N/A'} ---")
+        
+        heatmaps = []
+        
+        if not isinstance(heatmap_data, list):
+            print("\n>>> ATENÇÃO: O dado recebido NÃO é uma lista! A lógica de loop pode falhar. <<<")
+            print(">>> Convertendo para lista... <<<\n")
+            heatmap_data = [heatmap_data]
+
+        print("--- 6. Iniciando processamento dos dados recebidos... ---")
+        for idx, item in enumerate(heatmap_data):
+            print(f"--- Processando item {idx + 1} de {len(heatmap_data)} ---")
+            print(f"--- Tipo do item: {type(item)} ---")
+            
+            if not isinstance(item, dict):
+                print(f"--- AVISO: Item {idx + 1} não é um dicionário! ---")
+                continue
+            
+            print(f"--- Keys do item {idx + 1}: {list(item.keys())} ---")
+            
+            page_images = item.get('page_images', [])
+            print(f"--- Page_images encontradas: {len(page_images)} ---")
+            
+            if not isinstance(page_images, list):
+                print(f"--- ERRO: page_images não é uma lista! Tipo: {type(page_images)} ---")
+                continue
+            
+            for page_idx, i in enumerate(page_images):
+                print(f"--- Processando page_image {page_idx + 1} de {len(page_images)} ---")
+                
+                if isinstance(i, dict):
+                    print(f"--- Keys da page_image {page_idx + 1}: {list(i.keys())} ---")
+                    
+                    # Validações detalhadas
+                    width = i.get("width")
+                    height = i.get("height")
+                    points = i.get("points")
+                    image = i.get("image")
+                    url = i.get("url")
+                    scroll_positions = i.get("scroll_positions")
+                    
+                    print(f"--- Dimensões: {width}x{height} ---")
+                    print(f"--- Pontos: {len(points) if isinstance(points, list) else 'N/A'} ---")
+                    print(f"--- Imagem: {len(image) if isinstance(image, str) else 'N/A'} chars ---")
+                    print(f"--- URL: {url} ---")
+                    print(f"--- Scroll positions: {scroll_positions} ---")
+                    
+                    # Validação dos pontos
+                    if isinstance(points, list) and len(points) > 0:
+                        print(f"--- Primeiro ponto: {points[0]} ---")
+                        if len(points) > 1:
+                            print(f"--- Segundo ponto: {points[1]} ---")
+                    
+                    heatmap_item = {
+                        "height": height,
+                        "image": image,
+                        "points": points,
+                        "scroll_positions": scroll_positions,
+                        "url": url,
+                        "width": width
+                    }
+                    
+                    heatmaps.append(heatmap_item)
+                    print(f"--- Page_image {page_idx + 1} adicionada aos heatmaps ---")
+                else:
+                    print(f"--- ERRO: page_image {page_idx + 1} não é um dicionário! Tipo: {type(i)} ---")
+
+        print(f"--- 7. Processamento concluído! Total de heatmaps: {len(heatmaps)} ---")
+        
+        # Log da estrutura final
+        for idx, heatmap in enumerate(heatmaps[:2]):  # Mostra só os primeiros 2
+            print(f"--- Heatmap final {idx + 1}: {list(heatmap.keys())} ---")
+        
+        print("--- 8. Retornando dados para o frontend ---")
+        print(f"--- Estrutura JSON final: array com {len(heatmaps)} items ---")
+        print("=== FIM DEBUG BACKEND HEATMAPS ===\n")
+
+        return jsonify(heatmaps)
     else:
-        print(f"--- ERRO [B]: Falha na autenticação. Status: {resposta_admin.status_code} ---")
-        print(f"Resposta de erro da API: {resposta_admin.text}")
-        return jsonify({"error": "Authentication failed"}), resposta_admin.status_code
+        print(f"--- ERRO: Falha ao buscar dados do heatmap. Status: {resposta_heatmap.status_code} ---")
+        print(f"--- Headers da resposta de erro: {dict(resposta_heatmap.headers)} ---")
+        print(f"--- Resposta de erro da API: {resposta_heatmap.text[:1000]} ---")  # Primeiros 1000 chars
+        return jsonify({"error": "Failed to retrieve heatmap data"}), resposta_heatmap.status_code

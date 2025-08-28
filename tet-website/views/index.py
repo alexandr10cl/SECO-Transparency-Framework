@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from index import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -49,7 +49,8 @@ def create_evaluation():
         'create_evaluation.html',
         user=user,
         seco_processes=seco_processes,
-        form_token=token
+        form_token=token,
+        seco_types=SECOType 
     )
 
 
@@ -72,12 +73,17 @@ def add_evaluation():
     seco_portal = request.form.get('seco_portal', '').strip()
     seco_portal_url = request.form.get('seco_portal_url', '').strip()
     seco_process_ids = request.form.getlist('seco_process_ids')
+    seco_type_str = request.form.get('seco_type')
+
+    seco_type = SECOType(seco_type_str)
+
     # must select at least one process
     if not seco_process_ids:
         values = {
             "name": name,
             "seco_portal": seco_portal,
-            "seco_portal_url": seco_portal_url
+            "seco_portal_url": seco_portal_url,
+            "seco_type": seco_type_str
         }
         error_msg = "Please select at least one process"
         seco_processes = SECO_process.query.all()
@@ -87,7 +93,8 @@ def add_evaluation():
             seco_processes=seco_processes,
             values=values,
             error_msg=error_msg,
-            form_token=token  # pass the token again
+            form_token=token,  # pass the token again
+            seco_types=SECOType
         )
 
 
@@ -112,24 +119,46 @@ def add_evaluation():
     # generate evaluation_id via UXT API, fallback to unique 6-digit
     evaluation_id = None
     access_token = session.get('uxt_access_token')
+    
+    print(f"=== LOG: Iniciando geração de código de avaliação ===")
+    print(f"LOG: Access token disponível: {bool(access_token)}")
+    if access_token:
+        print(f"LOG: Access token: {access_token[:20]}...")  # Mostra só os primeiros caracteres por segurança
+    
     if access_token:
         try:
+            print(f"LOG: Fazendo chamada para API UXT...")
             r = requests.post(
                 'https://uxt-stage.liis.com.br/generate-code?horas=730',
                 headers={'Authorization': f'Bearer {access_token}'},
                 timeout=10
             )
+            print(f"LOG: Resposta da API UXT - Status: {r.status_code}")
+            print(f"LOG: Resposta da API UXT - Conteúdo: {r.text}")
+            
             if r.status_code == 201:
                 data = r.json() or {}
                 evaluation_id = data.get('cod')
-        except Exception:
+                print(f"LOG: Código gerado pela API UXT: {evaluation_id}")
+            else:
+                print(f"LOG: API UXT não retornou status 201. Status: {r.status_code}")
+        except Exception as e:
+            print(f"LOG: ERRO ao chamar API UXT: {str(e)}")
             evaluation_id = None
+    else:
+        print(f"LOG: Sem access token disponível, usando fallback")
 
     if not evaluation_id:
+        print(f"LOG: Usando geração aleatória de código (fallback)")
         while True:
             evaluation_id = ''.join(rd.choices('0123456789', k=6))
             if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
                 break
+        print(f"LOG: Código gerado aleatoriamente: {evaluation_id}")
+    
+    print(f"LOG: Código final da avaliação: {evaluation_id}")
+    print(f"LOG: SECO Type da avaliação: {seco_type}")
+    print(f"=== LOG: Fim da geração de código ===")    
 
     # map selected processes
     seco_processes = []
@@ -145,7 +174,8 @@ def add_evaluation():
         user_id=user.user_id,
         seco_processes=seco_processes,
         seco_portal=seco_portal,
-        seco_portal_url=seco_portal_url
+        seco_portal_url=seco_portal_url,
+        seco_type=seco_type
     )
 
     try:
@@ -164,7 +194,7 @@ def edit_evaluation(id):
     user = User.query.filter_by(email=email).first()
     evaluation = Evaluation.query.get_or_404(id)
     seco_processes = SECO_process.query.all()
-    return render_template('edit_evaluation.html', evaluation=evaluation, user=user, seco_processes=seco_processes)
+    return render_template('edit_evaluation.html', evaluation=evaluation, user=user, seco_processes=seco_processes, seco_types=SECOType)
 
 @app.route('/evaluations/<int:id>/update', methods=['POST'])
 def update_evaluation(id):
@@ -172,6 +202,12 @@ def update_evaluation(id):
     name = request.form.get('name')
     seco_portal = request.form.get('seco_portal')
     seco_portal_url = request.form.get('seco_portal_url')
+    seco_type_str = request.form.get('seco_type')
+
+    try:
+        seco_type = SECOType(seco_type_str)
+    except Exception:
+        seco_type = None
     
     # getting the selected SECO_process IDs
     seco_process_ids = request.form.getlist('seco_process_ids')
@@ -186,6 +222,7 @@ def update_evaluation(id):
     evaluation.seco_portal = seco_portal
     evaluation.seco_portal_url = seco_portal_url
     evaluation.seco_processes = seco_processes
+    evaluation.seco_type = seco_type 
     
     # committing the changes to the database
     db.session.commit()
@@ -349,7 +386,8 @@ def eval_dashboard(id):
                 'questions': [],
                 'porcentagem': None,
                 'score': None,
-                'status': None
+                'status': None,
+                'examples': []
             }
 
             for question in ksc.questions:
@@ -393,6 +431,13 @@ def eval_dashboard(id):
             else:
                 ksc_data['score'] = None
                 ksc_data['status'] = "No Answers"
+
+            # Adicionar exemplos para KSC "Not Fulfilled" e "Partially Fulfilled"
+            if ksc_data['status'] in ["Not Fulfilled", "Partially Fulfilled"]:
+                for example in ksc.examples:
+                    ksc_data['examples'].append({
+                        'description': example.description
+                    })
 
             g_data['key_success_criteria'].append(ksc_data)
 

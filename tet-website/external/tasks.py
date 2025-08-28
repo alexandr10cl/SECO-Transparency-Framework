@@ -5,6 +5,7 @@ from models import (
     User, Task, Evaluation, CollectedData, Guideline, SECO_process,
     PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question
 )
+from models.task import task_seco_type
 from models.enums import (
     PerformedTaskStatus, NavigationType, AcademicLevel,
     SegmentType, PreviousExperience
@@ -243,6 +244,8 @@ def load_tasks():
 
     if evaluation:
         result = []
+        evaluation_seco_type = evaluation.seco_type  # Obtém o seco_type da avaliação
+        
         for process in evaluation.seco_processes:
             process_obj = {
                 "process_id": process.seco_process_id,
@@ -250,13 +253,30 @@ def load_tasks():
                 "process_tasks": [],
                 "process_review": []
             }
-            # Adiciona tasks associadas ao processo
+            # Filtra tasks associadas ao processo que pertencem ao seco_type da avaliação
             for task in process.tasks:
-                process_obj["process_tasks"].append({
-                    "task_id": task.task_id,
-                    "task_title": task.title,
-                    "task_description": task.description
-                })
+                # Verifica se a task pertence ao seco_type da avaliação
+                task_seco_types = db.session.execute(
+                    db.select(task_seco_type.c.seco_type)
+                    .where(task_seco_type.c.task_id == task.task_id)
+                ).fetchall()
+                
+                # Se a task tem seco_types definidos, verifica se inclui o da avaliação
+                if task_seco_types:
+                    task_types = [row[0] for row in task_seco_types]
+                    if evaluation_seco_type in task_types:
+                        process_obj["process_tasks"].append({
+                            "task_id": task.task_id,
+                            "task_title": task.title,
+                            "task_description": task.description
+                        })
+                else:
+                    # Se a task não tem seco_types definidos, inclui por compatibilidade
+                    process_obj["process_tasks"].append({
+                        "task_id": task.task_id,
+                        "task_title": task.title,
+                        "task_description": task.description
+                    })
             # Adiciona perguntas de review (questions dos Key Success Criteria das guidelines do processo)
             review_questions = set()
             for guideline in process.guidelines:
@@ -274,7 +294,7 @@ def load_tasks():
         print("Resultado:", result)
         return jsonify(result), 200
     else:
-        print("Código de avaliação inválido:", evaluation_code)
+        print("Invalid evaluation code:", evaluation_code)
         return jsonify({"message": "Invalid"}), 401
 
 

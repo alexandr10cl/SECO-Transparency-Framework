@@ -19,10 +19,14 @@ messageEA = '' # Existent account message
 
 @app.route('/signin')
 def signin():
-    if not isLogged():
-        return render_template('sign_in.html', message = message, messageEA = messageEA, messageReg = messageReg, messageType=messageType)
-    else:
-        return redirect(url_for('index'))
+    global message
+    global messageEA
+    global messageReg
+    global messageType
+    print(f'Message of successful registration: "{messageReg}"')
+    print(f'Message of existent account: "{messageEA}"')
+    print(f'Message of sign in: "{message}"')
+    return render_template('sign_in.html', message = message, messageEA = messageEA, messageReg = messageReg, messageType=messageType)
 
 @app.route('/auth', methods=['POST',])
 def auth():
@@ -58,6 +62,10 @@ def auth():
                 if access_token:
                     session['uxt_access_token'] = access_token
                     print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
+                    message = ''
+                    messageEA = ''
+                    messageReg = ''
+                    messageType = ''
                 else:
                     print("[UXT] Nenhum token de acesso retornado.")
             else:
@@ -232,8 +240,8 @@ def register():
     verification_url = url_for('verify_email', token=verification_token, _external=True)
     if send_verification_email(email, name, verification_url):
         messageType = 'success'
-        message = ''
-        messageReg = 'Account created successfully. Please check your email to verify your account.'
+        message = 'Account created successfully. Please check your email to verify your account.'
+        messageReg = ''
         messageEA = ''
     else:
         messageType = 'error'
@@ -258,8 +266,8 @@ def verify_email(token):
         db.session.commit()
         
         messageType = 'success'
-        message = ''
-        messageReg = 'Your email has been verified successfully! You can now sign in.'
+        message = 'Your email has been verified successfully! You can now sign in.'
+        messageReg = ''
         messageEA = ''
         return redirect(url_for('signin'))
     else:

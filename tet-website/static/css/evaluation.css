@@ -863,3 +863,22 @@ footer {
     color: #555;
   }
   
+.card-body select {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid black;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    background-color: #fff;
+    font-family: inherit;  
+    line-height: 1.4;
+    appearance: none;      
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;   
+    height: 60px;           
+}

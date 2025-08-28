@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove("inv");
-                modal.style.display = "block"; // Garantir que o modal seja exibido
+                modal.style.display = "flex"; 
             } else {
                 console.error(`Modal with ID ${modalId} not found.`);
             }
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove("inv");
-                modal.style.display = "block";
+                modal.style.display = "flex";
             } else {
                 console.error(`Modal with ID ${modalId} not found.`);
             }
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove("inv");
-                modal.style.display = "block";
+                modal.style.display = "flex";
             } else {
                 console.error(`Modal with ID ${modalId} not found.`);
             }
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById("modalConfig");
             if (modal) {
                 modal.classList.remove("inv");
-                modal.style.display = "block";
+                modal.style.display = "flex";
             } else {
                 console.error("Settings modal not found.");
             }

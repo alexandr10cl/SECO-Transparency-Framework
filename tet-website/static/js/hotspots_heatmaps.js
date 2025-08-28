@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const idElem = document.getElementById('id-avaliacao');
   if (!idElem) {
-    console.warn('Elemento #id-avaliacao não encontrado. Nenhum heatmap será carregado.');
+    console.warn('Element #evaluation-id not found. No heatmap will be loaded.');
     return;
   }
 
@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('heatmaps-root');
   if (!root) return;
 
-  root.innerHTML = '<p class="loading">Carregando heatmaps...</p>';
+  root.innerHTML = '<p class="loading">Loading heatmaps...</p>';
 
   fetch(`/api/view_heatmap/${id}`)
     .then(response => {
-      if (!response.ok) throw new Error(`Erro na rede: ${response.status} ${response.statusText}`);
+      if (!response.ok) throw new Error(`Network error: ${response.status} ${response.statusText}`);
       return response.json();
     })
     .then(data => {
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const heatmapsParaProcessar = Array.isArray(data) ? data : (data && typeof data === 'object' ? [data] : []);
 
       if (heatmapsParaProcessar.length === 0) {
-        root.innerHTML = '<p>Nenhum heatmap encontrado para esta avaliação.</p>';
+        root.innerHTML = '<p>No heatmaps found for this evaluation.</p>';
         return;
       }
 
@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             heatmapInstance.setData({ max: Math.max(maxVal, 100), data: pts });
           } catch (err) {
-            console.error('Erro ao setData no heatmapInstance:', err);
+            console.error('Error setting data on heatmapInstance:', err);
             const errMsg = document.createElement('p');
-            errMsg.textContent = `Erro ao renderizar heatmap ${index + 1}: ${err.message}`;
+            errMsg.textContent = `Error rendering heatmap ${index + 1}: ${err.message}`;
             root.appendChild(errMsg);
           }
 
@@ -118,30 +118,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (img.decode) {
           img.decode().then(initHeatmap).catch(err => {
             // fallback: tenta onload
-            console.warn('img.decode falhou, usando onload como fallback', err);
+            console.warn('img.decode failed, using onload as fallback', err);
             img.onload = initHeatmap;
             img.onerror = () => {
-              console.error('Erro ao carregar imagem do heatmap (img.onerror)');
+              console.error('Error loading heatmap image (img.onerror)');
               container.remove();
               const em = document.createElement('p');
-              em.textContent = `Erro ao carregar a imagem do heatmap ${index + 1}.`;
+              em.textContent = `Error loading heatmap image ${index + 1}.`;
               root.appendChild(em);
             };
           });
         } else {
           img.onload = initHeatmap;
           img.onerror = () => {
-            console.error('Erro ao carregar imagem do heatmap (img.onerror)');
+            console.error('Error loading heatmap image (img.onerror)');
             container.remove();
             const em = document.createElement('p');
-            em.textContent = `Erro ao carregar a imagem do heatmap ${index + 1}.`;
+            em.textContent = `Error loading heatmap image ${index + 1}.`;
             root.appendChild(em);
           };
         }
       });
     })
     .catch(error => {
-      console.error('Erro ao carregar ou processar dados do heatmap:', error);
-      root.innerHTML = `<p>Erro ao carregar heatmaps: ${error.message}</p>`;
+      console.error('Error loading or processing heatmap data:', error);
+      root.innerHTML = `<p>Error loading heatmaps: ${error.message}</p>`;
     });
 });

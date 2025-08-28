@@ -1,4 +1,5 @@
 from index import db
+from models import SECOType
 
 # Association Tables
 evaluation_SECO_process = db.Table('evaluation_SECO_process',
@@ -23,6 +24,7 @@ class Evaluation(db.Model):
     name = db.Column(db.String(100), nullable=False)
     seco_portal = db.Column(db.String(100), nullable=False)
     seco_portal_url = db.Column(db.String(500), nullable=False)
+    seco_type = db.Column(db.Enum(SECOType, name="seco_type_enum"), nullable=False, index=True)
     
     # Foreign key to the user table
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
