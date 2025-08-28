@@ -729,3 +729,27 @@ footer {
         width: 95%;
     }
 }
+
+/* Mobile-specific tweaks (phones only) */
+@media screen and (max-width: 767px) {
+    /* Make full-width tappable areas for CTA anchors */
+    .btn-section a {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        max-width: 280px;
+    }
+
+    /* Avoid hover-zoom quirks on touch */
+    .primary-btn:hover,
+    .secondary-btn:hover {
+        transform: none;
+    }
+}
+
+/* Improve focus styles (affects all but harmless on desktop) */
+.primary-btn,
+.secondary-btn { outline: none; }
+
+.primary-btn:focus-visible,
+.secondary-btn:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.6); }
