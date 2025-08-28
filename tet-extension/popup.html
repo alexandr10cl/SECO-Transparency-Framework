@@ -223,12 +223,16 @@
                 <p>Now you have to submit your answers!</p>
         </div>
         <hr style="border: 1px solid #ccc; width: 80%; margin-top: 30px;">
-        <h2 class="highlight-message">Please click the button to submit your answers and complete the evaluation.</h2>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <h2 class="highlight-message">Attention! You can now end the UX-tracking capture.</h2>
-        <hr style="border: 1px solid #ccc; width: 80%;">
+        <h2 id="submitInstruction" class="highlight-message">Please click the button to submit your answers and complete the evaluation.</h2>
+        <div id="uxtEndBlock" style="display: none;">
+            <hr style="border: 1px solid #ccc; width: 80%;">
+            <h2 class="highlight-message">Attention! You can now end the UX-tracking capture.</h2>
+            <hr style="border: 1px solid #ccc; width: 80%;">
+        </div>
         <button id="finishevaluationbtn">Submit and Finish evaluation</button>
     </div>
+
+    <div id="toast" class="toast">Submission successful. You may stop UX‑tracking now.</div>
 
     <script src="popup.js"></script>
 </body>

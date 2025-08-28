@@ -234,13 +234,25 @@ def update_evaluation(id):
 def delete_evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
     
+    # Delete all related objects tied to this evaluation's collected data
     for c in evaluation.collected_data:
+        # Answers are linked to CollectedData (not PerformedTask)
+        for a in c.answers:
+            db.session.delete(a)
+
+        # Delete navigation events tied to this CollectedData
+        for n in c.navigation:
+            db.session.delete(n)
+
+        # Delete performed tasks tied to this CollectedData
         for p in c.performed_tasks:
-            for a in p.answers:
-                db.session.delete(a)
             db.session.delete(p)
-        
-        db.session.delete(c.developer_questionnaire)
+
+        # Delete developer questionnaire if present
+        if getattr(c, 'developer_questionnaire', None):
+            db.session.delete(c.developer_questionnaire)
+
+        # Finally, delete the collected data record itself
         db.session.delete(c)
     
     db.session.delete(evaluation)

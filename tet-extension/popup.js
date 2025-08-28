@@ -37,6 +37,7 @@ let currentTaskTimestamp = "Erro ao obter o timestamp"; // Armazena o timestamp 
 let currentTaskStatus = "solving" // alterado para "solved" ou "couldntsolve" no botão de finalizar a task
 let taskStartTime = null; // Armazena o timestamp da task atual
 let taskEndTime = null; // Armazena o timestamp da task atual
+let isSubmitting = false; // Evita envios duplicados do resultado
 
 
 
@@ -623,7 +624,21 @@ document.getElementById("finishevaluationbtn").addEventListener("click", functio
 
 // Enviar dados da coleta para o Flask
 function sendData() {
-  fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {
+  // Evita envios duplicados
+  if (isSubmitting) {
+    return Promise.resolve();
+  }
+  isSubmitting = true;
+
+  const btn = document.getElementById("finishevaluationbtn");
+  if (btn) {
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.dataset.originalText = originalText;
+    btn.textContent = "Submitting...";
+    btn.classList.add('btn-loading');
+  }
+  return fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {
     method: "POST",
     headers: {
         "Content-Type": "application/json" // informar ao flask que o dado que esta sendo enviado é um json
@@ -632,13 +647,38 @@ function sendData() {
   })
   .then(response => response.json()) // converte a resposta recebida pela api em um json
   .then(data => { // Agora com os dados convertidos, exibe na tela que foi enviado com sucesso
-    document.getElementById("finishevaluationbtn").disabled = true; // Desabilita o botão de finalizar
+    const btnGuard = document.getElementById("finishevaluationbtn");
+    if (btnGuard) {
+      btnGuard.disabled = true;
+      btnGuard.classList.remove('btn-loading');
+      btnGuard.textContent = "Submitted";
+    }
+    // Mostrar aviso de finalizar UX-Tracking somente após envio com sucesso
+    const notice = document.getElementById("uxtEndBlock");
+    if (notice) notice.style.display = "block";
+    // Esconder instrução inicial após envio
+    const instruction = document.getElementById("submitInstruction");
+    if (instruction) instruction.style.display = "none";
     console.log("Resposta do servidor:", data);
     alert("Dados enviados com sucesso");
+    // Toast feedback
+    const toast = document.getElementById('toast');
+    if (toast) {
+      toast.textContent = 'Submission successful. You may stop UX‑tracking now.';
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
   })
   .catch(error => { //tratamento de erro
     alert("Erro ao enviar os dados");
     console.error("Erro ao enviar os dados:", error);
+    const btnReenable = document.getElementById("finishevaluationbtn");
+    if (btnReenable) {
+      btnReenable.disabled = false;
+      btnReenable.classList.remove('btn-loading');
+      btnReenable.textContent = btnReenable.dataset.originalText || btnReenable.textContent || "Submit and Finish evaluation";
+    }
+    isSubmitting = false;
   });
 }
 
