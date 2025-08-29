@@ -54,7 +54,7 @@ fetch(`/api/satisfaction/${id}`)
         }]
       },
       options: {
-          responsive: false,
+          responsive: true,
           maintainAspectRatio: false
       }
     });
@@ -142,30 +142,51 @@ fetch(`/api/grau-academico/${id}`)
     });
   })
 
+// Word cloud – responsive rendering
 async function gerarNuvem(){
+  const canvas = document.getElementById('word-cloud');
+  if (!canvas) return;
+  const container = canvas.parentElement;
+
+  // Size canvas to container for crisp rendering
+  const width = Math.max(300, container.clientWidth);
+  const height = Math.max(250, Math.round(width * 0.55));
+  canvas.width = width;
+  canvas.height = height;
 
   fetch(`/api/wordcloud/${id}`)
     .then(response => response.json())
     .then(data => {
+      const words = data || [];
+      const maxWeight = words.length ? Math.max(...words.map(w => w[1])) : 1;
 
-      words = data
+      // Scale font between min/max relative to canvas width
+      const minFont = 12;
+      const maxFont = Math.max(28, Math.min(72, Math.round(width / 8)));
 
-      WordCloud(document.getElementById('word-cloud'), {
+      WordCloud(canvas, {
         list: words,
-        gridSize: 10,
-        weightFactor: 5,
-        fontFamily: 'Montserrat',
+        gridSize: Math.max(8, Math.round(width / 64)),
+        weightFactor: (size) => minFont + (size / (maxWeight || 1)) * (maxFont - minFont),
+        fontFamily: 'Montserrat, sans-serif',
         color: 'random-dark',
         backgroundColor: '#ffffff',
         rotateRatio: 0,
         rotationSteps: 2,
-        shape: 'circle'
+        shape: 'circle',
+        shuffle: true,
+        drawOutOfBound: false,
+        shrinkToFit: true,
       });
     });
-
-  
-
 }
+
+// Re-render word cloud on resize (debounced)
+let wcResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(wcResizeTimer);
+  wcResizeTimer = setTimeout(() => gerarNuvem(), 200);
+});
 
 // Função para aplicar cores aos status baseado no texto
 function applyStatusColors() {
