@@ -391,7 +391,19 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    gap: 20px;
+    align-items: stretch;
 }
+
+/* Ensure the two cards fill the row on desktop */
+.aside > .word-cloud,
+.aside > .dev-emotion {
+    flex: 1 1 48%;
+    min-width: 0;
+}
+
+/* Make the pie chart canvas fill its card on desktop */
+.dev-emotion canvas { width: 100% !important; height: 360px !important; display: block; }
 
 .d1 .percentage-bar div{
     background-color: rgb(117, 0, 0);
@@ -656,6 +668,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .guideline-status {
@@ -856,6 +869,41 @@ body {
         font-size: 0.7rem;
         padding: 0.375rem 0.625rem;
     }
+}
+
+/* --- Responsive additions for dashboard & word cloud --- */
+.word-cloud { min-height: 320px; }
+.word-cloud canvas { width: 100%; height: auto; display: block; }
+
+/* Make heatmap images scale within container */
+.heatmap-image img { max-width: 100%; height: auto; }
+
+/* General responsive tweaks */
+@media (max-width: 1024px) {
+  .dashboard-container { padding: 24px; }
+  .aside { flex-direction: column; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container { padding: 16px; }
+  .evaluation-info { flex-direction: column; align-items: stretch; gap: 12px; }
+  .dimensions, .dx_categorys { flex-direction: column; gap: 12px; }
+  .score { width: 100%; }
+  .overall { transform: none; max-width: 100%; }
+  .profilecharts { flex-direction: column; align-items: stretch; }
+  #pieChart, #experienceChart, #educationChart { width: 100% !important; height: 320px !important; }
+  .dashboard-navbar { max-width: 100%; }
+  .dashboard-navbar ul { flex-wrap: wrap; }
+
+  /* Make guideline headers stack on mobile to avoid overflow */
+  .guideline-info-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .guideline-status { white-space: normal; align-self: flex-start; }
+  .ksc-card { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .dashboard-title h2 { font-size: 1.25rem; }
+  .overview-header h2, .tasks-card h2, .guidelines-card h2 { font-size: 1.5rem; }
 }
 
 /* Badge Legend Styles */
