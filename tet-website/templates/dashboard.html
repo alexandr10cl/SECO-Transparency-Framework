@@ -230,70 +230,77 @@
                     </div>
                 </div>
                 
-                {% for task in processed_tasks %}
-                    {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
-                    {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
-                    {% set time_critical = avg_time > 120 %}
-                    {% set success_critical = completion_rate < 50 %}
-                    {% set needs_attention = time_critical and success_critical %}
-                    
-                    <div class="task-overview-card {{ 'critical-task' if needs_attention else '' }}">
-                        <div class="task-header">
-                            <h3>{{ task.title }}</h3>
-                            {% if needs_attention %}
-                                <div class="attention-badge">
-                                    <span class="material-symbols-outlined">warning</span>
-                                    Needs Attention
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="task-metrics">
-                            <div class="metric-item">
-                                <div class="metric-label">
-                                    <strong>Average Time:</strong> {{ avg_time }} seconds
-                                </div>
-                                <div class="metric-badge">
-                                    {% if avg_time <= 30 %}
-                                        <span class="badge badge-excellent">Fast</span>
-                                    {% elif avg_time <= 60 %}
-                                        <span class="badge badge-good">Moderate</span>
-                                    {% elif avg_time <= 120 %}
-                                        <span class="badge badge-warning">Slow</span>
-                                    {% else %}
-                                        <span class="badge badge-critical">Very Slow</span>
+            </div>
+            <div class="task-sections">
+            {% for section in tasks_by_process %}
+                <div class="task-section">
+                    <h3 class="task-section-title">{% if section.process_id > 0 %}P{{ section.process_id }} — {% endif %}{{ section.process_title }}</h3>
+                    <div class="task-grid">
+                        {% for task in section.tasks %}
+                            {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
+                            {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
+                            {% set time_critical = avg_time > 120 %}
+                            {% set success_critical = completion_rate < 50 %}
+                            {% set needs_attention = time_critical and success_critical %}
+                            <div class="task-overview-card {{ 'critical-task' if needs_attention else '' }}">
+                                <div class="task-header">
+                                    <h3>{{ task.title }}</h3>
+                                    {% if needs_attention %}
+                                        <div class="attention-badge">
+                                            <span class="material-symbols-outlined">warning</span>
+                                            Needs Attention
+                                        </div>
                                     {% endif %}
                                 </div>
-                            </div>
-                            
-                            <div class="metric-item">
-                                <div class="metric-label">
-                                    <strong>Success Rate:</strong> {{ completion_rate }}%
+                                <div class="task-metrics">
+                                    <div class="metric-item">
+                                        <div class="metric-label">
+                                            <strong>Average Time:</strong> {{ avg_time }} seconds
+                                        </div>
+                                        <div class="metric-badge">
+                                            {% if avg_time <= 30 %}
+                                                <span class="badge badge-excellent">Fast</span>
+                                            {% elif avg_time <= 60 %}
+                                                <span class="badge badge-good">Moderate</span>
+                                            {% elif avg_time <= 120 %}
+                                                <span class="badge badge-warning">Slow</span>
+                                            {% else %}
+                                                <span class="badge badge-critical">Very Slow</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="metric-item">
+                                        <div class="metric-label">
+                                            <strong>Success Rate:</strong> {{ completion_rate }}%
+                                        </div>
+                                        <div class="metric-badge">
+                                            {% if completion_rate >= 90 %}
+                                                <span class="badge badge-excellent">High Success</span>
+                                            {% elif completion_rate >= 70 %}
+                                                <span class="badge badge-good">Good Success</span>
+                                            {% elif completion_rate >= 50 %}
+                                                <span class="badge badge-warning">Low Success</span>
+                                            {% else %}
+                                                <span class="badge badge-critical">Poor Success</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="metric-badge">
-                                    {% if completion_rate >= 90 %}
-                                        <span class="badge badge-excellent">High Success</span>
-                                    {% elif completion_rate >= 70 %}
-                                        <span class="badge badge-good">Good Success</span>
-                                    {% elif completion_rate >= 50 %}
-                                        <span class="badge badge-warning">Low Success</span>
-                                    {% else %}
-                                        <span class="badge badge-critical">Poor Success</span>
-                                    {% endif %}
+                                <div class="task-comments">
+                                    <strong>Developer comments:</strong>
+                                    <ul>
+                                        {% for comment in task.comments %}
+                                            <li>{{ comment }}</li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="task-comments">
-                            <strong>Developer comments:</strong>
-                            <ul>
-                                {% for comment in task.comments %}
-                                    <li>{{ comment }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+                        {% else %}
+                            <p class="task-empty">No tasks performed for this process.</p>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                </div>
+            {% endfor %}
             </div>
         </div>
     </div>

@@ -522,10 +522,45 @@ def eval_dashboard(id):
         completion_rate = round((info["solved_count"] / info["total_count"]) * 100, 1) if info["total_count"] > 0 else 0
 
         processed_tasks.append({
+            "task_id": task_id,
             "title": info["title"],
             "comments": info["comments"],
             "avg_time": avg_time,
             "completion_rate": completion_rate
+        })
+
+    # Agrupar tasks por SECO process (para desktop layout mais informativo)
+    # Mapa de task_id -> lista de process_ids
+    task_to_process = {}
+    for p in evaluation.seco_processes:
+        for t in p.tasks:
+            task_to_process.setdefault(t.task_id, []).append(p.seco_process_id)
+
+    # Índice rápido de processed_tasks por id
+    processed_by_id = {t["task_id"]: t for t in processed_tasks}
+
+    tasks_by_process = []
+    seen_in_process = set()
+    for p in evaluation.seco_processes:
+        section_tasks = []
+        for t in p.tasks:
+            pt = processed_by_id.get(t.task_id)
+            if pt:
+                section_tasks.append(pt)
+                seen_in_process.add(pt["task_id"])
+        tasks_by_process.append({
+            "process_id": p.seco_process_id,
+            "process_title": p.description,
+            "tasks": section_tasks,
+        })
+
+    # Qualquer task realizada que não esteja associada a um processo da avaliação
+    uncategorized = [pt for pt in processed_tasks if pt["task_id"] not in seen_in_process]
+    if uncategorized:
+        tasks_by_process.append({
+            "process_id": 0,
+            "process_title": "Other Tasks",
+            "tasks": uncategorized,
         })
         
     dimension_scores = []
@@ -610,6 +645,7 @@ def eval_dashboard(id):
                             ePortalUrl=ePortalUrl,
                             dimensions=dimensions,
                             processed_tasks=processed_tasks,
+                            tasks_by_process=tasks_by_process,
                             result=result,
                             score_geral=score_geral,
                             g_dimensions=g_dimensions_flat,
