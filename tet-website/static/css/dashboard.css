@@ -479,8 +479,8 @@ body {
 
 
 .tasks-summary {
-    max-width: 1000px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0; /* align with task sections below */
 }
 
 .tasks-summary h2 {
@@ -925,8 +925,9 @@ body {
     background-color: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
+    width: 100%;
 }
 
 .badge-legend h4 {
@@ -940,6 +941,15 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
+    align-items: start; /* top-align all columns */
+}
+@media (min-width: 1024px) {
+  .legend-grid { grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+  /* Align the third (Attention) column neatly to the right edge */
+  .legend-grid > .legend-section:nth-child(3) { text-align: right; justify-self: end; width: 100%; }
+  .legend-grid > .legend-section:nth-child(3) .legend-items { align-items: flex-end; }
+  /* Ensure the orange badge uses the column width elegantly */
+  .legend-grid > .legend-section:nth-child(3) .attention-badge-small { width: 100%; max-width: 560px; }
 }
 
 .legend-section {
