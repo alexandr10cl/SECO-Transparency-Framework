@@ -160,12 +160,34 @@ def submit_tasks():
             elif answer_value is None:
                 answer_value = 50  # default value
             
-            answer = Answer(
-                answer              = int(answer_value),
-                question_id         = item.get("question_id"),
-                collected_data_id   = collected.collected_data_id
-            )
-            db.session.add(answer)
+            # Persist answer for the selected question_id and any other question rows
+            # that share the exact same text (deduplicated display, but full DB coverage)
+            qid = item.get("question_id")
+            question_row = Question.query.get(qid) if qid is not None else None
+
+            if question_row is None:
+                # Fallback: save only for provided question_id
+                answer = Answer(
+                    answer            = int(answer_value),
+                    question_id       = qid,
+                    collected_data_id = collected.collected_data_id
+                )
+                db.session.add(answer)
+            else:
+                # Find all questions with identical text and save the same answer to each
+                same_text_questions = Question.query.filter_by(question=question_row.question).all()
+                for q2 in same_text_questions:
+                    # Avoid duplicate Answer rows for the same (collected_data, question)
+                    existing_ans = Answer.query.filter_by(
+                        collected_data_id=collected.collected_data_id,
+                        question_id=q2.question_id
+                    ).first()
+                    if existing_ans is None:
+                        db.session.add(Answer(
+                            answer            = int(answer_value),
+                            question_id       = q2.question_id,
+                            collected_data_id = collected.collected_data_id
+                        ))
 
     # Salva o questionário do desenvolvedor
     prof = data.get("profile_questionnaire", {})
@@ -280,6 +302,7 @@ def load_tasks():
         result = []
         evaluation_seco_type = evaluation.seco_type  # Obtém o seco_type da avaliação
         
+        seen_question_texts = set()
         for process in evaluation.seco_processes:
             process_obj = {
                 "process_id": process.seco_process_id,
@@ -312,17 +335,24 @@ def load_tasks():
                         "task_description": task.description
                     })
             # Adiciona perguntas de review (questions dos Key Success Criteria das guidelines do processo)
-            review_questions = set()
+            # Evita duplicatas entre processos por texto de pergunta
+            local_seen_texts = set()
             for guideline in process.guidelines:
                 for ksc in guideline.key_success_criteria:
                     for question in ksc.questions:
-                        review_questions.add((question.question, question.question_id))
-            # Adiciona ao objeto, evitando duplicatas
-            for q_text, q_id in review_questions:
-                process_obj["process_review"].append({
-                    "process_review_question_text": q_text,
-                    "process_review_question_id": q_id
-                })
+                        if question.question in local_seen_texts:
+                            continue
+                        local_seen_texts.add(question.question)
+
+                        if question.question in seen_question_texts:
+                            # Já exibida em processo anterior nesta avaliação
+                            continue
+
+                        seen_question_texts.add(question.question)
+                        process_obj["process_review"].append({
+                            "process_review_question_text": question.question,
+                            "process_review_question_id": question.question_id
+                        })
             result.append(process_obj)
         
         print("Resultado:", result)
