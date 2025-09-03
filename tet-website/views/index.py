@@ -151,39 +151,35 @@ def add_evaluation():
     if not evaluation_id:
         print(f"LOG: Usando geração aleatória de código (fallback)")
         while True:
-            evaluation_id = ''.join(rd.choices('0123456789', k=6))
             if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
                 break
-        print(f"LOG: Código gerado aleatoriamente: {evaluation_id}")
-    
-    print(f"LOG: Código final da avaliação: {evaluation_id}")
-    print(f"LOG: SECO Type da avaliação: {seco_type}")
-    print(f"=== LOG: Fim da geração de código ===")    
 
-    # map selected processes
-    seco_processes = []
-    if seco_process_ids:
-        seco_processes = SECO_process.query.filter(
-            SECO_process.seco_process_id.in_(seco_process_ids)
-        ).all()
+    if r and r.status_code == 201 and evaluation_id:
 
-    # create and save
-    new_evaluation = Evaluation(
-        evaluation_id=evaluation_id,
-        name=name,
-        user_id=user.user_id,
-        seco_processes=seco_processes,
-        seco_portal=seco_portal,
-        seco_portal_url=seco_portal_url,
-        seco_type=seco_type
-    )
+        # map selected processes
+        seco_processes = []
+        if seco_process_ids:
+            seco_processes = SECO_process.query.filter(
+                SECO_process.seco_process_id.in_(seco_process_ids)
+            ).all()
 
-    try:
-        db.session.add(new_evaluation)
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        return redirect(url_for('evaluations'))
+        # create and save
+        new_evaluation = Evaluation(
+            evaluation_id=evaluation_id,
+            name=name,
+            user_id=user.user_id,
+            seco_processes=seco_processes,
+            seco_portal=seco_portal,
+            seco_portal_url=seco_portal_url,
+            seco_type=seco_type
+        )
+
+        try:
+            db.session.add(new_evaluation)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return redirect(url_for('evaluations'))
 
     return redirect(url_for('evaluations'))
 
