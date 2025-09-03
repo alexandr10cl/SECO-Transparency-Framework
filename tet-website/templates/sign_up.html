@@ -11,7 +11,7 @@
     <form class="signinForm" action="{{ url_for('register') }}" method="post">
         <h2 class="signup">Sign up</h2>
         <input type="email" name="email" id="email" placeholder="Type your email">
-        <input type="text" name="name" id="name" placeholder="Type your name">
+        <input type="text" name="name" id="name" placeholder="Type your username">
         <input type="password" name="passw" id="passw" placeholder="Type your password">
         <input type="password" name="confpass"  id="confpass" placeholder="Confirm your password">
         <a href="{{ url_for('signin') }}">Do you already have an account?</a>

@@ -48,7 +48,7 @@
                     <h3>Related Guidelines</h3>
                     <div class="guidelines modals">
                         {% for g in guidelines %}
-                            <button class="openModal" id="openModal{{ g.guidelineID }}">{{ g.title }}</button>
+                            <p>{{ g.title }}</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                     <h3>Related Tasks</h3>
                     <div class="tasks modals">
                         {% for t in tasks %}
-                            <button class="openModal" id="openModal{{ t.task_id }}">{{ t.title }}</button>
+                            <p>{{ t.title }}</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                     <h3>Collects</h3>
                     <div class="cData modals">
                         {% for c in collected_data %}
-                                <button class="openModal" id="openModal{{ c.collected_data_id }}">Collect {{ c.collected_data_id }}</button>
+                                <p">Collect {{ c.collected_data_id }}</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -75,128 +75,6 @@
                 </div>
         </div>
     </div>
-
-    {% for g in guidelines %}
-        <div id="modalG{{ g.guidelineID }}" class="modal inv">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <h2>G{{ g.guidelineID }}: {{ g.title }}</h2>
-                <p>{{ g.description }}</p>
-
-                <div class="details">
-                    <div class="processes">
-                        <h3>Helps in Processes</h3>
-                        <ul>
-                            {% for p in g.seco_processes %}
-                            <li>P{{ p.seco_process_id }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="dimensions">
-                        <h3>Dimensions</h3>
-                        <ul class=>
-                            {% for d in g.seco_dimensions %}
-                                <li>{{ d.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="condFac">
-                        <h3>Conditioning Factors</h3>
-                        <ul>
-                            {% for cf in g.conditioning_factors %}
-                                <li>{{ cf.conditioning_factor_transp_id }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="dxFac">
-                        <h3>DX Factors</h3>
-                        <ul>
-                            {% for f in g.dx_factors %}
-                                <li>{{ f.dx_factor_id }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                <h3 class="ksch3">Key Sucess Criteria</h3>
-                <div class="success-criteria">
-                    {% for ksc in g.key_success_criteria %}
-                        <div class="success-criterion">
-                            <h4>{{ ksc.title }}</h4>
-                            <p>{{ ksc.description }}</p>
-                            {% for e in ksc.examples %}
-                                <div class="example">
-                                    <strong>Example: </strong> {{ e.description }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                    
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-    
-    {% for t in tasks %}
-        <div id="modalT{{ t.task_id }}" class="modal inv">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 id="modal-titleT{{ t.task_id }}">{{ t.title }}</h2>
-                <div class="details-flex">
-                    <h3>Task</h3>
-                    <ul id="modal-descriptionT{{ t.task_id }}">
-                        <li>{{ t.description }}</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-
-    {% for c in collected_data %}
-        <div id="modalC{{ c.collected_data_id }}" class="modal inv">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 id="modal-titleC{{ c.collected_data_id }}">Collect {{ c.collected_data_id }}</h2>
-                <div class="details-flex">
-                    <h3>Performed Tasks</h3>
-                    <ul id="modal-descriptionC{{ c.collected_data_id }}">
-                        
-                            {% for p in c.performed_tasks %}
-                                <li {% if p.status.value == 'solved' %} style="background-color: rgba(149, 255, 128, 0.2);" {% else %} style="background-color: rgba(255, 128, 128, 0.2);" {% endif %}>
-                                    {% for t in tasks %}
-                                        {% if t.task_id == p.task_id %}
-                                            {{ t.title }}
-                                        {% endif %}
-                                    {% endfor %}
-                                </li>
-                            {% endfor %}
-                    </ul>
-                    <h3 style="margin-top: 60px;">Questionaire</h3>
-                    {% set ns = namespace(qCont=1) %}
-                    <ul>
-                        {% for p in c.performed_tasks %}
-                            {% for a in p.answers %}
-                                {% for q in questions %}
-                                    {% if q.question_id == a.question_id %}
-                                        <h4>Question {{ ns.qCont }}</h4>
-                                        <ul>
-                                            <li>{{ q.question }}</li>
-                                        </ul>
-                                        <h4 style="margin-top: 10px;">Answer {{ ns.qCont }}</h4>
-                                        {% set ns.qCont = ns.qCont + 1 %}
-                                        <ul>
-                                            <li>{{ a.answer }}</li>
-                                        </ul>
-                                        
-                                    {% endif %}
-                                {% endfor %}
-                            {% endfor %}
-                        {% endfor %}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
 
     <div id="modalConfig" class="modal inv">
         <div class="modal-content">
