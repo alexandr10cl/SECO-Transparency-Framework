@@ -2,6 +2,12 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/evaluation.css">
+<style>
+    .pwarning{
+        font-weight: 600;
+        color: #777777;
+    }
+</style>
 {% endblock %}
 
 {% block title %}Create Evaluation{% endblock %}
@@ -31,7 +37,7 @@
 
                 <div class="mb-3">
                     <h4 class="form-label">SECO Common Software Ecosystem Procedures to evaluate</h4>
-
+                    <!-- <p class="pwarning">*We recommend selecting no more than 3 procedures.</p> -->
                     <div class="checkbox-group" id="process-group" aria-describedby="process-error">
                         {% for process in seco_processes %}
                         <div class="checkbox-item">
