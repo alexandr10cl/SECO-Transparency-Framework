@@ -5,6 +5,104 @@ from functions import isLogged
 import os
 import requests
 import json
+from datetime import datetime
+import pytz
+from typing import List, Dict, Any, Optional
+import traceback
+
+def normalize_timestamp(timestamp_str: str) -> Optional[datetime]:
+    """
+    Função utilitária para normalizar timestamps de diferentes formatos para UTC
+    
+    Args:
+        timestamp_str: String do timestamp em vários formatos possíveis
+        
+    Returns:
+        datetime object normalizado para UTC ou None se falhar
+    """
+    if not timestamp_str:
+        return None
+        
+    try:
+        timestamp_str = str(timestamp_str).strip()
+        
+        # Formato ISO com Z (UTC)
+        if timestamp_str.endswith('Z'):
+            dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+            return dt.astimezone(pytz.UTC)
+            
+        # Formato ISO com timezone explícito
+        elif '+' in timestamp_str[-6:] or timestamp_str[-6:-3] == '-':
+            dt = datetime.fromisoformat(timestamp_str)
+            return dt.astimezone(pytz.UTC)
+            
+        # Formato ISO sem timezone - assumir UTC
+        else:
+            dt = datetime.fromisoformat(timestamp_str)
+            if dt.tzinfo is None:
+                dt = pytz.UTC.localize(dt)
+            return dt.astimezone(pytz.UTC)
+            
+    except (ValueError, AttributeError, TypeError) as e:
+        print(f"⚠️ Erro ao normalizar timestamp '{timestamp_str}': {e}")
+        return None
+
+def build_task_interval_map(performed_tasks: List) -> Dict[str, Dict]:
+    """
+    Constrói um mapa otimizado de intervalos de tarefas para busca eficiente
+    
+    Args:
+        performed_tasks: Lista de PerformedTask objects
+        
+    Returns:
+        Dict mapeando performed_task_id para informações da tarefa e intervalos normalizados
+    """
+    task_map = {}
+    
+    for pt in performed_tasks:
+        try:
+            # Normalizar timestamps da performed_task
+            initial_ts = normalize_timestamp(str(pt.initial_timestamp))
+            final_ts = normalize_timestamp(str(pt.final_timestamp))
+            
+            if initial_ts and final_ts:
+                task_map[pt.performed_task_id] = {
+                    'task_id': pt.task_id,
+                    'title': pt.task.title,
+                    'description': getattr(pt.task, 'description', ''),
+                    'performed_task_id': pt.performed_task_id,
+                    'initial_timestamp': initial_ts,
+                    'final_timestamp': final_ts,
+                    'status': pt.status.value if hasattr(pt.status, 'value') else str(pt.status)
+                }
+                
+        except Exception as e:
+            print(f"⚠️ Erro ao processar performed_task {pt.performed_task_id}: {e}")
+            
+    return task_map
+
+def find_active_task_optimized(point_timestamp: datetime, task_intervals: Dict[str, Dict]) -> Optional[Dict]:
+    """
+    Encontra a tarefa ativa no momento do ponto usando busca otimizada
+    
+    Args:
+        point_timestamp: Timestamp normalizado do ponto
+        task_intervals: Mapa de intervalos de tarefas
+        
+    Returns:
+        Dict com informações da tarefa ativa ou None
+    """
+    for task_info in task_intervals.values():
+        if task_info['initial_timestamp'] <= point_timestamp <= task_info['final_timestamp']:
+            return {
+                'task_id': task_info['task_id'],
+                'title': task_info['title'],
+                'description': task_info['description'],
+                'performed_task_id': task_info['performed_task_id'],
+                'status': task_info['status']
+            }
+    
+    return None
 
 @app.route('/api/guideline/<int:id>')
 def api_get_guideline(id):
@@ -295,3 +393,222 @@ def api_view_heatmap(id):
         print(f"--- Headers da resposta de erro: {dict(resposta_heatmap.headers)} ---")
         print(f"--- Resposta de erro da API: {resposta_heatmap.text[:1000]} ---")  # Primeiros 1000 chars
         return jsonify({"error": "Failed to retrieve heatmap data"}), resposta_heatmap.status_code
+
+@app.route('/api/heatmap-tasks/<int:evaluation_id>')
+def api_heatmap_tasks(evaluation_id):
+    """
+    API para mapear heatmaps com tarefas executadas durante uma avaliação
+    Retorna dados de heatmap enriquecidos com informações das tarefas ativas
+    Versão otimizada com melhor tratamento de timestamps e algoritmo eficiente
+    """
+    print(f"\n🔥 === HEATMAP TASKS API - VERSÃO OTIMIZADA ===")
+    print(f"📊 Avaliação ID: {evaluation_id}")
+    print(f"⏰ Iniciado em: {datetime.now(pytz.UTC).isoformat()}")
+    
+    # Verificar autenticação
+    if not isLogged():
+        print("❌ Usuário não autenticado")
+        return jsonify({"error": "User not authenticated", "details": "Login required"}), 401
+    
+    token = session.get('uxt_access_token')
+    if not token:
+        print("❌ Token UXT não encontrado")
+        return jsonify({"error": "UXT authentication token not found", "details": "Session expired"}), 401
+    
+    try:
+        evaluation = Evaluation.query.get_or_404(evaluation_id)
+        print(f"✅ Avaliação encontrada: ID {evaluation.evaluation_id}")
+        
+        print(f"🔑 Token (primeiros 20 chars): {token[:20]}...")
+        
+        url_get_heatmap = f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}'
+        headers_user = {'Authorization': f'Bearer {token}'}
+        
+        print(f"🌐 Requisitando heatmap: {url_get_heatmap}")
+        print(f"🔐 Headers configurados com token")
+        
+        # Buscar dados do heatmap
+        resposta_heatmap = requests.get(url_get_heatmap, headers=headers_user, timeout=60)
+        print(f"📡 Status: {resposta_heatmap.status_code} | Content-Type: {resposta_heatmap.headers.get('content-type', 'N/A')}")
+        print(f"📦 Tamanho: {len(resposta_heatmap.content)} bytes")
+        
+        if resposta_heatmap.status_code != 200:
+            print(f"❌ Falha no heatmap - Status: {resposta_heatmap.status_code}")
+            print(f"📋 Headers: {dict(resposta_heatmap.headers)}")
+            print(f"📄 Resposta: {resposta_heatmap.text[:500]}...")
+            return jsonify({
+                "error": "Failed to retrieve heatmap data", 
+                "status_code": resposta_heatmap.status_code,
+                "details": resposta_heatmap.text[:200]
+            }), resposta_heatmap.status_code
+        
+        print("✅ Dados do heatmap recebidos com sucesso")
+        
+        # Parse do JSON
+        try:
+            heatmap_data = resposta_heatmap.json()
+            print("✅ JSON parseado com sucesso")
+        except json.JSONDecodeError as e:
+            print(f"❌ Erro ao parsear JSON: {e}")
+            print(f"📄 Resposta: {resposta_heatmap.text[:300]}...")
+            traceback.print_exc()
+            return jsonify({"error": "Invalid JSON response", "details": str(e)}), 500
+        
+        print(f"📊 Tipo dos dados: {type(heatmap_data)} | É lista: {isinstance(heatmap_data, list)}")
+        
+        # Normalizar dados para lista
+        if not isinstance(heatmap_data, list):
+            print("🔄 Convertendo dados para lista")
+            heatmap_data = [heatmap_data]
+        
+        # Coletar performed_tasks
+        performed_tasks = []
+        for col_data in evaluation.collected_data:
+            performed_tasks.extend(col_data.performed_tasks)
+        
+        print(f"📋 Total de performed_tasks encontradas: {len(performed_tasks)}")
+        
+        if not performed_tasks:
+            print("⚠️ Nenhuma performed_task encontrada para esta avaliação")
+            return jsonify({
+                "heatmaps": [],
+                "available_tasks": [],
+                "message": "No performed tasks found for this evaluation"
+            })
+        
+        # Construir mapa otimizado de intervalos de tarefas
+        print("🔧 Construindo mapa otimizado de intervalos de tarefas...")
+        task_intervals = build_task_interval_map(performed_tasks)
+        print(f"✅ Mapa construído com {len(task_intervals)} intervalos válidos")
+        
+        # Criar lista de tarefas únicas para filtros
+        unique_tasks = {}
+        for pt in performed_tasks:
+            if pt.task_id not in unique_tasks:
+                unique_tasks[pt.task_id] = {
+                    'task_id': pt.task_id,
+                    'title': pt.task.title,
+                    'description': getattr(pt.task, 'description', '')
+                }
+        
+        print(f"📋 Tarefas únicas criadas: {len(unique_tasks)}")
+        
+        # Processar heatmaps com algoritmo otimizado
+        print(f"🔄 Iniciando processamento de {len(heatmap_data)} itens de heatmap")
+        heatmaps = []
+        total_points_processed = 0
+        points_with_tasks = 0
+        
+        for idx, item in enumerate(heatmap_data):
+            print(f"🔄 Processando heatmap item {idx + 1}/{len(heatmap_data)}")
+            
+            if not isinstance(item, dict):
+                print(f"⚠️ Item {idx + 1} não é um dict")
+                continue
+            
+            page_images = item.get('page_images', [])
+            if not isinstance(page_images, list):
+                print(f"⚠️ page_images do item {idx + 1} não é uma lista")
+                continue
+            
+            for page_idx, page_image in enumerate(page_images):
+                if not isinstance(page_image, dict):
+                    continue
+                
+                points = page_image.get('points', [])
+                if not isinstance(points, list):
+                    continue
+                
+                print(f"📊 Processando {len(points)} pontos da página {page_idx + 1}")
+                
+                # Mapear pontos usando algoritmo otimizado
+                mapped_points = []
+                page_points_with_tasks = 0
+                
+                for point in points:
+                    total_points_processed += 1
+                    
+                    if not isinstance(point, dict) or 'timestamp' not in point:
+                        mapped_points.append(point)
+                        continue
+                
+                    # Normalizar timestamp do ponto
+                    point_timestamp = normalize_timestamp(point.get('timestamp'))
+                    if not point_timestamp:
+                        print(f"⚠️ Timestamp inválido no ponto: {point.get('timestamp')}")
+                        mapped_points.append(point)
+                        continue
+                
+                    # Encontrar tarefa ativa usando algoritmo otimizado
+                    active_task = find_active_task_optimized(point_timestamp, task_intervals)
+                    
+                    if active_task:
+                        page_points_with_tasks += 1
+                        points_with_tasks += 1
+                
+                    # Adicionar informação da tarefa ao ponto
+                    point_with_task = point.copy()
+                    point_with_task['active_task'] = active_task
+                    point_with_task['timestamp_normalized'] = point_timestamp.isoformat() if point_timestamp else None
+                    mapped_points.append(point_with_task)
+                
+                print(f"✅ Página {page_idx + 1}: {page_points_with_tasks}/{len(points)} pontos com tarefas")
+                
+                # Criar item do heatmap com pontos mapeados e metadados
+                heatmap_item = {
+                    "height": page_image.get("height"),
+                    "image": page_image.get("image"),
+                    "points": mapped_points,
+                    "scroll_positions": page_image.get("scroll_positions"),
+                    "url": page_image.get("url"),
+                    "width": page_image.get("width"),
+                    "metadata": {
+                        "total_points": len(points),
+                        "points_with_tasks": page_points_with_tasks,
+                        "coverage_percentage": round((page_points_with_tasks / len(points)) * 100, 1) if points else 0
+                    }
+                }
+                
+                heatmaps.append(heatmap_item)
+        
+        # Estatísticas finais
+        coverage_percentage = round((points_with_tasks / total_points_processed) * 100, 1) if total_points_processed else 0
+        
+        print(f"\n✅ === PROCESSAMENTO CONCLUÍDO ===")
+        print(f"📊 Total de heatmaps: {len(heatmaps)}")
+        print(f"📋 Total de tarefas únicas: {len(unique_tasks)}")
+        print(f"🎯 Pontos processados: {total_points_processed}")
+        print(f"🎯 Pontos com tarefas: {points_with_tasks} ({coverage_percentage}%)")
+        print(f"⏰ Processamento finalizado em: {datetime.now(pytz.UTC).isoformat()}")
+        print("🔥 === FIM HEATMAP TASKS API ===\n")
+        
+        # Resposta final com metadados
+        response_data = {
+            "heatmaps": heatmaps,
+            "available_tasks": list(unique_tasks.values()),
+            "metadata": {
+                "total_heatmaps": len(heatmaps),
+                "total_unique_tasks": len(unique_tasks),
+                "total_points_processed": total_points_processed,
+                "points_with_tasks": points_with_tasks,
+                "overall_coverage_percentage": coverage_percentage,
+                "processed_at": datetime.now(pytz.UTC).isoformat(),
+                "evaluation_id": evaluation_id
+            }
+        }
+        
+        return jsonify(response_data)
+        
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Erro na requisição do heatmap: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "Heatmap request failed", "details": str(e)}), 500
+        
+    except Exception as e:
+        print(f"❌ ERRO GERAL no processamento: {e}")
+        traceback.print_exc()
+        return jsonify({
+            "error": "Processing error", 
+            "details": str(e),
+            "traceback": traceback.format_exc() if app.debug else None
+        }), 500
