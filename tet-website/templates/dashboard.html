@@ -43,9 +43,8 @@
     <div class="dashboard-navbar">
         <ul>
             <li class="active">Overview</li>
-            <li>Performed Tasks</li>
+            <li>Evaluated Procedures</li>
             <li>Hotspots</li>
-            <li>Guidelines Score</li>
         </ul>
     </div>
 
@@ -189,121 +188,187 @@
         </div>
     </div>
 
-    <div class="performed-tasks-container">
-        <div class="tasks-card">
-            <div class="tasks-header">
-                <h2>Performed Tasks</h2>
-                <p>List of tasks performed by developers during the evaluation, including their status and comments made by the developers</p>
-                <hr class="task-heatmap-divider">
+    <div class="evaluated-procedures-container">
+        <div class="procedures-layout">
+            <div class="procedures-sidebar">
+                <h3>Evaluated Procedures</h3>
+                <ul class="procedures-list">
+                    {% for process in seco_processes %}
+                    <li class="procedure-item {% if loop.first %}active{% endif %}" data-process-id="{{ process.seco_process_id }}">
+                        <span class="procedure-id">P{{ process.seco_process_id }}</span>
+                        <span class="procedure-description">{{ process.description }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="tasks-summary">
-                <h2>Task Summary</h2>
-                
-                <!-- Badge Legend -->
-                <div class="badge-legend">
-                    <h4>Badge Criteria:</h4>
-                    <div class="legend-grid">
-                        <div class="legend-section">
-                            <strong>Time Performance:</strong>
-                            <div class="legend-items">
-                                <span class="badge badge-excellent">Fast</span> ≤30s
-                                <span class="badge badge-good">Moderate</span> 31-60s
-                                <span class="badge badge-warning">Slow</span> 61-120s
-                                <span class="badge badge-critical">Very Slow</span> >120s
-                            </div>
-                        </div>
-                        <div class="legend-section">
-                            <strong>Success Rate:</strong>
-                            <div class="legend-items">
-                                <span class="badge badge-excellent">High Success</span> ≥90%
-                                <span class="badge badge-good">Good Success</span> 70-89%
-                                <span class="badge badge-warning">Low Success</span> 50-69%
-                                <span class="badge badge-critical">Poor Success</span> <50%
-                            </div>
-                        </div>
-                        <div class="legend-section">
-                            <strong>Attention:</strong>
-                            <div class="legend-items">
-                                <span class="attention-badge-small">Needs Attention</span> Time >120s AND Success <50%
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
-            <div class="task-sections">
-            {% for section in tasks_by_process %}
-                <div class="task-section">
-                    <h3 class="task-section-title">{% if section.process_id > 0 %}P{{ section.process_id }} — {% endif %}{{ section.process_title }}</h3>
-                    <div class="task-grid">
-                        {% for task in section.tasks %}
-                            {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
-                            {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
-                            {% set time_critical = avg_time > 120 %}
-                            {% set success_critical = completion_rate < 50 %}
-                            {% set needs_attention = time_critical and success_critical %}
-                            <div class="task-overview-card {{ 'critical-task' if needs_attention else '' }}">
-                                <div class="task-header">
-                                    <h3>{{ task.title }}</h3>
-                                    {% if needs_attention %}
-                                        <div class="attention-badge">
-                                            <span class="material-symbols-outlined">warning</span>
-                                            Needs Attention
-                                        </div>
+
+            <div class="procedures-content">
+                {% for process in seco_processes %}
+                <div class="procedure-panel {% if loop.first %}active{% endif %}" data-process-id="{{ process.seco_process_id }}">
+                    <div class="procedure-guidelines">
+                        <h3>Associated Guidelines</h3>
+                        <div class="guidelines-list">
+                            {% for guideline in process.guidelines %}
+                                {% set g_result = result|selectattr('title', 'equalto', guideline.title)|first|default(None) %}
+                                {% if g_result %}
+                                <div class="guideline-card">
+                                    <h4>{{ guideline.title }}</h4>
+                                    <p>{{ guideline.description }}</p>
+                                    {% if g_result.average_score is not none %}
+                                        <span class="score-badge">Score: {{ g_result.average_score }}%</span>
                                     {% endif %}
-                                </div>
-                                <div class="task-metrics">
-                                    <div class="metric-item">
-                                        <div class="metric-label">
-                                            <strong>Average Time:</strong> {{ avg_time }} seconds
-                                        </div>
-                                        <div class="metric-badge">
-                                            {% if avg_time <= 30 %}
-                                                <span class="badge badge-excellent">Fast</span>
-                                            {% elif avg_time <= 60 %}
-                                                <span class="badge badge-good">Moderate</span>
-                                            {% elif avg_time <= 120 %}
-                                                <span class="badge badge-warning">Slow</span>
+
+                                    <div class="guideline-ksc-section">
+                                        <h5>Key Success Criteria:</h5>
+                                        {% for ksc in g_result.key_success_criteria %}
+                                        <div class="ksc-item">
+                                            <h6>{{ ksc.title }}</h6>
+                                            <p>{{ ksc.description }}</p>
+                                            {% if ksc.score is not none %}
+                                                <div class="ksc-score">
+                                                    <span>Score: {{ ksc.porcentagem }}%</span>
+                                                    <span class="ksc-status {{ ksc.status|lower|replace(' ', '-') }}">{{ ksc.status }}</span>
+                                                </div>
                                             {% else %}
-                                                <span class="badge badge-critical">Very Slow</span>
+                                                <span class="ksc-status no-answers">No Answers</span>
                                             {% endif %}
                                         </div>
-                                    </div>
-                                    <div class="metric-item">
-                                        <div class="metric-label">
-                                            <strong>Success Rate:</strong> {{ completion_rate }}%
-                                        </div>
-                                        <div class="metric-badge">
-                                            {% if completion_rate >= 90 %}
-                                                <span class="badge badge-excellent">High Success</span>
-                                            {% elif completion_rate >= 70 %}
-                                                <span class="badge badge-good">Good Success</span>
-                                            {% elif completion_rate >= 50 %}
-                                                <span class="badge badge-warning">Low Success</span>
-                                            {% else %}
-                                                <span class="badge badge-critical">Poor Success</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-comments">
-                                    <strong>Developer comments:</strong>
-                                    <ul>
-                                        {% for comment in task.comments %}
-                                            <li>{{ comment }}</li>
                                         {% endfor %}
-                                    </ul>
+                                    </div>
                                 </div>
-                            </div>
-                        {% else %}
-                            <p class="task-empty">No tasks performed for this process.</p>
-                        {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="procedure-tasks">
+                        <h3>Associated Tasks</h3>
+                        <div class="tasks-accordion">
+                            {% set process_tasks = tasks_by_process|selectattr('process_id', 'equalto', process.seco_process_id)|first|default({'tasks': []}) %}
+                            {% for task in process_tasks.tasks %}
+                                {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
+                                {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
+                                <div class="task-accordion-item">
+                                    <div class="task-accordion-header" data-task-id="{{ task.task_id }}">
+                                        <span class="task-title">{{ task.title }}</span>
+                                        <span class="task-toggle material-symbols-outlined">expand_more</span>
+                                    </div>
+                                    <div class="task-accordion-content">
+                                        <div class="task-metrics">
+                                            <div class="metrics-header">
+                                                <span>Performance Metrics</span>
+                                                <button class="info-btn" onclick="openMetricsModal()">
+                                                    <span class="material-symbols-outlined">info</span>
+                                                </button>
+                                            </div>
+                                            <div class="metric-row">
+                                                <strong>Average Time:</strong>
+                                                <span>{{ avg_time }} seconds</span>
+                                                {% if avg_time <= 30 %}
+                                                    <span class="badge badge-excellent">Fast</span>
+                                                {% elif avg_time <= 60 %}
+                                                    <span class="badge badge-good">Moderate</span>
+                                                {% elif avg_time <= 120 %}
+                                                    <span class="badge badge-warning">Slow</span>
+                                                {% else %}
+                                                    <span class="badge badge-critical">Very Slow</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="metric-row">
+                                                <strong>Success Rate:</strong>
+                                                <span>{{ completion_rate }}%</span>
+                                                {% if completion_rate >= 90 %}
+                                                    <span class="badge badge-excellent">High Success</span>
+                                                {% elif completion_rate >= 70 %}
+                                                    <span class="badge badge-good">Good Success</span>
+                                                {% elif completion_rate >= 50 %}
+                                                    <span class="badge badge-warning">Low Success</span>
+                                                {% else %}
+                                                    <span class="badge badge-critical">Poor Success</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="task-comments-section">
+                                            <h4>Developer Comments:</h4>
+                                            {% if task.comments %}
+                                            <ul class="comments-list">
+                                                {% for comment in task.comments %}
+                                                    <li>{{ comment }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            {% else %}
+                                            <p class="no-comments">No comments available</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="no-tasks">No tasks associated with this procedure</p>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
-            {% endfor %}
+                {% endfor %}
             </div>
         </div>
     </div>
+
+    <!-- Modal de informações sobre métricas -->
+    <div id="metricsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Metrics Badge Information</h2>
+                <span class="close-modal" onclick="closeMetricsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="metric-info-section">
+                    <h3>Time Performance</h3>
+                    <div class="metric-info-list">
+                        <div class="metric-info-item">
+                            <span class="badge badge-excellent">Fast</span>
+                            <span>≤ 30 seconds - Excellent performance</span>
+                        </div>
+                        <div class="metric-info-item">
+                            <span class="badge badge-good">Moderate</span>
+                            <span>31-60 seconds - Good performance</span>
+                        </div>
+                        <div class="metric-info-item">
+                            <span class="badge badge-warning">Slow</span>
+                            <span>61-120 seconds - Needs improvement</span>
+                        </div>
+                        <div class="metric-info-item">
+                            <span class="badge badge-critical">Very Slow</span>
+                            <span>> 120 seconds - Critical, requires attention</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-info-section">
+                    <h3>Success Rate</h3>
+                    <div class="metric-info-list">
+                        <div class="metric-info-item">
+                            <span class="badge badge-excellent">High Success</span>
+                            <span>≥ 90% - Excellent completion rate</span>
+                        </div>
+                        <div class="metric-info-item">
+                            <span class="badge badge-good">Good Success</span>
+                            <span>70-89% - Good completion rate</span>
+                        </div>
+                        <div class="metric-info-item">
+                            <span class="badge badge-warning">Low Success</span>
+                            <span>50-69% - Below average completion</span>
+                        </div>
+                        <div class="metric-info-item">
+                            <span class="badge badge-critical">Poor Success</span>
+                            <span>< 50% - Critical, needs urgent attention</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- elemento escondido com o id da avaliação (usado pelo JS) -->
     <p id="id-avaliacao" style="display:none">{{ evaluation.evaluation_id }}</p>
 
@@ -311,11 +376,23 @@
         <div class="hotspot-card">
             <div class="hotspots-header">
             <h2>Heatmaps by Task</h2>
-            <p>Viewing participant interactions.</p>
+            <p>Viewing participant interactions mapped to specific tasks.</p>
             </div>
 
             <div class="task-heatmap-container">
             <hr class="task-heatmap-divider">
+
+            <!-- Filtros de tarefas -->
+            <div class="task-filters-container">
+                <h3>Filter by Task</h3>
+                <div class="task-filters" id="task-filters">
+                    <div class="filter-item">
+                        <input type="checkbox" id="filter-all" checked>
+                        <label for="filter-all">Show All Tasks</label>
+                    </div>
+                    <!-- Filtros específicos serão inseridos aqui via JavaScript -->
+                </div>
+            </div>
 
             <!-- raiz onde os heatmaps vindos da API serão inseridos -->
             <div id="heatmaps-root" class="heatmaps">
@@ -327,76 +404,6 @@
     </div>
 
 
-    <div class="guidelines-score-container">
-        <div class="guidelines-card">
-            <div class="guidelines-header">
-                <h2>Guidelines Score</h2>
-                <p>Evaluation of the portal based on the SECO guidelines, including scores for each guideline.</p>
-                <hr class="task-heatmap-divider">
-            </div>
-
-            {% for g in result %}
-                <div class="guideline-info">
-                    <div class="guideline-info-header">
-                        <div class="gd-hd-space">
-                            <h3>{{ g.title }}</h3>
-                            <p>{{ g.description }}</p>
-                            {% if g.average_score is not none %}
-                                <p><strong>Score based on KSC average:</strong> {{ g.average_score }}</p>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <p class="guideline-status">{{ g.status }}</p>
-                        </div>
-                    </div>
-                    <div class="guideline-ksc">
-                        <h3>Key Success Criterion</h3>
-                        {% for ksc in g.key_success_criteria %}
-                            <div class="ksc-card">
-                                <div>
-                                    <h4>{{ ksc.title }}</h4>
-                                    <p>{{ ksc.description }}</p>
-                                    {% if ksc.score is not none %}
-                                        <p><strong>Score:</strong> {{ ksc.porcentagem }}</p>
-                                    {% else %}
-                                        <p><strong>Score:</strong> No Answers</p>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <p class="guideline-status">{{ ksc.status }}</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Examples for unfulfilled or partially fulfilled KSC -->
-                            {% if ksc.status in ["Not Fulfilled", "Partially Fulfilled"] and ksc.examples %}
-                                <div class="ksc-examples-container {% if ksc.status == 'Partially Fulfilled' %}partially-fulfilled{% else %}not-fulfilled{% endif %}">
-                                    <div class="ksc-examples-header">
-                                        <span class="material-symbols-outlined">lightbulb</span>
-                                        <h5>
-                                            {% if ksc.status == "Partially Fulfilled" %}
-                                                Improvement Actions
-                                            {% else %}
-                                                Guidance Actions
-                                            {% endif %}
-                                        </h5>
-                                    </div>
-                                    {% for example in ksc.examples %}
-                                        <div class="ksc-example-item">
-                                            <span class="material-symbols-outlined">arrow_right</span>
-                                            <p>{{ example.description }}</p>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
-
-
-
-        </div>
-    </div>
 </div>
 
 
