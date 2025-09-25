@@ -56,95 +56,102 @@
             </div>
             <hr class="task-heatmap-divider">
             <div class="scores">
-                <h3>Evaluation Scores</h3>
-                <div class="overall_score">
-                    <div class="evaluation-info-card overall">
-                        <h4>Overall Score</h4>
-                        <p>{{ score_geral }}</p>
-                        <span class="subWrite">Overall Score</span>
-                        <div class="percentage-bar">
-                            <div class="bar-fill" data-pct="{{ score_geral }}"></div>
+                <!-- Overall Score Section -->
+                <div class="overall-score-section">
+                    <div class="overall-score-card">
+                        <h3>Overall Score</h3>
+                        <div class="score-display">
+                            <div class="score-number">{{ score_geral }}</div>
+                            <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
+                                {{ transparency_badge_overall }}
+                            </div>
                         </div>
                     </div>
                 </div>
-                <h3>SECO Dimension</h3>
-                <div class="dimensions">
-                    {% for d in dimension_scores %}
-                    <div class="evaluation-info-card d{{ d.id }}">
-                        <h4>{{ d.name }} Dimension</h4>
-                        {% if d.average_score is not none %}
-                            <p>{{ d.average_score }}</p>
-                            <span class="subWrite">Score</span>
-                            <div class="percentage-bar">
-                                <div class="bar-fill" data-pct="{{ d.average_score }}"></div>
-                            </div>
-                        {% else %}
-                            <p>Not related to the evaluation</p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-                <h3>Developer Experience Category</h3>
-                <div class="dx_categorys">
-                    <div class="evaluation-info-card c1">
-                        <h4>{{ dx_categories.common_technological_platform.name }}</h4>
-                        {% if dx_categories.common_technological_platform.score is not none %}
-                            <p>{{ dx_categories.common_technological_platform.score }}</p>
-                            <span class="subWrite">Score</span>
-                            <div class="percentage-bar">
-                                <div class="bar-fill" data-pct="{{ dx_categories.common_technological_platform.score }}"></div>
-                            </div>
-                        {% else %}
-                            <p>No data</p>
-                        {% endif %}
-                    </div>
-                    <div class="evaluation-info-card c2">
-                        <h4>{{ dx_categories.projects_and_applications.name }}</h4>
-                        {% if dx_categories.projects_and_applications.score is not none %}
-                            <p>{{ dx_categories.projects_and_applications.score }}</p>
-                            <span class="subWrite">Score</span>
-                            <div class="percentage-bar">
-                                <div class="bar-fill" data-pct="{{ dx_categories.projects_and_applications.score }}"></div>
-                            </div>
-                        {% else %}
-                            <p>No data</p>
-                        {% endif %}
-                    </div>
-                    <div class="evaluation-info-card c3">
-                        <h4>{{ dx_categories.community_interaction.name }}</h4>
-                        {% if dx_categories.community_interaction.score is not none %}
-                            <p>{{ dx_categories.community_interaction.score }}</p>
-                            <span class="subWrite">Score</span>
-                            <div class="percentage-bar">
-                                <div class="bar-fill" data-pct="{{ dx_categories.community_interaction.score }}"></div>
-                            </div>
-                        {% else %}
-                            <p>No data</p>
-                        {% endif %}
-                    </div>
-                    <div class="evaluation-info-card c4">
-                        <h4>{{ dx_categories.expectations_and_value.name }}</h4>
-                        {% if dx_categories.expectations_and_value.score is not none %}
-                            <p>{{ dx_categories.expectations_and_value.score }}</p>
-                            <span class="subWrite">Score</span>
-                            <div class="percentage-bar">
-                                <div class="bar-fill" data-pct="{{ dx_categories.expectations_and_value.score }}"></div>
-                            </div>
-                        {% else %}
-                            <p>No data</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            <div class="procedures">
-                <h3>Evaluated Common Software Ecosystem Procedures</h3>
-                <div class="procedures-list">
-                    {% for p in seco_processes %}
-                        <div class="evaluation-info-card process p{{ p.seco_process_id }}">
-                            <h4>P{{ p.seco_process_id }}</h4>
-                            <p><strong>{{ p.description }}</strong></p>
+
+                <!-- Evaluated Procedures Section -->
+                <div class="evaluated-procedures-overview">
+                    <h3>Evaluated Procedures</h3>
+                    <div class="procedures-grid">
+                        {% for process in seco_processes %}
+                        <div class="procedure-overview-card">
+                            <span class="procedure-id">P{{ process.seco_process_id }}</span>
+                            <p>{{ process.description }}</p>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Software Ecosystems Dimensions Section -->
+                <div class="seco-dimensions-section">
+                    <h3>Software Ecosystems Dimensions</h3>
+                    <div class="dimensions-grid">
+                        {% for d in dimension_scores %}
+                        <div class="dimension-card">
+                            <h4>{{ d.name }}</h4>
+                            {% if d.average_score is not none %}
+                                <div class="dimension-score">
+                                    <span class="score">Score: {{ d.average_score }}</span>
+                                    <span class="transparency-badge {{ d.transparency_badge|lower|replace(' ', '-') }}">
+                                        {{ d.transparency_badge }}
+                                    </span>
+                                </div>
+                                <div class="procedure-bars">
+                                    {% for process in seco_processes %}
+                                        {% set procedure_key = 'P' + process.seco_process_id|string %}
+                                        {% if d.procedure_scores[procedure_key] and d.procedure_scores[procedure_key] > 0 %}
+                                        <div class="procedure-bar">
+                                            <span class="procedure-label">P{{ process.seco_process_id }}</span>
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" data-pct="{{ d.procedure_scores[procedure_key] }}"></div>
+                                            </div>
+                                            <span class="procedure-score">{{ d.procedure_scores[procedure_key] }}</span>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>Not related to the evaluation</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Developer Experience Section -->
+                <div class="developer-experience-section">
+                    <h3>Developer Experience</h3>
+                    <div class="dx-grid">
+                        {% for category_key, category in dx_categories.items() %}
+                        <div class="dx-card">
+                            <h4>{{ category.name }}</h4>
+                            {% if category.score is not none %}
+                                <div class="dx-score">
+                                    <span class="score">Score: {{ category.score }}</span>
+                                    <span class="transparency-badge {{ category.transparency_badge|lower|replace(' ', '-') }}">
+                                        {{ category.transparency_badge }}
+                                    </span>
+                                </div>
+                                <div class="procedure-bars">
+                                    {% for process in seco_processes %}
+                                        {% set procedure_key = 'P' + process.seco_process_id|string %}
+                                        {% if category.procedure_scores[procedure_key] and category.procedure_scores[procedure_key] > 0 %}
+                                        <div class="procedure-bar">
+                                            <span class="procedure-label">P{{ process.seco_process_id }}</span>
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" data-pct="{{ category.procedure_scores[procedure_key] }}"></div>
+                                            </div>
+                                            <span class="procedure-score">{{ category.procedure_scores[procedure_key] }}</span>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No data</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
             <div class="overview-content">
