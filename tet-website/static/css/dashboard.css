@@ -2123,7 +2123,8 @@ body {
     background-color: var(--critical-alert);
 }
 
-.transparency-badge.no-data {
+.transparency-badge.no-data,
+.transparency-badge.no-procedures {
     background-color: hsl(var(--muted-foreground));
     color: white;
 }
