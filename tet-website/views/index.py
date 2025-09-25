@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from index import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -607,17 +607,65 @@ def eval_dashboard(id):
         }
     }
     
-    # Distribuir guidelines entre categorias DX (mantive sua lógica atual)
-    for idx, g_result in enumerate(result):
+    # DX_factor ID to category mapping (CORRECTED based on template)
+    dx_factor_categories = {
+        # Common Technological Platform
+        1: 'common_technological_platform',   # Desired technical resources for development
+        2: 'common_technological_platform',   # Easy to configure platform
+        5: 'common_technological_platform',   # Platform transparency
+        6: 'common_technological_platform',   # Documentation quality
+        7: 'common_technological_platform',   # Existence of communication channels
+        8: 'common_technological_platform',   # Platform openness level
+        26: 'common_technological_platform',  # Qualities and characteristics of platform
+        
+        # Projects and Applications
+        9: 'projects_and_applications',       # More clients/users for applications
+        10: 'projects_and_applications',     # Application distribution methods
+        11: 'projects_and_applications',     # Application interface and appearance standards
+        12: 'projects_and_applications',     # Requirements for developing applications
+        13: 'projects_and_applications',     # Ease of learning about technology
+        14: 'projects_and_applications',     # Low barriers to entry into applications market
+        
+        # Community Interaction
+        15: 'community_interaction',         # Obtaining community recognition
+        16: 'community_interaction',         # Commitment to the community
+        17: 'community_interaction',         # A good relationship with the community
+        18: 'community_interaction',         # Knowledge exchange between community developers
+        19: 'community_interaction',         # A good developer relations program
+        20: 'community_interaction',         # Community size and scalability
+        
+        # Expectations and Value
+        3: 'expectations_and_value',         # Financial costs for using the platform
+        21: 'expectations_and_value',        # Emergence of new market and job opportunities
+        22: 'expectations_and_value',        # More financial gains
+        23: 'expectations_and_value',        # Fun while developing
+        24: 'expectations_and_value',        # Improvement of developer skills and intellect
+        25: 'expectations_and_value',        # Autonomy and self-control of workflow
+        27: 'expectations_and_value'         # Engagement and rewards for work
+    }
+
+    # Distribuir guidelines entre categorias DX usando mapeamento baseado em DX_factors
+    for g_result in result:
         if g_result['average_score'] is not None:
-            if idx % 4 == 0:
-                dx_categories['common_technological_platform']['guidelines'].append(g_result['average_score'])
-            elif idx % 4 == 1:
-                dx_categories['projects_and_applications']['guidelines'].append(g_result['average_score'])
-            elif idx % 4 == 2:
-                dx_categories['community_interaction']['guidelines'].append(g_result['average_score'])
+            # Buscar a guideline completa para obter seus DX_factors
+            guideline_obj = next((g for g in guidelines if g.title == g_result['title']), None)
+            
+            if guideline_obj:
+                # Coletar categorias únicas para esta guideline
+                guideline_categories = set()
+                for dx_factor in guideline_obj.dx_factors:
+                    category = dx_factor_categories.get(dx_factor.dx_factor_id)
+                    if category:
+                        guideline_categories.add(category)
+                
+                # Adicionar score apenas uma vez para cada categoria única
+                for category in guideline_categories:
+                    dx_categories[category]['guidelines'].append(g_result['average_score'])
             else:
-                dx_categories['expectations_and_value']['guidelines'].append(g_result['average_score'])
+                # Fallback: distribuição equilibrada se não conseguir mapear
+                hash_value = hash(g_result['title']) % 4
+                category_keys = list(dx_categories.keys())
+                dx_categories[category_keys[hash_value]]['guidelines'].append(g_result['average_score'])
     
     # Calcular média para cada categoria DX
     for category in dx_categories.values():
@@ -629,7 +677,7 @@ def eval_dashboard(id):
     # Função helper para determinar badge de transparência
     def get_transparency_badge(score):
         if score is None or score == 0:
-            return "No Data"
+            return "No Procedures"
         elif score >= 75:
             return "Good Transparency"
         elif score >= 50:
@@ -664,27 +712,27 @@ def eval_dashboard(id):
             else:
                 dim['procedure_scores'][f'P{process_id}'] = 0
 
-    # Calcular scores por procedure para categorias DX
-    # Usar a mesma lógica de distribuição por índice para consistência
+    # Calcular scores por procedure para categorias DX usando mapeamento baseado em DX_factors
     for category_key, category in dx_categories.items():
         category['procedure_scores'] = {}
-        category_index = list(dx_categories.keys()).index(category_key)
 
         for process in seco_processes:
             process_id = process.seco_process_id
             process_guidelines_scores = []
 
-            # Pegar guidelines deste processo e aplicar mesma lógica de distribuição por índice
-            process_guidelines = []
+            # Mapear guidelines deste processo para a categoria DX
             for g in process.guidelines:
                 g_result = next((item for item in result if item['title'] == g.title), None)
                 if g_result and g_result['average_score'] is not None:
-                    process_guidelines.append(g_result)
-
-            # Aplicar distribuição por índice (mesma lógica do score geral)
-            for idx, g_result in enumerate(process_guidelines):
-                if idx % 4 == category_index:
-                    process_guidelines_scores.append(g_result['average_score'])
+                    # Verificar se algum DX_factor desta guideline pertence à categoria
+                    guideline_belongs_to_category = False
+                    for dx_factor in g.dx_factors:
+                        if dx_factor_categories.get(dx_factor.dx_factor_id) == category_key:
+                            guideline_belongs_to_category = True
+                            break
+                    
+                    if guideline_belongs_to_category:
+                        process_guidelines_scores.append(g_result['average_score'])
 
             if process_guidelines_scores:
                 category['procedure_scores'][f'P{process_id}'] = round(sum(process_guidelines_scores) / len(process_guidelines_scores))
