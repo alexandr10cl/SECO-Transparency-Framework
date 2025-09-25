@@ -389,10 +389,29 @@ window.onclick = function(event) {
     }
 }
 
+// Função para animar barras de progresso
+function animateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-fill[data-pct]');
+
+    progressBars.forEach(bar => {
+        const percentage = parseFloat(bar.getAttribute('data-pct')) || 0;
+        const maxPercentage = Math.min(percentage, 100);
+
+        // Reset animation
+        bar.style.width = '0%';
+
+        // Animate with delay
+        setTimeout(() => {
+            bar.style.width = maxPercentage + '%';
+        }, 300);
+    });
+}
+
 window.onload = function() {
     gerarNuvem();
     applyStatusColors();
     enhanceTaskBadges();
     initProceduresSidebar();
     initTaskAccordions();
+    animateProgressBars();
 };

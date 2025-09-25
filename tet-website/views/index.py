@@ -626,7 +626,72 @@ def eval_dashboard(id):
         else:
             category['score'] = 0
 
-    return render_template('dashboard.html', 
+    # Função helper para determinar badge de transparência
+    def get_transparency_badge(score):
+        if score is None or score == 0:
+            return "No Data"
+        elif score >= 75:
+            return "Good Transparency"
+        elif score >= 50:
+            return "Moderate Transparency"
+        else:
+            return "Bad Transparency"
+
+    # Adicionar badges de transparência
+    transparency_badge_overall = get_transparency_badge(score_geral)
+
+    for dim in dimension_scores:
+        dim['transparency_badge'] = get_transparency_badge(dim['average_score'])
+
+    for category in dx_categories.values():
+        category['transparency_badge'] = get_transparency_badge(category['score'])
+
+    # Calcular scores por procedure para cada dimensão
+    for dim in dimension_scores:
+        dim['procedure_scores'] = {}
+        for process in seco_processes:
+            process_id = process.seco_process_id
+            process_guidelines_scores = []
+
+            for g in process.guidelines:
+                if any(d.seco_dimension_id == dim['id'] for d in g.seco_dimensions):
+                    g_result = next((item for item in result if item['title'] == g.title), None)
+                    if g_result and g_result['average_score'] is not None:
+                        process_guidelines_scores.append(g_result['average_score'])
+
+            if process_guidelines_scores:
+                dim['procedure_scores'][f'P{process_id}'] = round(sum(process_guidelines_scores) / len(process_guidelines_scores))
+            else:
+                dim['procedure_scores'][f'P{process_id}'] = 0
+
+    # Calcular scores por procedure para categorias DX
+    # Usar a mesma lógica de distribuição por índice para consistência
+    for category_key, category in dx_categories.items():
+        category['procedure_scores'] = {}
+        category_index = list(dx_categories.keys()).index(category_key)
+
+        for process in seco_processes:
+            process_id = process.seco_process_id
+            process_guidelines_scores = []
+
+            # Pegar guidelines deste processo e aplicar mesma lógica de distribuição por índice
+            process_guidelines = []
+            for g in process.guidelines:
+                g_result = next((item for item in result if item['title'] == g.title), None)
+                if g_result and g_result['average_score'] is not None:
+                    process_guidelines.append(g_result)
+
+            # Aplicar distribuição por índice (mesma lógica do score geral)
+            for idx, g_result in enumerate(process_guidelines):
+                if idx % 4 == category_index:
+                    process_guidelines_scores.append(g_result['average_score'])
+
+            if process_guidelines_scores:
+                category['procedure_scores'][f'P{process_id}'] = round(sum(process_guidelines_scores) / len(process_guidelines_scores))
+            else:
+                category['procedure_scores'][f'P{process_id}'] = 0
+
+    return render_template('dashboard.html',
                             evaluation=evaluation,
                             user=user,
                             seco_processes=seco_processes,
@@ -644,6 +709,7 @@ def eval_dashboard(id):
                             tasks_by_process=tasks_by_process,
                             result=result,
                             score_geral=score_geral,
+                            transparency_badge_overall=transparency_badge_overall,
                             g_dimensions=g_dimensions_flat,
                             dimension_scores=dimension_scores,
                             dx_categories=dx_categories)
