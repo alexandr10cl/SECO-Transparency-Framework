@@ -1,245 +1,1528 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+/* ============================================
+   🍎 APPLE-LEVEL DESIGN SYSTEM - ADMIN PANEL
+   ============================================ */
+
+/* Import Apple-style fonts */
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=SF+Mono:wght@400;500;600&display=swap');
+
+/* ============================================
+   🎨 DESIGN TOKENS (Apple-Level)
+   ============================================ */
 
 :root {
-    --cor-1: rgb(75, 102, 255);
-    --cor-2: #f4f4f4;
-    --cor-red: red;
-    --cor-green: green;
-    --cor-black: black;
-    --cor-gray: gray;
+    /* Typography Scale (Apple-style) */
+    --text-xs: 12px;
+    --text-sm: 14px;
+    --text-base: 16px;
+    --text-lg: 18px;
+    --text-xl: 20px;
+    --text-2xl: 24px;
+    --text-3xl: 30px;
+    
+    /* Line Heights (Apple-style) */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    
+    /* Color System (Apple-style) */
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --text-tertiary: #d2d2d7;
+    
+    /* Gray Scale (Apple-style) */
+    --gray-50: #f5f5f7;
+    --gray-100: #e5e5e7;
+    --gray-200: #d2d2d7;
+    --gray-300: #a1a1a6;
+    --gray-400: #8e8e93;
+    --gray-500: #636366;
+    --gray-600: #48484a;
+    --gray-700: #3a3a3c;
+    --gray-800: #2c2c2e;
+    --gray-900: #1c1c1e;
+    
+    /* Primary Colors (Apple Blue) */
+    --primary: #007aff;
+    --primary-hover: #0056cc;
+    --primary-light: rgba(0, 122, 255, 0.1);
+    
+    /* System Colors */
+    --success: #34c759;
+    --warning: #ff9500;
+    --danger: #ff3b30;
+    --info: #5ac8fa;
+    
+    /* Spacing System (8px grid) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+    
+    /* Shadows (Apple-style) */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+    
+    /* Border Radius (Apple-style) */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    
+    /* Transitions (Apple-style) */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-slow: 0.3s ease;
 }
+
+/* ============================================
+   🔧 RESET & BASE STYLES
+   ============================================ */
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Montserrat", sans-serif;
 }
 
 body {
-    background-color: var(--cor-2);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--gray-50);
+    color: var(--text-primary);
+    line-height: var(--line-height-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+/* ============================================
+   📄 PAGE LAYOUT (Apple-Level)
+   ============================================ */
+
+.admin-page {
+    min-height: 100vh;
+    background-color: var(--gray-50);
+}
+
+/* Page Header */
+.page-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: white;
+    padding: var(--space-8) var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-lg);
+}
+
+.page-header-content {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+}
+
+.breadcrumb-link {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+.breadcrumb-link:hover {
+    color: white;
+}
+
+.breadcrumb-separator {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+.breadcrumb-current {
+    color: white;
+    font-weight: 500;
+}
+
+.page-title {
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+    letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+    font-size: var(--text-lg);
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 400;
+    line-height: var(--line-height-relaxed);
+}
+
+/* ============================================
+   📐 LAYOUT & STRUCTURE (Apple-Level)
+   ============================================ */
+
+.container {
+    width: 100%;
+    margin: 0;
+    padding: var(--space-6);
+    min-height: 100vh;
 }
 
 .admin-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: var(--space-6);
+    min-height: 600px;
     width: 100%;
-    gap: 20px;
+    max-width: none;
 }
 
+/* Page Header with Breadcrumbs */
+.page-header {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    grid-column: 1 / -1; /* Span full width */
+}
+
+.page-title {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    line-height: var(--line-height-tight);
+}
+
+.page-subtitle {
+    font-size: var(--text-base);
+    color: var(--text-tertiary);
+    margin: 0;
+    line-height: var(--line-height-normal);
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+}
+
+.breadcrumb-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+.breadcrumb-link:hover {
+    color: var(--primary);
+}
+
+.breadcrumb-separator {
+    color: var(--text-tertiary);
+}
+
+.breadcrumb-current {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* ============================================
+   🧭 SIDEBAR (Apple-Level)
+   ============================================ */
+
 .sidebar {
-    width: 250px;
-    background-color: var(--cor-2);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
     height: fit-content;
+    position: sticky;
+    top: var(--space-6);
+    width: 360px;
+    min-width: 360px;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+    background-color: var(--gray-50);
+}
+
+.sidebar-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.sidebar-nav {
+    padding: var(--space-4) 0;
+}
+
+.sidebar-header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.sidebar-title {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    letter-spacing: -0.01em;
+}
+
+.sidebar-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 500;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0; /* No gap since items have margin-bottom */
 }
 
 .sidebar-item {
-    padding: 12px 16px;
-    background-color: var(--cor-1);
-    color: var(--cor-2);
-    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all var(--transition-base);
     cursor: pointer;
-    margin-bottom: 10px;
-    transition: all 0.3s ease;
+    font-size: var(--text-sm);
+    border: 1px solid var(--gray-200);
+    background-color: white;
+    box-shadow: var(--shadow-xs);
+    margin: 0 var(--space-4) var(--space-2);
+    position: relative;
+}
+
+.sidebar-icon {
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-text {
+    flex: 1;
+    font-size: var(--text-sm);
     font-weight: 500;
 }
 
 .sidebar-item:hover {
-    transform: translateX(5px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    background-color: var(--gray-50);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--gray-300);
 }
 
 .sidebar-item.active {
-    background-color: var(--cor-2);
-    color: var(--cor-1);
-    border: 2px solid var(--cor-1);
+    background-color: var(--primary);
+    color: white;
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+    font-weight: 600;
 }
+
+.sidebar-item.active:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ============================================
+   📋 MAIN CONTENT & CARDS (Apple-Level)
+   ============================================ */
 
 .main-content {
-    flex: 1;
-}
-
-.card-links {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: var(--cor-2);
-    border-radius: 10px;
-    overflow-x: auto;
+    flex-direction: column;
+    gap: var(--space-6);
+    width: 100%;
+    min-width: 0; /* Allow content to shrink */
 }
 
 .cards-container {
     display: flex;
-    gap: 30px;
+    flex-direction: column;
+    gap: var(--space-6);
     width: 100%;
-    justify-content: center;
 }
 
-.card {
-    width: 48%;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-    margin-bottom: 20px;
+/* Individual card styling for better layout */
+.create-guideline {
+    max-width: 100%;
+    width: 100%;
 }
 
 .card-table {
+    max-width: 100%;
     width: 100%;
+}
+
+/* ============================================
+   📊 EXISTING GUIDELINES SECTION (Apple-Level)
+   ============================================ */
+
+.existing-guidelines-section {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    margin-top: var(--space-6);
+}
+
+.existing-guidelines-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    color: white;
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.existing-guidelines-title {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: white;
+    margin: 0 0 var(--space-2) 0;
+    line-height: var(--line-height-tight);
+    letter-spacing: -0.02em;
+}
+
+.existing-guidelines-subtitle {
+    font-size: var(--text-sm);
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    line-height: var(--line-height-normal);
+}
+
+.existing-guidelines-content {
+    padding: 0;
+}
+
+/* ============================================
+   🏷️ TABLE FILTER TABS (Apple-Level)
+   ============================================ */
+
+.card-links {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-6);
+    background-color: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    overflow-x: auto;
+    flex-wrap: wrap;
+}
+
+.slct {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    background-color: white;
+    color: var(--text-secondary);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all var(--transition-base);
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: var(--shadow-xs);
+    min-height: 44px; /* Apple touch target */
+    user-select: none;
+}
+
+.slct:hover {
+    background-color: var(--gray-50);
+    color: var(--text-primary);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.slct.active {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+}
+
+.slct.active:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.card {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
 }
 
 .card-header {
-    margin-bottom: 20px;
+    padding: var(--space-6);
+    border-bottom: 1px solid var(--gray-200);
+    background-color: var(--gray-50);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.card-icon {
+    font-size: var(--text-lg);
+    color: var(--primary);
+}
+
+.card-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: var(--line-height-normal);
+}
+
+.card-title {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    line-height: var(--line-height-tight);
+}
+
+.card-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: var(--line-height-normal);
 }
 
 .card-body {
-    width: 100%;
+    padding: var(--space-6);
 }
 
-.card-body input, textarea {
-    width: 100%;
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid black;
-    margin-bottom: 10px;
-}
+/* ============================================
+   📝 FORMS (Apple-Level)
+   ============================================ */
 
-.btn-primary {
-    border: 1px solid var(--cor-1);
-    color: var(--cor-2);
-    background-color: var(--cor-1);
-    cursor: pointer;
-    padding: 10px 20px;
-    border-radius: 5px;
-}
-
-.btn-primary:hover {
-    color: var(--cor-1);
-    background-color: var(--cor-2);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-table th, table td {
-    padding: 10px;
-    border: 1px solid var(--cor-black);
-}
-
-table th {
-    background-color: var(--cor-1);
-    color: var(--cor-2);
-}
-
-.alert-success {
-    color: var(--cor-green);
-}
-
-.alert-danger {
-    color: var(--cor-red);
-}
-
-.checkbox-group {
+.admin-form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    border: 1px solid var(--cor-gray);
-    border-radius: 10px;
-    max-height: 200px;
-    overflow-y: auto;
-    padding: 15px;
+    gap: var(--space-6);
+}
+
+.form-section {
+    background-color: var(--gray-50);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    border: 1px solid var(--gray-200);
+}
+
+.form-section-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.form-section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background-color: var(--primary);
+    border-radius: 2px;
+}
+
+.form-section-description {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4) 0;
+    line-height: var(--line-height-normal);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
 }
 
 .form-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.form-help {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
+    line-height: var(--line-height-normal);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: flex-end;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--gray-200);
+    margin-top: var(--space-4);
+}
+
+.form-control {
     width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-family: inherit;
+    background-color: white;
+    color: var(--text-primary);
+    transition: all var(--transition-base);
+    resize: vertical;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.form-control::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* Apple-level Button */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background-color: var(--primary);
+    color: white;
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    min-height: 44px; /* Apple touch target */
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-xs);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background-color: white;
+    color: var(--text-primary);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    min-height: 44px; /* Apple touch target */
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-50);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-xs);
+}
+
+.btn-icon {
+    font-size: var(--text-sm);
+}
+
+/* Form Help Text */
+.form-help {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
+}
+
+/* ============================================
+   📊 TABLES (Apple-Level)
+   ============================================ */
+
+.table-container {
+    overflow-x: auto;
+    border-radius: 0; /* No border radius for seamless card integration */
+    border: none;
+    background-color: white;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Ensure table takes full width */
+.table-container table {
+    width: 100%;
+    table-layout: fixed; /* Fixed layout for consistent column widths */
+}
+
+/* Table within existing guidelines section */
+.existing-guidelines-section .table-container {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+/* Optimize table for better readability */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    min-width: 1200px; /* Increased minimum width for better content visibility */
+    table-layout: fixed; /* Fixed layout for consistent column widths */
+    font-size: var(--text-sm);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+/* Ensure proper table alignment */
+.table-info {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.table-info th,
+.table-info td {
+    vertical-align: top;
     text-align: left;
-    margin-bottom: 5px;
-    font-weight: bold;
+}
+
+/* ID columns should be centered */
+.table-info th:nth-child(1),
+.table-info td:nth-child(1) {
+    text-align: center;
+}
+
+/* Description columns should be left-aligned with proper spacing */
+.table-info th:nth-child(2),
+.table-info td:nth-child(2) {
+    text-align: left;
+    padding-left: var(--space-6);
+}
+
+/* Optimized column widths for better content visibility */
+table th:nth-child(1), table td:nth-child(1) { 
+    width: 60px; 
+    min-width: 60px; 
+    max-width: 60px;
+} /* ID */
+
+
+
+table th:nth-child(3), table td:nth-child(3) { 
+    width: auto; 
+    min-width: 200px; 
+    max-width: none;
+    word-wrap: break-word;
+    white-space: normal;
+} /* Description - flexible with word wrap */
+
+table th:nth-child(4), table td:nth-child(4) { 
+    width: 150px; 
+    min-width: 150px; 
+    max-width: 150px;
+    word-wrap: break-word;
+    white-space: normal;
+} /* SECO Dimensions */
+
+table th:nth-child(5), table td:nth-child(5) { 
+    width: 200px; 
+    min-width: 200px; 
+    max-width: 200px;
+    word-wrap: break-word;
+    white-space: normal;
+} /* Key Success Criteria */
+
+table th:nth-child(6), table td:nth-child(6) { 
+    width: 120px; 
+    min-width: 120px; 
+    max-width: 120px;
+    word-wrap: break-word;
+    white-space: normal;
+} /* Conditioning Factors */
+
+table th:nth-child(7), table td:nth-child(7) { 
+    width: 120px; 
+    min-width: 120px; 
+    max-width: 120px;
+    word-wrap: break-word;
+    white-space: normal;
+} /* DX Factors */
+
+table th:nth-child(8), table td:nth-child(8) { 
+    width: 100px; 
+    min-width: 100px; 
+    max-width: 100px;
+} /* SECO Processes */
+
+table th:nth-child(9), table td:nth-child(9) { 
+    width: 120px; 
+    min-width: 120px; 
+    max-width: 120px;
+} /* Actions */
+
+table th {
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+    padding: var(--space-4) var(--space-5);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--gray-200);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+table td {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--gray-100);
+    font-size: var(--text-sm);
+    vertical-align: top;
+    color: var(--text-primary);
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: var(--line-height-normal);
+    overflow-wrap: break-word;
+    transition: all var(--transition-base);
+}
+
+table tbody tr {
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+
+table tbody tr:hover {
+    background-color: var(--gray-50);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Specific table type styling for better data presentation */
+/* SECO Processes - 2 columns: ID + Description */
+.table-info.processes th:nth-child(1), .table-info.processes td:nth-child(1) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-info.processes th:nth-child(2), .table-info.processes td:nth-child(2) {
+    width: auto;
+    min-width: 500px;
+    max-width: none;
+    padding-left: var(--space-6);
+}
+
+/* SECO Dimensions - 2 columns: ID + Name */
+.table-info.dimensions th:nth-child(1), .table-info.dimensions td:nth-child(1) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-info.dimensions th:nth-child(2), .table-info.dimensions td:nth-child(2) {
+    width: auto;
+    min-width: 300px;
+    max-width: none;
+    padding-left: var(--space-6);
+}
+
+/* Conditioning Factors - 2 columns: ID + Description */
+.table-info.conditioning_factors th:nth-child(1), .table-info.conditioning_factors td:nth-child(1) {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-info.conditioning_factors th:nth-child(2), .table-info.conditioning_factors td:nth-child(2) {
+    width: auto;
+    min-width: 500px;
+    max-width: none;
+    padding-left: var(--space-6);
+}
+
+/* DX Factors - 2 columns: ID + Description */
+.table-info.dx_factors th:nth-child(1), .table-info.dx_factors td:nth-child(1) {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-info.dx_factors th:nth-child(2), .table-info.dx_factors td:nth-child(2) {
+    width: auto;
+    min-width: 500px;
+    max-width: none;
+    padding-left: var(--space-6);
+}
+
+/* Key Success Criteria - 2 columns: ID + Title */
+.table-info.key_success_criteria th:nth-child(1), .table-info.key_success_criteria td:nth-child(1) {
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-info.key_success_criteria th:nth-child(2), .table-info.key_success_criteria td:nth-child(2) {
+    width: auto;
+    min-width: 500px;
+    max-width: none;
+    padding-left: var(--space-6);
+}
+
+/* Table Actions */
+.table-actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Action column styling */
+.actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Existing Guidelines table - 3 columns: ID + Title + Description + ... + Actions */
+.table-striped th:nth-child(1), .table-striped td:nth-child(1) {
+    width: 80px;
+    min-width: 60px;
+    max-width: 80px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.table-striped th:nth-child(2), .table-striped td:nth-child(2) {
+    text-align: left;
+    font-weight: 600;
+}
+
+.table-striped th:nth-child(3), .table-striped td:nth-child(3) {
+    width: auto;
+    min-width: 300px;
+    max-width: none;
+    text-align: left;
+    padding-left: var(--space-4);
+}
+
+/* Actions column for existing guidelines */
+.table-striped th:nth-child(9), .table-striped td:nth-child(9) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+    text-align: center;
+}
+
+.btn-edit,
+.btn-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    transition: all var(--transition-base);
+    border: 1px solid transparent;
+    min-width: 36px;
+    min-height: 32px;
+}
+
+.btn-edit {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border-color: rgba(0, 122, 255, 0.2);
+}
+
+.btn-edit:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-edit {
+    font-size: 0; /* Hide text, show only emoji */
+}
+
+.btn-edit::before {
+    content: "✏️";
+    font-size: var(--text-sm);
+}
+
+.btn-delete {
+    background-color: rgba(255, 59, 48, 0.1);
+    color: var(--danger);
+    border-color: rgba(255, 59, 48, 0.2);
+    font-size: 0; /* Hide text, show only emoji */
+}
+
+.btn-delete:hover {
+    background-color: var(--danger);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-delete::before {
+    content: "🗑️";
+    font-size: var(--text-sm);
+}
+
+/* ============================================
+   🚨 ALERTS & MESSAGES (Apple-Level)
+   ============================================ */
+
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    border: 1px solid transparent;
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-icon {
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+    margin-top: var(--space-1);
+}
+
+.alert-content {
+    flex: 1;
+    line-height: var(--line-height-normal);
+}
+
+.alert-success {
+    background-color: rgba(52, 199, 89, 0.1);
+    color: var(--success);
+    border-color: rgba(52, 199, 89, 0.2);
+}
+
+.alert-danger {
+    background-color: rgba(255, 59, 48, 0.1);
+    color: var(--danger);
+    border-color: rgba(255, 59, 48, 0.2);
+}
+
+.alert-warning {
+    background-color: rgba(255, 149, 0, 0.1);
+    color: var(--warning);
+    border-color: rgba(255, 149, 0, 0.2);
+}
+
+/* ============================================
+   ☑️ CHECKBOX GROUPS (Apple-Level)
+   ============================================ */
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background-color: var(--gray-50);
+    max-height: none; /* Remove height restriction for horizontal layout */
+    overflow: visible; /* Remove scroll for horizontal layout */
+}
+
+/* Desktop optimization - intelligent layout based on content */
+@media (min-width: 1024px) {
+.checkbox-group {
+    display: flex;
+        flex-wrap: wrap; /* Allow wrapping for flexibility */
+        gap: var(--space-2);
+        justify-content: flex-start;
+        align-items: flex-start; /* Align to top for better multi-row layout */
+    }
+    
+    .checkbox-item {
+        flex-shrink: 0; /* Prevent shrinking on desktop */
+        min-width: 60px; /* Minimum width for readability */
+        max-width: 200px; /* Increased max width for longer text */
+        flex: 0 0 auto; /* Don't grow or shrink */
+        white-space: nowrap; /* Prevent text wrapping */
+        overflow: hidden; /* Hide overflow text */
+        text-overflow: ellipsis; /* Show ellipsis for long text */
+    }
+    
+    /* Intelligent wrapping based on container width */
+    .checkbox-group {
+        max-width: 100%;
+    }
+    
+    /* Specific styling for Key Success Criteria (longer text) */
+    .checkbox-group .checkbox-item label {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px; /* Limit label width */
+        cursor: pointer;
+    }
 }
 
 .checkbox-item {
     display: flex;
     align-items: center;
-    background-color: var(--cor-1);
-    border-radius: 10px;
-    font-weight: bold;
-    color: var(--cor-2);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-200);
+    transition: all var(--transition-base);
     cursor: pointer;
-    padding: 5px 15px;
-    margin: 0;
-    min-height: 45px;
+    min-height: 40px; /* Reduced height for horizontal layout */
+    white-space: nowrap; /* Prevent text wrapping */
+    flex-shrink: 0; /* Prevent shrinking */
+    box-shadow: var(--shadow-xs); /* Add subtle shadow for better visibility */
+    position: relative; /* For hover effects */
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Show ellipsis for long text */
+}
+
+.checkbox-item:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+    background-color: var(--gray-50);
+}
+
+.checkbox-item:has(input:checked) {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.checkbox-item:has(input:checked):hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Fallback for browsers that don't support :has() */
+.checkbox-item input[type="checkbox"]:checked + label {
+    color: white;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
 }
 
 .checkbox-item label {
     cursor: pointer;
-    padding: 10px;
-    margin: 0;
     flex: 1;
     display: flex;
     align-items: center;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px; /* Limit label width for better layout */
+}
+
+.checkbox-label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    cursor: pointer;
+    flex: 1;
+}
+
+.checkbox-id {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.checkbox-text {
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: var(--line-height-normal);
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
     cursor: pointer;
-    width: 20px;
-    height: 20px;
-    margin: 0;
-    accent-color: var(--cor-2);
+    margin: 0; /* Remove default margin */
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
-.mb-7 {
-    display: flex;
+/* Custom checkbox styling for better visibility */
+.checkbox-item input[type="checkbox"]:checked {
+    accent-color: white; /* White checkmark on colored background */
+}
+
+.checkbox-item:has(input:checked) input[type="checkbox"] {
+    accent-color: white; /* White checkmark when item is selected */
+}
+
+/* ============================================
+   📱 RESPONSIVE DESIGN (Apple-Level)
+   ============================================ */
+
+@media (max-width: 1400px) {
+    .admin-container {
+        grid-template-columns: 320px 1fr;
+        gap: var(--space-4);
+    }
+    
+    .sidebar {
+        width: 320px;
+        min-width: 320px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .admin-container {
+        grid-template-columns: 280px 1fr;
+        gap: var(--space-4);
+    }
+    
+    .sidebar {
+        width: 280px;
+        min-width: 280px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .admin-container {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+    
+    .sidebar {
+        position: static;
+        order: 2;
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .cards-container {
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+    
+    .checkbox-group {
+        flex-wrap: wrap; /* Allow wrapping on tablet */
+        gap: var(--space-2);
+    }
+    
+    .checkbox-item {
+        min-width: 120px; /* Minimum width for tablet */
+        max-width: 150px; /* Limit width on tablet */
+        flex: 0 0 auto; /* Don't grow or shrink */
+    }
+    
+    .checkbox-item label {
+        max-width: 130px; /* Smaller label width on tablet */
+    }
+    
+    table {
+        min-width: 800px; /* Smaller minimum width on tablet */
+        font-size: var(--text-xs);
+    }
+    
+    table th,
+    table td {
+        padding: var(--space-3);
+    }
+    
+    /* Maintain proper alignment on tablet */
+    .table-info th:nth-child(2),
+    .table-info td:nth-child(2) {
+        padding-left: var(--space-4);
+    }
+    
+    /* Adjust column widths for tablet */
+    table th:nth-child(3), table td:nth-child(3) { 
+        min-width: 250px; /* Smaller description column on tablet */
+    }
+    
+    table th:nth-child(5), table td:nth-child(5) { 
+        min-width: 150px; /* Smaller criteria column on tablet */
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--space-4);
+    }
+    
+    .page-header {
+        padding: var(--space-4);
+    }
+    
+    .page-title {
+        font-size: var(--text-xl);
+    }
+    
+    .card-header,
+    .card-body {
+        padding: var(--space-4);
+    }
+    
+    .table-container {
+        font-size: var(--text-xs);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px; /* Smaller minimum width on mobile */
+        font-size: var(--text-xs);
+    }
+    
+    table th,
+    table td {
+        padding: var(--space-2);
+    }
+    
+    /* Maintain proper alignment on mobile */
+    .table-info th:nth-child(2),
+    .table-info td:nth-child(2) {
+        padding-left: var(--space-3);
+    }
+    
+    .table-actions {
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+    
+    .btn-edit,
+    .btn-delete {
+        min-width: 32px;
+        min-height: 28px;
+        padding: var(--space-1) var(--space-2);
     justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.btn {
-    display: inline-block;
+    }
+    
+    .btn-edit::before,
+    .btn-delete::before {
+        font-size: var(--text-xs);
+    }
+    
+    .form-control {
+        padding: var(--space-2) var(--space-3);
+    }
+    
+    .btn-primary {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--text-xs);
+    }
+    
+    /* Filter tabs on mobile */
+    .card-links {
+        padding: var(--space-3) var(--space-4);
+        gap: var(--space-1);
 }
 
 .slct {
-    padding: 8px 16px;
-    background-color: var(--cor-1);
-    color: var(--cor-2);
-    border-radius: 5px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.3s ease;
-    font-weight: 500;
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--text-xs);
+        min-height: 40px;
+    }
+    
+    /* Mobile checkbox optimization */
+    .checkbox-group {
+        flex-direction: column; /* Stack vertically on mobile */
+        align-items: stretch;
+        gap: var(--space-2);
+    }
+    
+    .checkbox-item {
+        min-width: auto;
+        width: 100%;
+        justify-content: flex-start;
+        max-width: none; /* Remove max-width on mobile */
+    }
+    
+    .checkbox-item label {
+        max-width: none; /* Remove max-width on mobile */
+        white-space: normal; /* Allow text wrapping on mobile */
+    }
 }
 
-.slct:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+/* ============================================
+   🎯 UTILITY CLASSES (Apple-Level)
+   ============================================ */
+
+.mb-3 { margin-bottom: var(--space-3); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.d-none { display: none; }
+
+.justify-center { justify-content: center; }
+.align-center { align-items: center; }
+
+/* ============================================
+   🎨 MICRO-INTERACTIONS (Apple-Level)
+   ============================================ */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.slct.active {
-    background-color: var(--cor-2);
-    color: var(--cor-1);
-    border: 2px solid var(--cor-1);
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.criteria-container {
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #f9f9f9;
+.card {
+    animation: fadeIn 0.3s ease;
+}
+
+.sidebar-item {
+    animation: slideIn 0.2s ease;
+}
+
+/* Focus states for accessibility */
+.form-control:focus,
+.btn-primary:focus,
+.sidebar-item:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Selection styling */
+::selection {
+    background-color: var(--primary-light);
+    color: var(--primary);
 }

@@ -10,29 +10,37 @@
 
 {% block content %}
 <div class="eval-page">
+    <!-- Page Header with Breadcrumbs -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <nav class="breadcrumbs">
+                <a href="{{ url_for('index') }}" class="breadcrumb-link">Home</a>
+                <span class="breadcrumb-separator">›</span>
+                <a href="{{ url_for('evaluations') }}" class="breadcrumb-link">Evaluations</a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-current">{{ evaluation.name }}</span>
+            </nav>
+            <h1 class="page-title">{{ evaluation.name }}</h1>
+        </div>
+    </div>
 
     <div class="eval-container">
-        <!-- Header Section -->
+        <!-- Action Header -->
         <header class="eval-header">
             <div class="eval-title-section">
                 <a href="javascript:history.back()" class="back-btn">
                     <span class="back-icon">←</span>
                     <span>Back</span>
                 </a>
-                <h1 class="eval-title">{{ evaluation.name }}</h1>
                 <div class="eval-actions">
                     <button class="settings-btn" id="openModalSettings" aria-label="Settings">
                         <span class="gear-icon">⚙️</span>
                     </button>
+                    <a href="{{ url_for('eval_dashboard', id=evaluation.evaluation_id) }}" class="dashboard-btn">
+                        <span class="btn-icon">📊</span>
+                        <span>View Dashboard</span>
+                    </a>
                 </div>
-            </div>
-            
-            <!-- Primary Action -->
-            <div class="primary-action">
-                <a href="{{ url_for('eval_dashboard', id=evaluation.evaluation_id) }}" class="dashboard-btn">
-                    <span class="btn-icon">📊</span>
-                    <span>View Dashboard</span>
-                </a>
             </div>
         </header>
 
@@ -75,53 +83,8 @@
                     </div>
                 </div>
 
-                <!-- Procedures -->
-                <div class="related-card">
-                    <h3 class="card-title">
-                        <span class="card-icon">🔄</span>
-                        Procedures
-                    </h3>
-                    <div class="item-list">
-                        {% for p in evaluation.seco_processes %}
-                        <div class="item-badge">{{ p.seco_process_id }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-
-            <!-- Right Column: Tasks (1 single column) -->
-            <section class="tasks-section">
-                <div class="related-card">
-                    <h3 class="card-title">
-                        <span class="card-icon">✅</span>
-                        Tasks
-                    </h3>
-                    <div class="item-list">
-                        {% for t in tasks %}
-                        <div class="item-tag">{{ t.title }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-
-            <!-- Guidelines - Full Width Below -->
-            <section class="guidelines-section">
-                <div class="related-card">
-                    <h3 class="card-title">
-                        <span class="card-icon">📋</span>
-                        Guidelines
-                    </h3>
-                    <div class="item-list">
-                        {% for g in guidelines %}
-                        <div class="item-tag">{{ g.title }}</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-
-            <!-- Collected Data - Full Width Bottom -->
-            {% if collected_data %}
-            <section class="collected-data-section">
+                <!-- Collected Data -->
+                {% if collected_data %}
                 <div class="related-card">
                     <h3 class="card-title">
                         <span class="card-icon">📊</span>
@@ -129,12 +92,46 @@
                     </h3>
                     <div class="item-list">
                         {% for c in collected_data %}
-                        <div class="item-badge">{{ c.collected_data_id }}</div>
+                        <div class="item-badge">{{ c.display_name }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Full Width Bottom: Procedures & Tasks -->
+            <section class="procedures-tasks-section">
+                <div class="related-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">✅</span>
+                        Procedures & Tasks
+                    </h3>
+                    <div class="procedures-tasks">
+                        {% for proc_data in procedures_data %}
+                        <div class="procedure-task-group">
+                            <div class="procedure-header">
+                                <span class="procedure-id">P{{ proc_data.process.seco_process_id }}</span>
+                                <span class="procedure-description">{{ proc_data.process.description }}</span>
+                            </div>
+                            
+                            {% if proc_data.guideline %}
+                            <div class="procedure-guideline">
+                                <div class="guideline-label">Guideline</div>
+                                <div class="guideline-item">{{ proc_data.guideline.title }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="procedure-tasks">
+                                {% for task in proc_data.tasks %}
+                                <div class="task-item">{{ task.title }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
             </section>
-            {% endif %}
+
         </main>
     </div>
 
