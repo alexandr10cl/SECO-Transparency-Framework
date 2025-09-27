@@ -263,19 +263,55 @@ def evaluation(id):
     seco_processes = evaluation.seco_processes
     collected_data = evaluation.collected_data
     questions = Question.query.all()
-    guidelines = []
-    tasks = []
-    for p in seco_processes:
-        for t in p.tasks:
-            if t not in tasks:
-                tasks.append(t)
-        for g in p.guidelines:
-            if g not in guidelines:
-                guidelines.append(g)
+    
+    # Build procedure-organized data structure
+    procedures_data = []
+    all_guidelines = []
+    all_tasks = []
+    
+    for process in seco_processes:
+        # Get guideline for this process (1:1 relationship)
+        guideline = process.guidelines[0] if process.guidelines else None
+        
+        # Get tasks for this process
+        process_tasks = process.tasks
+        
+        # Build procedure data structure
+        procedure_data = {
+            'process': process,
+            'guideline': guideline,
+            'tasks': process_tasks
+        }
+        procedures_data.append(procedure_data)
+        
+        # Collect all guidelines and tasks for backward compatibility
+        if guideline and guideline not in all_guidelines:
+            all_guidelines.append(guideline)
+        for task in process_tasks:
+            if task not in all_tasks:
+                all_tasks.append(task)
+    
+    # Renumber collected data per evaluation
+    collected_data_renumbered = []
+    for i, data in enumerate(collected_data, 1):
+        collected_data_renumbered.append({
+            'display_name': f'Collect {i}',
+            'original_id': data.collected_data_id,
+            'data': data
+        })
                 
     count_collected_data = len(collected_data)
 
-    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data, guidelines=guidelines, tasks=tasks, collected_data=collected_data, questions=questions)
+    return render_template('eval.html', 
+                         evaluation=evaluation, 
+                         user=user, 
+                         seco_processes=seco_processes, 
+                         count_collected_data=count_collected_data, 
+                         guidelines=all_guidelines, 
+                         tasks=all_tasks, 
+                         collected_data=collected_data_renumbered, 
+                         questions=questions,
+                         procedures_data=procedures_data)
 
 @app.route('/eval_dashboard/<int:id>')
 def eval_dashboard(id):
@@ -583,6 +619,43 @@ def eval_dashboard(id):
             
         dimension_scores.append(dim_data)
     
+    # DX_factor ID to category mapping (same as evaluation details)
+    dx_factor_categories = {
+        # Common Technological Platform
+        1: 'common_technological_platform',   # Desired technical resources for development
+        2: 'common_technological_platform',   # Easy to configure platform
+        5: 'common_technological_platform',   # Platform transparency
+        6: 'common_technological_platform',   # Documentation quality
+        7: 'common_technological_platform',   # Existence of communication channels
+        8: 'common_technological_platform',   # Platform openness level
+        26: 'common_technological_platform',  # Qualities and characteristics of platform
+
+        # Projects and Applications
+        9: 'projects_and_applications',       # More clients/users for applications
+        10: 'projects_and_applications',     # Application distribution methods
+        11: 'projects_and_applications',     # Application interface and appearance standards
+        12: 'projects_and_applications',     # Requirements for developing applications
+        13: 'projects_and_applications',     # Ease of learning about technology
+        14: 'projects_and_applications',     # Low barriers to entry into applications market
+
+        # Community Interaction
+        15: 'community_interaction',         # Obtaining community recognition
+        16: 'community_interaction',         # Commitment to the community
+        17: 'community_interaction',         # A good relationship with the community
+        18: 'community_interaction',         # Knowledge exchange between community developers
+        19: 'community_interaction',         # A good developer relations program
+        20: 'community_interaction',         # Community size and scalability
+
+        # Expectations and Value
+        3: 'expectations_and_value',         # Financial costs for using the platform
+        21: 'expectations_and_value',        # Emergence of new market and job opportunities
+        22: 'expectations_and_value',        # More financial gains
+        23: 'expectations_and_value',        # Fun while developing
+        24: 'expectations_and_value',        # Improvement of developer skills and intellect
+        25: 'expectations_and_value',        # Autonomy and self-control of workflow
+        27: 'expectations_and_value'         # Engagement and rewards for work
+    }
+
     # Calcular pontuações para Developer Experience Categories
     dx_categories = {
         'common_technological_platform': {
@@ -607,49 +680,12 @@ def eval_dashboard(id):
         }
     }
     
-    # DX_factor ID to category mapping (CORRECTED based on template)
-    dx_factor_categories = {
-        # Common Technological Platform
-        1: 'common_technological_platform',   # Desired technical resources for development
-        2: 'common_technological_platform',   # Easy to configure platform
-        5: 'common_technological_platform',   # Platform transparency
-        6: 'common_technological_platform',   # Documentation quality
-        7: 'common_technological_platform',   # Existence of communication channels
-        8: 'common_technological_platform',   # Platform openness level
-        26: 'common_technological_platform',  # Qualities and characteristics of platform
-        
-        # Projects and Applications
-        9: 'projects_and_applications',       # More clients/users for applications
-        10: 'projects_and_applications',     # Application distribution methods
-        11: 'projects_and_applications',     # Application interface and appearance standards
-        12: 'projects_and_applications',     # Requirements for developing applications
-        13: 'projects_and_applications',     # Ease of learning about technology
-        14: 'projects_and_applications',     # Low barriers to entry into applications market
-        
-        # Community Interaction
-        15: 'community_interaction',         # Obtaining community recognition
-        16: 'community_interaction',         # Commitment to the community
-        17: 'community_interaction',         # A good relationship with the community
-        18: 'community_interaction',         # Knowledge exchange between community developers
-        19: 'community_interaction',         # A good developer relations program
-        20: 'community_interaction',         # Community size and scalability
-        
-        # Expectations and Value
-        3: 'expectations_and_value',         # Financial costs for using the platform
-        21: 'expectations_and_value',        # Emergence of new market and job opportunities
-        22: 'expectations_and_value',        # More financial gains
-        23: 'expectations_and_value',        # Fun while developing
-        24: 'expectations_and_value',        # Improvement of developer skills and intellect
-        25: 'expectations_and_value',        # Autonomy and self-control of workflow
-        27: 'expectations_and_value'         # Engagement and rewards for work
-    }
-
     # Distribuir guidelines entre categorias DX usando mapeamento baseado em DX_factors
     for g_result in result:
         if g_result['average_score'] is not None:
             # Buscar a guideline completa para obter seus DX_factors
             guideline_obj = next((g for g in guidelines if g.title == g_result['title']), None)
-            
+
             if guideline_obj:
                 # Coletar categorias únicas para esta guideline
                 guideline_categories = set()
@@ -657,12 +693,12 @@ def eval_dashboard(id):
                     category = dx_factor_categories.get(dx_factor.dx_factor_id)
                     if category:
                         guideline_categories.add(category)
-                
+
                 # Adicionar score apenas uma vez para cada categoria única
                 for category in guideline_categories:
                     dx_categories[category]['guidelines'].append(g_result['average_score'])
             else:
-                # Fallback: distribuição equilibrada se não conseguir mapear
+                # Fallback: distribuição equilibrada als niet kan mappen
                 hash_value = hash(g_result['title']) % 4
                 category_keys = list(dx_categories.keys())
                 dx_categories[category_keys[hash_value]]['guidelines'].append(g_result['average_score'])
@@ -712,7 +748,7 @@ def eval_dashboard(id):
             else:
                 dim['procedure_scores'][f'P{process_id}'] = 0
 
-    # Calcular scores por procedure para categorias DX usando mapeamento baseado em DX_factors
+    # Calcular scores por procedure para categorias DX usando mapeamento gebaseerd op DX_factors
     for category_key, category in dx_categories.items():
         category['procedure_scores'] = {}
 
@@ -720,17 +756,17 @@ def eval_dashboard(id):
             process_id = process.seco_process_id
             process_guidelines_scores = []
 
-            # Mapear guidelines deste processo para a categoria DX
+            # Mapear guidelines van dit proces naar de DX categorie
             for g in process.guidelines:
                 g_result = next((item for item in result if item['title'] == g.title), None)
                 if g_result and g_result['average_score'] is not None:
-                    # Verificar se algum DX_factor desta guideline pertence à categoria
+                    # Controleren of een DX_factor van deze guideline tot de categorie behoort
                     guideline_belongs_to_category = False
                     for dx_factor in g.dx_factors:
                         if dx_factor_categories.get(dx_factor.dx_factor_id) == category_key:
                             guideline_belongs_to_category = True
                             break
-                    
+
                     if guideline_belongs_to_category:
                         process_guidelines_scores.append(g_result['average_score'])
 

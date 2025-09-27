@@ -1047,7 +1047,7 @@ body {
   .legend-grid > .legend-section:nth-child(3) .legend-items { align-items: flex-end; }
   /* Ensure the orange badge uses the column width elegantly */
   .legend-grid > .legend-section:nth-child(3) .attention-badge-small { width: 100%; max-width: 560px; }
-}
+
 
 .legend-section {
     display: flex;

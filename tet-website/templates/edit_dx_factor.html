@@ -1,33 +1,43 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
 {% endblock %}
 
 {% block title %}Edit DX Factor F{{ dx_factor.dx_factor_id }}{% endblock %}
 
 {% block content %}
-<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<a href="javascript:history.back()" class="back-arrow">
+    <span>←</span>
+    <span>Back</span>
+</a>
+
 <div class="container">
-    <div id="dx_factor-section">
-        <div class="card">
-            <div class="card-header">
-                <h4>Edit DX Factor F{{ dx_factor.dx_factor_id }}</h4>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('update_dx_factor', id=dx_factor.dx_factor_id) }}">
-                    <div class="mb-3">
-                        <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ dx_factor.description }}</textarea>
-                    </div>
-                    <div class="mb-7">
-                        <button type="submit" class="btn btn-primary">Update DX Factor</button>
-                    </div>
-                </form>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h4>Edit DX Factor F{{ dx_factor.dx_factor_id }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_dx_factor', id=dx_factor.dx_factor_id) }}">
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea 
+                        id="description"
+                        class="form-control" 
+                        name="description" 
+                        placeholder="Enter DX factor description..." 
+                        rows="4" 
+                        required
+                    >{{ dx_factor.description }}</textarea>
+                </div>
+                
+                <div class="mb-7">
+                    <button type="submit" class="btn btn-primary">
+                        <span>Update DX Factor</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-
 {% endblock %}
