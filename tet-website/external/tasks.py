@@ -205,16 +205,16 @@ def submit_tasks():
     db.session.add(dev_q)
 
     # Salva a navegação (caso exista)
-    #for nav in data.get("navigation", []):
-        #nav_entry = Navigation(
-          #  action              = NavigationType(nav.get("action")),
-          #  title               = nav.get("title"),
-          #  url                 = nav.get("url"),
-          #  timestamp           = datetime.fromisoformat(nav.get("timestamp")),
-           # task_id             = nav.get("taskId"),
-          #  collected_data_id   = collected.collected_data_id
-       # )
-      #  db.session.add(nav_entry)
+    for nav in data.get("navigation", []):
+        nav_entry = Navigation(
+            action              = NavigationType(nav.get("action")),
+            title               = nav.get("title"),
+            url                 = nav.get("url"),
+            timestamp           = datetime.fromisoformat(nav.get("timestamp")),
+            task_id             = nav.get("taskId"),
+            collected_data_id   = collected.collected_data_id
+        )
+        db.session.add(nav_entry)
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200
@@ -273,14 +273,14 @@ def get_data(evaluation_id):
             }
 
         # Navegação
-        # navs = Navigation.query.filter_by(collected_data_id=col.collected_data_id).all()
-        # collected_dict["navigation"] = [{
-        #     "action": n.action.value if hasattr(n.action, "value") else n.action,
-        #     "url": n.url,
-        #     "title": n.title,
-        #     "timestamp": n.timestamp.isoformat(),
-        #     "task_id": n.task_id
-        # } for n in navs]
+        navs = Navigation.query.filter_by(collected_data_id=col.collected_data_id).all()
+        collected_dict["navigation"] = [{
+            "action": n.action.value if hasattr(n.action, "value") else n.action,
+            "url": n.url,
+            "title": n.title,
+            "timestamp": n.timestamp.isoformat(),
+            "task_id": n.task_id
+        } for n in navs]
 
         result.append(collected_dict)
 

@@ -82,3 +82,16 @@ def dashboard_v2():
 @app.route('/teste')
 def teste():
     return render_template('teste.html')
+
+@app.route('/heatmap-tasks/<int:evaluation_id>')
+def heatmap_tasks(evaluation_id):
+    """Display heatmaps segmented by tasks for a specific evaluation"""
+    if not isLogged():
+        return redirect(url_for('signin'))
+    
+    return render_template('heatmap_tasks.html', evaluation_id=evaluation_id)
+
+@app.route('/test-navigation')
+def test_navigation():
+    """Test page for navigation tracking"""
+    return render_template('test_navigation.html')

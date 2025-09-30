@@ -25,28 +25,57 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       root.innerHTML = '';
       
-      const heatmaps = data.heatmaps || [];
+      // Use new segmented_heatmaps structure
+      const segmentedHeatmaps = data.segmented_heatmaps || {};
       availableTasks = data.available_tasks || [];
+      const metadata = data.metadata || {};
+
+      // Display data quality information
+      displayDataQualityInfo(metadata);
 
       // Criar filtros baseados nas tarefas disponíveis
       setupTaskFilters(availableTasks);
 
-      if (heatmaps.length === 0) {
+      // Check if we have any heatmaps
+      const allHeatmaps = [];
+      Object.values(segmentedHeatmaps).forEach(taskData => {
+        if (taskData.heatmaps && taskData.heatmaps.length > 0) {
+          allHeatmaps.push(...taskData.heatmaps);
+        }
+      });
+
+      if (allHeatmaps.length === 0) {
         root.innerHTML = '<p>No heatmaps found for this evaluation.</p>';
         return;
       }
 
-      heatmaps.forEach((heatmapData, index) => {
-        // Analisar tarefas presentes neste heatmap
-        const tasksInHeatmap = getTasksFromPoints(heatmapData.points || []);
-        
-        // Criar wrapper para o heatmap
-        const container = createHeatmapContainer(heatmapData, index, tasksInHeatmap);
-        root.appendChild(container);
-        heatmapContainers.push(container);
+      // Display heatmaps by task
+      Object.entries(segmentedHeatmaps).forEach(([taskId, taskData]) => {
+        if (taskData.heatmaps && taskData.heatmaps.length > 0) {
+          // Create task section header
+          const taskHeader = document.createElement('div');
+          taskHeader.className = 'task-section-header';
+          taskHeader.innerHTML = `
+            <h3>${taskData.task_info.title}</h3>
+            <p>${taskData.task_info.description}</p>
+            <div class="task-stats">${taskData.heatmaps.length} heatmap(s)</div>
+          `;
+          root.appendChild(taskHeader);
 
-        // Inicializar heatmap
-        initializeHeatmap(container, heatmapData, index);
+          // Add heatmaps for this task
+          taskData.heatmaps.forEach((heatmapData, index) => {
+            // Analisar tarefas presentes neste heatmap
+            const tasksInHeatmap = getTasksFromPoints(heatmapData.points || []);
+
+            // Criar wrapper para o heatmap
+            const container = createHeatmapContainer(heatmapData, index, tasksInHeatmap);
+            root.appendChild(container);
+            heatmapContainers.push(container);
+
+            // Inicializar heatmap
+            initializeHeatmap(container, heatmapData, index);
+          });
+        }
       });
     })
     .catch(error => {
@@ -380,5 +409,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // Atualizar contador de heatmaps visíveis
     const visibleCount = heatmapContainers.filter(c => !c.classList.contains('filtered-out')).length;
     console.log(`📊 ${visibleCount}/${heatmapContainers.length} heatmaps visíveis`);
+  }
+
+  function displayDataQualityInfo(metadata) {
+    const qualityScore = metadata.data_quality_score || 0;
+    const warnings = metadata.data_quality_warnings || [];
+    const fallbackUsed = metadata.fallback_used || false;
+    const segmentationMethod = metadata.segmentation_method || 'unknown';
+    const navigationCount = metadata.navigation_data_count || 0;
+    
+    // Create quality info container
+    const qualityContainer = document.createElement('div');
+    qualityContainer.className = 'data-quality-info';
+    
+    let qualityClass = 'good';
+    if (qualityScore < 50) qualityClass = 'poor';
+    else if (qualityScore < 80) qualityClass = 'fair';
+    
+    let qualityText = '';
+    if (fallbackUsed) {
+      qualityText = '⚠️ Using fallback mode - Navigation tracking was not available';
+    } else if (qualityScore >= 80) {
+      qualityText = '✅ Good data quality - Navigation tracking working properly';
+    } else if (qualityScore >= 50) {
+      qualityText = '⚠️ Fair data quality - Some navigation data missing';
+    } else {
+      qualityText = '❌ Poor data quality - Navigation tracking issues detected';
+    }
+    
+    qualityContainer.innerHTML = `
+      <div class="quality-header">
+        <h4>📊 Data Quality Assessment</h4>
+        <div class="quality-score ${qualityClass}">
+          Score: ${qualityScore}/100
+        </div>
+      </div>
+      <div class="quality-details">
+        <p><strong>Status:</strong> ${qualityText}</p>
+        <p><strong>Method:</strong> ${segmentationMethod}</p>
+        <p><strong>Navigation Events:</strong> ${navigationCount}</p>
+        ${warnings.length > 0 ? `
+          <div class="quality-warnings">
+            <strong>⚠️ Warnings:</strong>
+            <ul>
+              ${warnings.map(warning => `<li>${warning}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+      </div>
+    `;
+    
+    // Insert at the beginning of the root
+    root.insertBefore(qualityContainer, root.firstChild);
   }
 });
