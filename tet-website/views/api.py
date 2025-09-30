@@ -5,7 +5,7 @@ from functions import isLogged
 import os
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 from typing import List, Dict, Any, Optional
 import traceback
@@ -103,6 +103,227 @@ def find_active_task_optimized(point_timestamp: datetime, task_intervals: Dict[s
             }
     
     return None
+
+def build_navigation_task_map(performed_tasks: List, navigation_data: List) -> Dict[str, Dict]:
+    """
+    Constrói um mapa de URLs visitadas por tarefa usando dados de navegação
+    Versão melhorada com fallback e data quality monitoring
+    
+    Args:
+        performed_tasks: Lista de PerformedTask objects
+        navigation_data: Lista de dados de navegação
+        
+    Returns:
+        Dict com task_id como chave e informações da tarefa + URLs como valor
+    """
+    print(f"🔍 Building navigation task map...")
+    print(f"📊 Performed tasks: {len(performed_tasks)}")
+    print(f"🧭 Navigation data points: {len(navigation_data)}")
+    
+    task_url_map = {}
+    data_quality_stats = {
+        'tasks_with_timestamps': 0,
+        'navigation_points_mapped': 0,
+        'navigation_points_unmapped': 0,
+        'tasks_with_navigation': 0
+    }
+    
+    # Criar mapa de intervalos de tempo das tarefas
+    task_intervals = {}
+    for pt in performed_tasks:
+        initial_ts = normalize_timestamp(str(pt.initial_timestamp))
+        final_ts = normalize_timestamp(str(pt.final_timestamp))
+        
+        if initial_ts and final_ts:
+            task_intervals[pt.task_id] = {
+                'initial_timestamp': initial_ts,
+                'final_timestamp': final_ts,
+                'title': pt.task.title,
+                'description': getattr(pt.task, 'description', ''),
+                'duration_minutes': (final_ts - initial_ts).total_seconds() / 60
+            }
+            data_quality_stats['tasks_with_timestamps'] += 1
+        else:
+            print(f"⚠️ Task {pt.task_id} has invalid timestamps: {pt.initial_timestamp} -> {pt.final_timestamp}")
+    
+    print(f"✅ Tasks with valid timestamps: {data_quality_stats['tasks_with_timestamps']}")
+    
+    # Mapear URLs por tarefa baseado na navegação
+    for nav in navigation_data:
+        nav_timestamp = normalize_timestamp(nav.get('timestamp'))
+        if not nav_timestamp:
+            data_quality_stats['navigation_points_unmapped'] += 1
+            continue
+            
+        # Encontrar qual tarefa estava ativa no momento da navegação
+        mapped_to_task = False
+        for task_id, task_info in task_intervals.items():
+            if task_info['initial_timestamp'] <= nav_timestamp <= task_info['final_timestamp']:
+                if task_id not in task_url_map:
+                    task_url_map[task_id] = {
+                        'urls': set(),
+                        'title': task_info['title'],
+                        'description': task_info['description'],
+                        'duration_minutes': task_info['duration_minutes'],
+                        'navigation_count': 0,
+                        'url_diversity': set()
+                    }
+                task_url_map[task_id]['urls'].add(nav['url'])
+                task_url_map[task_id]['navigation_count'] += 1
+                task_url_map[task_id]['url_diversity'].add(nav['url'])
+                data_quality_stats['navigation_points_mapped'] += 1
+                mapped_to_task = True
+                break
+        
+        if not mapped_to_task:
+            data_quality_stats['navigation_points_unmapped'] += 1
+            print(f"⚠️ Navigation point unmapped: {nav.get('url', 'unknown')} at {nav_timestamp}")
+    
+    # Converter sets para listas e calcular estatísticas
+    for task_id in task_url_map:
+        task_url_map[task_id]['urls'] = list(task_url_map[task_id]['urls'])
+        task_url_map[task_id]['url_diversity'] = len(task_url_map[task_id]['url_diversity'])
+        data_quality_stats['tasks_with_navigation'] += 1
+    
+    # Log data quality
+    print(f"📈 Data Quality Stats:")
+    print(f"   - Tasks with timestamps: {data_quality_stats['tasks_with_timestamps']}")
+    print(f"   - Navigation points mapped: {data_quality_stats['navigation_points_mapped']}")
+    print(f"   - Navigation points unmapped: {data_quality_stats['navigation_points_unmapped']}")
+    print(f"   - Tasks with navigation data: {data_quality_stats['tasks_with_navigation']}")
+    
+    # Add quality assessment
+    quality_score = 0
+    if data_quality_stats['tasks_with_timestamps'] > 0:
+        quality_score += 40
+    if data_quality_stats['navigation_points_mapped'] > 0:
+        quality_score += 30
+    if data_quality_stats['tasks_with_navigation'] > 0:
+        quality_score += 30
+    
+    print(f"🎯 Navigation tracking quality score: {quality_score}/100")
+    
+    return task_url_map
+
+def segment_heatmaps_by_tasks(heatmap_data: List, task_url_map: Dict[str, Dict]) -> Dict[str, Dict]:
+    """
+    Segmenta heatmaps por tarefa baseado nas URLs visitadas
+    Versão melhorada com fallback e melhor matching
+    
+    Args:
+        heatmap_data: Dados de heatmap da UFPA
+        task_url_map: Mapa de URLs por tarefa (com informações da tarefa)
+        
+    Returns:
+        Dict mapeando task_id para dados da tarefa + heatmaps segmentados
+    """
+    print(f"🎯 Segmenting heatmaps by tasks...")
+    print(f"📊 Heatmap data items: {len(heatmap_data)}")
+    print(f"🧭 Tasks with navigation: {len(task_url_map)}")
+    
+    segmented_heatmaps = {}
+    segmentation_stats = {
+        'heatmaps_processed': 0,
+        'heatmaps_matched': 0,
+        'heatmaps_unmatched': 0,
+        'tasks_with_heatmaps': 0
+    }
+    
+    # Inicializar listas vazias para cada tarefa
+    for task_id, task_data in task_url_map.items():
+        segmented_heatmaps[task_id] = {
+            'task_info': {
+                'task_id': task_id,
+                'title': task_data['title'],
+                'description': task_data['description'],
+                'duration_minutes': task_data.get('duration_minutes', 0),
+                'navigation_count': task_data.get('navigation_count', 0),
+                'url_diversity': task_data.get('url_diversity', 0),
+                'urls_visited': task_data['urls']
+            },
+            'heatmaps': []
+        }
+    
+    # Processar cada item de heatmap
+    for item in heatmap_data:
+        if not isinstance(item, dict):
+            continue
+            
+        page_images = item.get('heatmap_images', [])
+        if not isinstance(page_images, list):
+            continue
+            
+        for page_image in page_images:
+            if not isinstance(page_image, dict):
+                continue
+                
+            page_url = page_image.get('url', '')
+            if not page_url:
+                continue
+            
+            segmentation_stats['heatmaps_processed'] += 1
+            
+            # Melhorar matching: tentar diferentes estratégias
+            matched_task_id = None
+            
+            # Estratégia 1: Match exato
+            for task_id, task_data in task_url_map.items():
+                if page_url in task_data['urls']:
+                    matched_task_id = task_id
+                    break
+            
+            # Estratégia 2: Match por domínio (fallback)
+            if not matched_task_id:
+                page_domain = page_url.split('/')[2] if '/' in page_url else page_url
+                for task_id, task_data in task_url_map.items():
+                    for task_url in task_data['urls']:
+                        task_domain = task_url.split('/')[2] if '/' in task_url else task_url
+                        if page_domain == task_domain:
+                            matched_task_id = task_id
+                            break
+                    if matched_task_id:
+                        break
+            
+            if matched_task_id:
+                # Adicionar este heatmap à tarefa correspondente
+                heatmap_item = {
+                    "height": page_image.get("height"),
+                    "image": page_image.get("image"),
+                    "points": page_image.get("points", []),
+                    "scroll_positions": page_image.get("scroll_positions"),
+                    "url": page_url,
+                    "width": page_image.get("width"),
+                    "metadata": {
+                        "total_points": len(page_image.get("points", [])),
+                        "task_id": matched_task_id,
+                        "task_title": task_url_map[matched_task_id]['title'],
+                        "matched_strategy": "exact" if page_url in task_url_map[matched_task_id]['urls'] else "domain"
+                    }
+                }
+                segmented_heatmaps[matched_task_id]['heatmaps'].append(heatmap_item)
+                segmentation_stats['heatmaps_matched'] += 1
+            else:
+                segmentation_stats['heatmaps_unmatched'] += 1
+                print(f"⚠️ Heatmap unmatched: {page_url}")
+    
+    # Calcular estatísticas finais
+    for task_id, task_data in segmented_heatmaps.items():
+        if len(task_data['heatmaps']) > 0:
+            segmentation_stats['tasks_with_heatmaps'] += 1
+    
+    # Log segmentation results
+    print(f"📈 Segmentation Stats:")
+    print(f"   - Heatmaps processed: {segmentation_stats['heatmaps_processed']}")
+    print(f"   - Heatmaps matched: {segmentation_stats['heatmaps_matched']}")
+    print(f"   - Heatmaps unmatched: {segmentation_stats['heatmaps_unmatched']}")
+    print(f"   - Tasks with heatmaps: {segmentation_stats['tasks_with_heatmaps']}")
+    
+    # Calcular success rate
+    if segmentation_stats['heatmaps_processed'] > 0:
+        success_rate = (segmentation_stats['heatmaps_matched'] / segmentation_stats['heatmaps_processed']) * 100
+        print(f"🎯 Segmentation success rate: {success_rate:.1f}%")
+    
+    return segmented_heatmaps
 
 @app.route('/api/guideline/<int:id>')
 def api_get_guideline(id):
@@ -330,11 +551,12 @@ def api_view_heatmap(id):
             
             print(f"--- Keys do item {idx + 1}: {list(item.keys())} ---")
             
-            page_images = item.get('page_images', [])
-            print(f"--- Page_images encontradas: {len(page_images)} ---")
+            # UFPA API returns 'heatmap_images' not 'page_images'
+            page_images = item.get('heatmap_images', [])
+            print(f"--- Heatmap_images encontradas: {len(page_images)} ---")
             
             if not isinstance(page_images, list):
-                print(f"--- ERRO: page_images não é uma lista! Tipo: {type(page_images)} ---")
+                print(f"--- ERRO: heatmap_images não é uma lista! Tipo: {type(page_images)} ---")
                 continue
             
             for page_idx, i in enumerate(page_images):
@@ -461,12 +683,23 @@ def api_heatmap_tasks(evaluation_id):
             print("🔄 Convertendo dados para lista")
             heatmap_data = [heatmap_data]
         
-        # Coletar performed_tasks
+        # Coletar performed_tasks e dados de navegação
         performed_tasks = []
+        navigation_data = []
         for col_data in evaluation.collected_data:
             performed_tasks.extend(col_data.performed_tasks)
+            # Coletar dados de navegação
+            for nav in col_data.navigation:
+                navigation_data.append({
+                    'action': nav.action.value if hasattr(nav.action, 'value') else str(nav.action),
+                    'url': nav.url,
+                    'title': nav.title,
+                    'timestamp': nav.timestamp.isoformat(),
+                    'task_id': nav.task_id
+                })
         
         print(f"📋 Total de performed_tasks encontradas: {len(performed_tasks)}")
+        print(f"🧭 Total de dados de navegação encontrados: {len(navigation_data)}")
         
         if not performed_tasks:
             print("⚠️ Nenhuma performed_task encontrada para esta avaliação")
@@ -476,10 +709,10 @@ def api_heatmap_tasks(evaluation_id):
                 "message": "No performed tasks found for this evaluation"
             })
         
-        # Construir mapa otimizado de intervalos de tarefas
-        print("🔧 Construindo mapa otimizado de intervalos de tarefas...")
-        task_intervals = build_task_interval_map(performed_tasks)
-        print(f"✅ Mapa construído com {len(task_intervals)} intervalos válidos")
+        # Construir mapa de URLs por tarefa usando dados de navegação
+        print("🔧 Construindo mapa de URLs por tarefa usando navegação...")
+        task_url_map = build_navigation_task_map(performed_tasks, navigation_data)
+        print(f"✅ Mapa construído com {len(task_url_map)} tarefas com URLs mapeadas")
         
         # Criar lista de tarefas únicas para filtros
         unique_tasks = {}
@@ -493,107 +726,109 @@ def api_heatmap_tasks(evaluation_id):
         
         print(f"📋 Tarefas únicas criadas: {len(unique_tasks)}")
         
-        # Processar heatmaps com algoritmo otimizado
-        print(f"🔄 Iniciando processamento de {len(heatmap_data)} itens de heatmap")
-        heatmaps = []
-        total_points_processed = 0
-        points_with_tasks = 0
+        # Segmentar heatmaps por tarefa usando navegação
+        print(f"🔄 Segmentando heatmaps por tarefa usando dados de navegação...")
+        segmented_heatmaps = segment_heatmaps_by_tasks(heatmap_data, task_url_map)
         
-        for idx, item in enumerate(heatmap_data):
-            print(f"🔄 Processando heatmap item {idx + 1}/{len(heatmap_data)}")
+        # Se não há dados de navegação, usar fallback: mostrar todos os heatmaps
+        if not task_url_map and len(performed_tasks) > 0:
+            print("⚠️ Nenhum dado de navegação encontrado, usando fallback...")
+            print("🔍 Possíveis causas:")
+            print("   - Navigation tracking não estava ativo durante a avaliação")
+            print("   - Extension não estava instalada ou funcionando")
+            print("   - Dados de navegação foram perdidos")
+            print("   - Problemas de sincronização entre extensions")
             
-            if not isinstance(item, dict):
-                print(f"⚠️ Item {idx + 1} não é um dict")
-                continue
-            
-            page_images = item.get('page_images', [])
-            if not isinstance(page_images, list):
-                print(f"⚠️ page_images do item {idx + 1} não é uma lista")
-                continue
-            
-            for page_idx, page_image in enumerate(page_images):
-                if not isinstance(page_image, dict):
-                    continue
-                
-                points = page_image.get('points', [])
-                if not isinstance(points, list):
-                    continue
-                
-                print(f"📊 Processando {len(points)} pontos da página {page_idx + 1}")
-                
-                # Mapear pontos usando algoritmo otimizado
-                mapped_points = []
-                page_points_with_tasks = 0
-                
-                for point in points:
-                    total_points_processed += 1
-                    
-                    if not isinstance(point, dict) or 'timestamp' not in point:
-                        mapped_points.append(point)
-                        continue
-                
-                    # Normalizar timestamp do ponto
-                    point_timestamp = normalize_timestamp(point.get('timestamp'))
-                    if not point_timestamp:
-                        print(f"⚠️ Timestamp inválido no ponto: {point.get('timestamp')}")
-                        mapped_points.append(point)
-                        continue
-                
-                    # Encontrar tarefa ativa usando algoritmo otimizado
-                    active_task = find_active_task_optimized(point_timestamp, task_intervals)
-                    
-                    if active_task:
-                        page_points_with_tasks += 1
-                        points_with_tasks += 1
-                
-                    # Adicionar informação da tarefa ao ponto
-                    point_with_task = point.copy()
-                    point_with_task['active_task'] = active_task
-                    point_with_task['timestamp_normalized'] = point_timestamp.isoformat() if point_timestamp else None
-                    mapped_points.append(point_with_task)
-                
-                print(f"✅ Página {page_idx + 1}: {page_points_with_tasks}/{len(points)} pontos com tarefas")
-                
-                # Criar item do heatmap com pontos mapeados e metadados
-                heatmap_item = {
-                    "height": page_image.get("height"),
-                    "image": page_image.get("image"),
-                    "points": mapped_points,
-                    "scroll_positions": page_image.get("scroll_positions"),
-                    "url": page_image.get("url"),
-                    "width": page_image.get("width"),
-                    "metadata": {
-                        "total_points": len(points),
-                        "points_with_tasks": page_points_with_tasks,
-                        "coverage_percentage": round((page_points_with_tasks / len(points)) * 100, 1) if points else 0
-                    }
+            segmented_heatmaps = {
+                "all_heatmaps": {
+                    "task_info": {
+                        "task_id": "all",
+                        "title": "All Heatmaps (No Navigation Data)",
+                        "description": "Heatmaps without task-specific navigation data. Navigation tracking may not have been active during this evaluation.",
+                        "duration_minutes": 0,
+                        "navigation_count": 0,
+                        "url_diversity": 0,
+                        "urls_visited": [],
+                        "data_quality_warning": True,
+                        "fallback_reason": "No navigation data available"
+                    },
+                    "heatmaps": []
                 }
-                
-                heatmaps.append(heatmap_item)
+            }
+            
+            # Adicionar todos os heatmaps à categoria geral
+            for item in heatmap_data:
+                if not isinstance(item, dict):
+                    continue
+                page_images = item.get('heatmap_images', [])
+                if not isinstance(page_images, list):
+                    continue
+                for page_image in page_images:
+                    if not isinstance(page_image, dict):
+                        continue
+                    heatmap_item = {
+                        "height": page_image.get("height"),
+                        "image": page_image.get("image"),
+                        "points": page_image.get("points", []),
+                        "scroll_positions": page_image.get("scroll_positions"),
+                        "url": page_image.get("url", "Unknown"),
+                        "width": page_image.get("width"),
+                        "metadata": {
+                            "total_points": len(page_image.get("points", [])),
+                            "task_id": "all",
+                            "task_title": "All Heatmaps"
+                        }
+                    }
+                    segmented_heatmaps["all_heatmaps"]["heatmaps"].append(heatmap_item)
         
-        # Estatísticas finais
-        coverage_percentage = round((points_with_tasks / total_points_processed) * 100, 1) if total_points_processed else 0
+        # Calcular estatísticas
+        total_heatmaps = sum(len(task_data['heatmaps']) for task_data in segmented_heatmaps.values())
+        total_points = sum(
+            sum(hm.get('metadata', {}).get('total_points', 0) for hm in task_data['heatmaps'])
+            for task_data in segmented_heatmaps.values()
+        )
         
-        print(f"\n✅ === PROCESSAMENTO CONCLUÍDO ===")
-        print(f"📊 Total de heatmaps: {len(heatmaps)}")
-        print(f"📋 Total de tarefas únicas: {len(unique_tasks)}")
-        print(f"🎯 Pontos processados: {total_points_processed}")
-        print(f"🎯 Pontos com tarefas: {points_with_tasks} ({coverage_percentage}%)")
+        print(f"\n✅ === SEGMENTAÇÃO CONCLUÍDA ===")
+        print(f"📊 Total de tarefas com heatmaps: {len(segmented_heatmaps)}")
+        print(f"📊 Total de heatmaps segmentados: {total_heatmaps}")
+        print(f"🎯 Total de pontos processados: {total_points}")
         print(f"⏰ Processamento finalizado em: {datetime.now(pytz.UTC).isoformat()}")
         print("🔥 === FIM HEATMAP TASKS API ===\n")
         
-        # Resposta final com metadados
+        # Calcular data quality score
+        data_quality_score = 0
+        data_quality_warnings = []
+        
+        if len(navigation_data) > 0:
+            data_quality_score += 40
+        else:
+            data_quality_warnings.append("No navigation data available")
+            
+        if len(task_url_map) > 0:
+            data_quality_score += 30
+        else:
+            data_quality_warnings.append("No task-URL mapping possible")
+            
+        if total_heatmaps > 0:
+            data_quality_score += 30
+        else:
+            data_quality_warnings.append("No heatmaps found")
+        
+        # Resposta final com heatmaps segmentados por tarefa
         response_data = {
-            "heatmaps": heatmaps,
+            "segmented_heatmaps": segmented_heatmaps,
             "available_tasks": list(unique_tasks.values()),
             "metadata": {
-                "total_heatmaps": len(heatmaps),
-                "total_unique_tasks": len(unique_tasks),
-                "total_points_processed": total_points_processed,
-                "points_with_tasks": points_with_tasks,
-                "overall_coverage_percentage": coverage_percentage,
+                "total_tasks_with_heatmaps": len(segmented_heatmaps),
+                "total_heatmaps": total_heatmaps,
+                "total_points_processed": total_points,
+                "navigation_data_count": len(navigation_data),
                 "processed_at": datetime.now(pytz.UTC).isoformat(),
-                "evaluation_id": evaluation_id
+                "evaluation_id": evaluation_id,
+                "segmentation_method": "navigation_based" if len(task_url_map) > 0 else "fallback",
+                "data_quality_score": data_quality_score,
+                "data_quality_warnings": data_quality_warnings,
+                "fallback_used": len(task_url_map) == 0 and len(performed_tasks) > 0
             }
         }
         
@@ -611,4 +846,171 @@ def api_heatmap_tasks(evaluation_id):
             "error": "Processing error", 
             "details": str(e),
             "traceback": traceback.format_exc() if app.debug else None
+        }), 500
+
+@app.route('/api/debug-ufpa/<int:evaluation_id>')
+def debug_ufpa_raw(evaluation_id):
+    """
+    Debug endpoint - Retorna RAW data da UFPA sem processamento
+    """
+    if not isLogged():
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    token = session.get('uxt_access_token')
+    if not token:
+        return jsonify({"error": "Token not found"}), 401
+    
+    try:
+        evaluation = Evaluation.query.get_or_404(evaluation_id)
+        
+        url = f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}'
+        headers = {'Authorization': f'Bearer {token}'}
+        
+        response = requests.get(url, headers=headers, timeout=60)
+        
+        debug_info = {
+            "url": url,
+            "status_code": response.status_code,
+            "content_type": response.headers.get('content-type'),
+            "content_length": len(response.content),
+            "raw_data": response.json() if response.status_code == 200 else response.text[:1000]
+        }
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
+
+@app.route('/api/debug-all-navigation')
+def debug_all_navigation():
+    """
+    Debug endpoint - Retorna todos os dados de navegação do sistema
+    """
+    if not isLogged():
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    try:
+        # Query all navigation records
+        all_navigation = Navigation.query.order_by(Navigation.timestamp.desc()).limit(20).all()
+        
+        navigation_data = []
+        for nav in all_navigation:
+            navigation_data.append({
+                "action": nav.action.value if hasattr(nav.action, "value") else nav.action,
+                "url": nav.url,
+                "title": nav.title,
+                "timestamp": nav.timestamp.isoformat(),
+                "task_id": nav.task_id,
+                "collected_data_id": nav.collected_data_id
+            })
+        
+        return jsonify({
+            "total_navigation_records": len(navigation_data),
+            "navigation_data": navigation_data,
+            "message": f"Found {len(navigation_data)} navigation records in system"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/create-test-evaluation')
+def create_test_evaluation():
+    """
+    Create a test evaluation for testing navigation tracking
+    """
+    if not isLogged():
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    try:
+        # Create test evaluation
+        test_evaluation = Evaluation(
+            evaluation_id=999999,
+            portal_name="Test Portal",
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(hours=1),
+            status="active"
+        )
+        
+        # Check if already exists
+        existing = Evaluation.query.filter_by(evaluation_id=999999).first()
+        if existing:
+            return jsonify({
+                "message": "Test evaluation already exists",
+                "evaluation_id": 999999,
+                "status": "ready"
+            })
+        
+        db.session.add(test_evaluation)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Test evaluation created successfully",
+            "evaluation_id": 999999,
+            "status": "created"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/debug-evaluation/<int:evaluation_id>')
+def debug_evaluation_data(evaluation_id):
+    """
+    Debug endpoint - Toont alle data van een evaluatie inclusief navigatie
+    """
+    if not isLogged():
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    try:
+        evaluation = Evaluation.query.get_or_404(evaluation_id)
+        
+        # Verzamel alle data
+        collected_data = []
+        for col_data in evaluation.collected_data:
+            col_dict = {
+                "collected_data_id": col_data.collected_data_id,
+                "start_time": col_data.start_time.isoformat() if col_data.start_time else None,
+                "end_time": col_data.end_time.isoformat() if col_data.end_time else None,
+                "performed_tasks": [],
+                "navigation": []
+            }
+            
+            # Performed tasks
+            for pt in col_data.performed_tasks:
+                col_dict["performed_tasks"].append({
+                    "performed_task_id": pt.performed_task_id,
+                    "task_id": pt.task_id,
+                    "task_title": pt.task.title,
+                    "status": pt.status.value if hasattr(pt.status, 'value') else str(pt.status),
+                    "initial_timestamp": pt.initial_timestamp.isoformat() if pt.initial_timestamp else None,
+                    "final_timestamp": pt.final_timestamp.isoformat() if pt.final_timestamp else None
+                })
+            
+            # Navigation data
+            for nav in col_data.navigation:
+                col_dict["navigation"].append({
+                    "action": nav.action.value if hasattr(nav.action, 'value') else str(nav.action),
+                    "url": nav.url,
+                    "title": nav.title,
+                    "timestamp": nav.timestamp.isoformat(),
+                    "task_id": nav.task_id
+                })
+            
+            collected_data.append(col_dict)
+        
+        debug_info = {
+            "evaluation_id": evaluation_id,
+            "evaluation_found": True,
+            "collected_data_count": len(collected_data),
+            "total_performed_tasks": sum(len(cd["performed_tasks"]) for cd in collected_data),
+            "total_navigation_events": sum(len(cd["navigation"]) for cd in collected_data),
+            "collected_data": collected_data
+        }
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({
+            "error": str(e), 
+            "traceback": traceback.format_exc(),
+            "evaluation_found": False
         }), 500

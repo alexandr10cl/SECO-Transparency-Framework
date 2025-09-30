@@ -42,26 +42,47 @@ let isSubmitting = false; // Evita envios duplicados do resultado
 
 
 
-// Navigation tracking
+// Enhanced Navigation tracking
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
     // Listen for page navigation events from background.js
-    if (currentPhase === "task" || currentPhase === "review") { // Só captura navegação na etapa de resolução de tarefas ou revisão
-      if (request.action === "pageNavigation" || request.action === "tab_switch") {
-        data_collection.navigation.push({
-          action : request.action,
+    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview";
+    
+    if (shouldTrackNavigation) {
+      if (request.action === "pageNavigation" || request.action === "tabSwitch") {
+        const currentTaskId = (currentTaskIndex >= 0 && todo_tasks.length > 0 && currentTaskIndex < todo_tasks.length) 
+                              ? todo_tasks[currentTaskIndex].id 
+                              : null;
+        
+        const navigationEntry = {
+          action: request.action,
           title: request.title,
           url: request.url,
           timestamp: request.timestamp,
-          taskId: (currentTaskIndex >= 0 && todo_tasks.length > 0 && currentTaskIndex < todo_tasks.length) 
-                  ? todo_tasks[currentTaskIndex].id 
-                  : null
+          taskId: currentTaskId,
+          phase: currentPhase,
+          taskIndex: currentTaskIndex
+        };
+        
+        data_collection.navigation.push(navigationEntry);
+        
+        console.log("🧭 Navigation recorded:", {
+          url: request.url,
+          taskId: currentTaskId,
+          phase: currentPhase,
+          taskIndex: currentTaskIndex,
+          totalNavigationEvents: data_collection.navigation.length
         });
-        console.log("Navigation recorded:", request.url);
+        
+        // Send response back to background script
+        sendResponse({status: "success", navigationCount: data_collection.navigation.length});
       }
+    } else {
+      console.log("🚫 Navigation not tracked - Current phase:", currentPhase);
     }
   } catch (error) {
-    console.error("Error processing message:", error);
+    console.error("❌ Error processing navigation message:", error);
+    sendResponse({status: "error", error: error.message});
   }
 });
 
