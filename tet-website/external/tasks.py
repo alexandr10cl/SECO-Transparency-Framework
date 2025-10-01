@@ -62,7 +62,11 @@ def data_collected():
 @app.route('/submit_tasks', methods=['POST'])
 def submit_tasks():
     data = request.get_json(force=True)
+    print("=== SUBMIT_TASKS DEBUG ===")
     print("Dados recebidos:", data)
+    print(f"Navigation data count: {len(data.get('navigation', []))}")
+    if data.get('navigation'):
+        print("Navigation samples:", data.get('navigation')[:2])  # Show first 2 navigation entries
 
     # Busca a avaliação pelo código
     evaluation = Evaluation.query.filter_by(evaluation_id=data.get("evaluation_code")).first()
@@ -206,8 +210,18 @@ def submit_tasks():
 
     # Salva a navegação (caso exista)
     for nav in data.get("navigation", []):
+        # Convert extension action values to database enum values
+        action_value = nav.get("action")
+        if action_value == "pageNavigation":
+            action_enum = NavigationType.PAGE_NAVIGATION
+        elif action_value == "tabSwitch":
+            action_enum = NavigationType.TAB_SWITCH
+        else:
+            print(f"⚠️ Unknown navigation action: {action_value}")
+            continue
+            
         nav_entry = Navigation(
-            action              = NavigationType(nav.get("action")),
+            action              = action_enum,
             title               = nav.get("title"),
             url                 = nav.get("url"),
             timestamp           = datetime.fromisoformat(nav.get("timestamp")),
@@ -215,6 +229,7 @@ def submit_tasks():
             collected_data_id   = collected.collected_data_id
         )
         db.session.add(nav_entry)
+        print(f"✅ Navigation entry added: {action_value} -> {action_enum.value}")
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200

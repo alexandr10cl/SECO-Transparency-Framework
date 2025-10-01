@@ -11,8 +11,8 @@ class PerformedTaskStatus(Enum):
     NOT_SURE = "notSure"
 
 class NavigationType(Enum):
-    PAGE_NAVIGATION = 'pageNavigation'
-    TAB_SWITCH = 'tabSwitch'
+    PAGE_NAVIGATION = 'PAGE_NAVIGATION'
+    TAB_SWITCH = 'TAB_SWITCH'
 
 class AcademicLevel(Enum):
     HIGH_SCHOOL = 'high_school'
