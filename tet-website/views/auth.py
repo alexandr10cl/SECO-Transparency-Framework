@@ -45,6 +45,9 @@ def auth():
                 messageEA = ''
                 return redirect(url_for('signin'))
 
+            session['user_signed_in'] = user.email
+            session['user_type'] = user.type.value
+
             # Pegar token de autenticação do UXT
             uxt_url = 'https://uxt-stage.liis.com.br/auth/login'
 
