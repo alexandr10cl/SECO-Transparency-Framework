@@ -142,6 +142,17 @@ def build_navigation_task_map(performed_tasks: List, navigation_data: List) -> D
                 'description': getattr(pt.task, 'description', ''),
                 'duration_minutes': (final_ts - initial_ts).total_seconds() / 60
             }
+            task_url_map[pt.task_id] = {
+                'title': pt.task.title,
+                'description': getattr(pt.task, 'description', ''),
+                'duration_minutes': (final_ts - initial_ts).total_seconds() / 60,
+                'navigation_count': 0,
+                'url_diversity': set(),
+                'urls': set(),
+                'initial_timestamp': initial_ts,
+                'final_timestamp': final_ts,
+                'url_details_map': {}
+            }
             data_quality_stats['tasks_with_timestamps'] += 1
         else:
             print(f"⚠️ Task {pt.task_id} has invalid timestamps: {pt.initial_timestamp} -> {pt.final_timestamp}")
@@ -151,39 +162,46 @@ def build_navigation_task_map(performed_tasks: List, navigation_data: List) -> D
     # Mapear URLs por tarefa baseado na navegação
     for nav in navigation_data:
         nav_timestamp = normalize_timestamp(nav.get('timestamp'))
-        if not nav_timestamp:
+        nav_task_id = nav.get('task_id')
+        if not nav_timestamp or nav_task_id not in task_url_map:
             data_quality_stats['navigation_points_unmapped'] += 1
+            if nav_task_id not in task_url_map:
+                print(f"⚠️ Navigation point task_id não encontrado: {nav_task_id}")
             continue
-            
-        # Encontrar qual tarefa estava ativa no momento da navegação
-        mapped_to_task = False
-        for task_id, task_info in task_intervals.items():
-            if task_info['initial_timestamp'] <= nav_timestamp <= task_info['final_timestamp']:
-                if task_id not in task_url_map:
-                    task_url_map[task_id] = {
-                        'urls': set(),
-                        'title': task_info['title'],
-                        'description': task_info['description'],
-                        'duration_minutes': task_info['duration_minutes'],
-                        'navigation_count': 0,
-                        'url_diversity': set()
-                    }
-                task_url_map[task_id]['urls'].add(nav['url'])
-                task_url_map[task_id]['navigation_count'] += 1
-                task_url_map[task_id]['url_diversity'].add(nav['url'])
-                data_quality_stats['navigation_points_mapped'] += 1
-                mapped_to_task = True
-                break
         
-        if not mapped_to_task:
-            data_quality_stats['navigation_points_unmapped'] += 1
-            print(f"⚠️ Navigation point unmapped: {nav.get('url', 'unknown')} at {nav_timestamp}")
+        task_data = task_url_map[nav_task_id]
+        task_data['urls'].add(nav.get('url'))
+        task_data['navigation_count'] += 1
+        task_data['url_diversity'].add(nav.get('url'))
+        
+        url_key = nav.get('url') or 'unknown'
+        url_stats = task_data['url_details_map'].setdefault(url_key, {
+            'first_seen': nav_timestamp,
+            'last_seen': nav_timestamp,
+            'count': 0
+        })
+        url_stats['count'] += 1
+        if nav_timestamp < url_stats['first_seen']:
+            url_stats['first_seen'] = nav_timestamp
+        if nav_timestamp > url_stats['last_seen']:
+            url_stats['last_seen'] = nav_timestamp
+        
+        data_quality_stats['navigation_points_mapped'] += 1
     
     # Converter sets para listas e calcular estatísticas
-    for task_id in task_url_map:
-        task_url_map[task_id]['urls'] = list(task_url_map[task_id]['urls'])
-        task_url_map[task_id]['url_diversity'] = len(task_url_map[task_id]['url_diversity'])
-        data_quality_stats['tasks_with_navigation'] += 1
+    for task_id, task_data in task_url_map.items():
+        url_details_list = []
+        for url, stats in sorted(task_data['url_details_map'].items(), key=lambda item: item[1]['first_seen']):
+            url_details_list.append({
+                'url': url,
+                'first_seen': stats['first_seen'].isoformat() if stats['first_seen'] else None,
+                'last_seen': stats['last_seen'].isoformat() if stats['last_seen'] else None,
+                'count': stats['count']
+            })
+        task_data['url_details'] = url_details_list
+        task_data['urls'] = [detail['url'] for detail in url_details_list]
+        task_data['url_diversity'] = len(task_data['url_diversity'])
+        data_quality_stats['tasks_with_navigation'] += 1 if task_data['navigation_count'] > 0 else 0
     
     # Log data quality
     print(f"📈 Data Quality Stats:")
@@ -207,17 +225,9 @@ def build_navigation_task_map(performed_tasks: List, navigation_data: List) -> D
 
 def segment_heatmaps_by_tasks(heatmap_data: List, task_url_map: Dict[str, Dict]) -> Dict[str, Dict]:
     """
-    Segmenta heatmaps por tarefa baseado nas URLs visitadas
-    Versão melhorada com fallback e melhor matching
-    
-    Args:
-        heatmap_data: Dados de heatmap da UFPA
-        task_url_map: Mapa de URLs por tarefa (com informações da tarefa)
-        
-    Returns:
-        Dict mapeando task_id para dados da tarefa + heatmaps segmentados
+    Segmenta heatmaps por tarefa combinando URLs visitadas e intervalos de tempo
     """
-    print(f"🎯 Segmenting heatmaps by tasks...")
+    print("🎯 Segmenting heatmaps by tasks...")
     print(f"📊 Heatmap data items: {len(heatmap_data)}")
     print(f"🧭 Tasks with navigation: {len(task_url_map)}")
     
@@ -229,7 +239,6 @@ def segment_heatmaps_by_tasks(heatmap_data: List, task_url_map: Dict[str, Dict])
         'tasks_with_heatmaps': 0
     }
     
-    # Inicializar listas vazias para cada tarefa
     for task_id, task_data in task_url_map.items():
         segmented_heatmaps[task_id] = {
             'task_info': {
@@ -239,90 +248,119 @@ def segment_heatmaps_by_tasks(heatmap_data: List, task_url_map: Dict[str, Dict])
                 'duration_minutes': task_data.get('duration_minutes', 0),
                 'navigation_count': task_data.get('navigation_count', 0),
                 'url_diversity': task_data.get('url_diversity', 0),
-                'urls_visited': task_data['urls']
+                'urls_visited': task_data['urls'],
+                'url_details': task_data.get('url_details', []),
+                'initial_timestamp': task_data.get('initial_timestamp'),
+                'final_timestamp': task_data.get('final_timestamp')
             },
             'heatmaps': []
         }
     
-    # Processar cada item de heatmap
+    def _ranges_overlap(a_start: Optional[datetime], a_end: Optional[datetime], b_start: Optional[datetime], b_end: Optional[datetime]) -> bool:
+        if not a_start or not a_end or not b_start or not b_end:
+            return False
+        return max(a_start, b_start) <= min(a_end, b_end)
+    
     for item in heatmap_data:
         if not isinstance(item, dict):
             continue
-            
         page_images = item.get('heatmap_images', [])
         if not isinstance(page_images, list):
             continue
-            
+        total_interactions = item.get('total_interactions', len(page_images))
+        time_range = item.get('time_range', {})
+        heatmap_start = normalize_timestamp(time_range.get('start')) if isinstance(time_range, dict) else None
+        heatmap_end = normalize_timestamp(time_range.get('end')) if isinstance(time_range, dict) else None
+        
         for page_image in page_images:
             if not isinstance(page_image, dict):
                 continue
-                
-            page_url = page_image.get('url', '')
+            page_url = page_image.get('url')
             if not page_url:
                 continue
-            
             segmentation_stats['heatmaps_processed'] += 1
-            
-            # Melhorar matching: tentar diferentes estratégias
-            matched_task_id = None
-            
-            # Estratégia 1: Match exato
+            point_timestamps = [normalize_timestamp(p.get('timestamp')) for p in page_image.get('points', []) if p.get('timestamp')]
+
+            candidate_matches = []
             for task_id, task_data in task_url_map.items():
-                if page_url in task_data['urls']:
-                    matched_task_id = task_id
-                    break
-            
-            # Estratégia 2: Match por domínio (fallback)
-            if not matched_task_id:
-                page_domain = page_url.split('/')[2] if '/' in page_url else page_url
-                for task_id, task_data in task_url_map.items():
-                    for task_url in task_data['urls']:
-                        task_domain = task_url.split('/')[2] if '/' in task_url else task_url
-                        if page_domain == task_domain:
-                            matched_task_id = task_id
-                            break
-                    if matched_task_id:
-                        break
-            
-            if matched_task_id:
-                # Adicionar este heatmap à tarefa correspondente
-                heatmap_item = {
-                    "height": page_image.get("height"),
-                    "image": page_image.get("image"),
-                    "points": page_image.get("points", []),
-                    "scroll_positions": page_image.get("scroll_positions"),
-                    "url": page_url,
-                    "width": page_image.get("width"),
-                    "metadata": {
-                        "total_points": len(page_image.get("points", [])),
-                        "task_id": matched_task_id,
-                        "task_title": task_url_map[matched_task_id]['title'],
-                        "matched_strategy": "exact" if page_url in task_url_map[matched_task_id]['urls'] else "domain"
-                    }
-                }
-                segmented_heatmaps[matched_task_id]['heatmaps'].append(heatmap_item)
-                segmentation_stats['heatmaps_matched'] += 1
-            else:
+                url_details = task_data.get('url_details_map', {}).get(page_url)
+                if not url_details:
+                    continue
+                range_match = _ranges_overlap(
+                    task_data.get('initial_timestamp'),
+                    task_data.get('final_timestamp'),
+                    heatmap_start or url_details['first_seen'],
+                    heatmap_end or url_details['last_seen']
+                )
+                points_match = False
+                if point_timestamps:
+                    points_match = any(task_data.get('initial_timestamp') <= ts <= task_data.get('final_timestamp') for ts in point_timestamps if ts)
+                if range_match or points_match:
+                    confidence = 0
+                    if page_url in task_data['urls']:
+                        confidence += 0.4
+                    if range_match:
+                        confidence += 0.3
+                    if points_match:
+                        confidence += 0.3
+                    candidate_matches.append((task_id, confidence, range_match, points_match))
+
+            if not candidate_matches:
                 segmentation_stats['heatmaps_unmatched'] += 1
                 print(f"⚠️ Heatmap unmatched: {page_url}")
-    
-    # Calcular estatísticas finais
+                continue
+
+            candidate_matches.sort(key=lambda x: x[1], reverse=True)
+            segmentation_stats['heatmaps_matched'] += 1
+
+            for task_id, confidence_score, range_match, points_match in candidate_matches:
+                if confidence_score < 0.5:
+                    continue
+                match_strategy = 'points+url' if points_match else ('url+range' if range_match else 'url')
+                nav_window = task_url_map[task_id].get('url_details_map', {}).get(page_url, {})
+                heatmap_item = {
+                    'height': page_image.get('height'),
+                    'image': page_image.get('image'),
+                    'points': page_image.get('points', []),
+                    'scroll_positions': page_image.get('scroll_positions'),
+                    'url': page_url,
+                    'width': page_image.get('width'),
+                    'metadata': {
+                        'total_points': len(page_image.get('points', [])),
+                        'task_id': task_id,
+                        'task_title': task_url_map[task_id]['title'],
+                        'matched_strategy': match_strategy,
+                        'confidence': round(confidence_score, 2),
+                        'heatmap_time_range': {
+                            'start': heatmap_start.isoformat() if heatmap_start else None,
+                            'end': heatmap_end.isoformat() if heatmap_end else None
+                        },
+                        'navigation_window': {
+                            'count': nav_window.get('count'),
+                            'first_seen': nav_window.get('first_seen').isoformat() if nav_window.get('first_seen') else None,
+                            'last_seen': nav_window.get('last_seen').isoformat() if nav_window.get('last_seen') else None
+                        }
+                    }
+                }
+                segmented_heatmaps[task_id]['heatmaps'].append(heatmap_item)
+            
+            if all(confidence < 0.5 for _, confidence, _, _ in candidate_matches):
+                print(f"⚠️ Heatmap candidates below threshold for {page_url}")
+                segmentation_stats['heatmaps_unmatched'] += 1
+
     for task_id, task_data in segmented_heatmaps.items():
         if len(task_data['heatmaps']) > 0:
             segmentation_stats['tasks_with_heatmaps'] += 1
-    
-    # Log segmentation results
+
     print(f"📈 Segmentation Stats:")
     print(f"   - Heatmaps processed: {segmentation_stats['heatmaps_processed']}")
     print(f"   - Heatmaps matched: {segmentation_stats['heatmaps_matched']}")
     print(f"   - Heatmaps unmatched: {segmentation_stats['heatmaps_unmatched']}")
     print(f"   - Tasks with heatmaps: {segmentation_stats['tasks_with_heatmaps']}")
-    
-    # Calcular success rate
     if segmentation_stats['heatmaps_processed'] > 0:
         success_rate = (segmentation_stats['heatmaps_matched'] / segmentation_stats['heatmaps_processed']) * 100
         print(f"🎯 Segmentation success rate: {success_rate:.1f}%")
-    
+
     return segmented_heatmaps
 
 @app.route('/api/guideline/<int:id>')
@@ -815,21 +853,28 @@ def api_heatmap_tasks(evaluation_id):
             data_quality_warnings.append("No heatmaps found")
         
         # Resposta final com heatmaps segmentados por tarefa
+        metadata = {
+            'total_tasks_with_heatmaps': len(segmented_heatmaps),
+            'total_heatmaps': total_heatmaps,
+            'total_points_processed': total_points,
+            'navigation_data_count': len(navigation_data),
+            'processed_at': datetime.now(pytz.UTC).isoformat(),
+            'evaluation_id': evaluation_id,
+            'segmentation_method': 'navigation_and_timestamp' if len(task_url_map) > 0 else 'fallback',
+            'data_quality_score': data_quality_score,
+            'data_quality_warnings': data_quality_warnings,
+            'fallback_used': len(task_url_map) == 0 and len(performed_tasks) > 0
+        }
+        segmentation_metadata = {
+            'heatmaps_processed': total_heatmaps,
+            'tasks_with_heatmaps': metadata['total_tasks_with_heatmaps'],
+            'navigation_points': len(navigation_data)
+        }
         response_data = {
-            "segmented_heatmaps": segmented_heatmaps,
-            "available_tasks": list(unique_tasks.values()),
-            "metadata": {
-                "total_tasks_with_heatmaps": len(segmented_heatmaps),
-                "total_heatmaps": total_heatmaps,
-                "total_points_processed": total_points,
-                "navigation_data_count": len(navigation_data),
-                "processed_at": datetime.now(pytz.UTC).isoformat(),
-                "evaluation_id": evaluation_id,
-                "segmentation_method": "navigation_based" if len(task_url_map) > 0 else "fallback",
-                "data_quality_score": data_quality_score,
-                "data_quality_warnings": data_quality_warnings,
-                "fallback_used": len(task_url_map) == 0 and len(performed_tasks) > 0
-            }
+            'segmented_heatmaps': segmented_heatmaps,
+            'available_tasks': list(unique_tasks.values()),
+            'metadata': metadata,
+            'segmentation_metadata': segmentation_metadata
         }
         
         return jsonify(response_data)

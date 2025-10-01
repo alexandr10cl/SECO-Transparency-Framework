@@ -39,43 +39,149 @@ let taskStartTime = null; // Armazena o timestamp da task atual
 let taskEndTime = null; // Armazena o timestamp da task atual
 let isSubmitting = false; // Evita envios duplicados do resultado
 
+// Task context tracking for navigation
+let activeTaskContext = {
+  taskId: null,
+  processId: null,
+  startTime: null,
+  endTime: null
+};
+
+// Task boundary tracking
+let taskBoundaries = {
+  isTaskActive: false,
+  pendingNavigationEvents: [],
+  lastTaskId: null
+};
+
+function resolveCurrentTaskId() {
+  if (activeTaskContext.taskId) {
+    return activeTaskContext.taskId;
+  }
+
+  if (currentPhase === "task" && currentProcessIndex >= 0 && currentTaskIndex >= 0) {
+    const currentProcess = processes[currentProcessIndex];
+    if (currentProcess && currentProcess.process_tasks[currentTaskIndex]) {
+      return currentProcess.process_tasks[currentTaskIndex].task_id;
+    }
+  }
+
+  if (taskBoundaries.lastTaskId) {
+    return taskBoundaries.lastTaskId;
+  }
+
+  return null;
+}
+
+function recordNavigationEvent({
+  action = "pageNavigation",
+  url,
+  title = "",
+  timestamp = new Date().toISOString(),
+  taskId,
+  phase = currentPhase,
+  taskIndex = currentTaskIndex,
+  processIndex = currentProcessIndex,
+  source = "event"
+}) {
+  if (!url || !taskId) {
+    console.warn("⚠️ Skipping navigation record due to missing url/taskId", { url, taskId, source });
+    return false;
+  }
+
+  if (source === "finalSnapshot") {
+    const hasSameEntry = data_collection.navigation.some(entry => entry.taskId === taskId && entry.url === url);
+    if (hasSameEntry) {
+      console.log("🛑 Final snapshot skipped (duplicate for task)", { url, taskId });
+      return false;
+    }
+  }
+
+  const lastEntry = data_collection.navigation[data_collection.navigation.length - 1];
+  if (lastEntry && lastEntry.url === url && lastEntry.taskId === taskId && lastEntry.action === action) {
+    const lastTs = new Date(lastEntry.timestamp).getTime();
+    const currentTs = new Date(timestamp).getTime();
+    if (!Number.isNaN(lastTs) && !Number.isNaN(currentTs) && Math.abs(currentTs - lastTs) < 2000) {
+      console.log("🔁 Navigation deduplicated", { url, taskId, source });
+      return false;
+    }
+  }
+
+  const entry = {
+    action,
+    title,
+    url,
+    timestamp,
+    taskId,
+    phase,
+    taskIndex,
+    processIndex,
+    source
+  };
+
+  data_collection.navigation.push(entry);
+  console.log("🧭 Navigation recorded:", entry, { navigationCount: data_collection.navigation.length });
+  return true;
+}
+
+function captureCurrentTabNavigation({ source = "snapshot", taskIdOverride = null } = {}) {
+  const resolvedTaskId = taskIdOverride || resolveCurrentTaskId();
+  if (!resolvedTaskId) {
+    console.warn("⚠️ No task id available for navigation snapshot", { source });
+    return;
+  }
+
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (chrome.runtime.lastError) {
+        console.error("❌ Error capturing tab navigation:", chrome.runtime.lastError.message);
+        return;
+      }
+
+      const activeTab = tabs && tabs[0];
+      if (!activeTab || !activeTab.url) {
+        console.warn("⚠️ No active tab information available for snapshot", { source });
+        return;
+      }
+
+      recordNavigationEvent({
+        url: activeTab.url,
+        title: activeTab.title || "",
+        timestamp: new Date().toISOString(),
+        taskId: resolvedTaskId,
+        phase: currentPhase,
+        taskIndex: currentTaskIndex,
+        processIndex: currentProcessIndex,
+        source
+      });
+    });
+  } catch (error) {
+    console.error("❌ Exception capturing tab navigation:", error);
+  }
+}
 
 
-
-// Enhanced Navigation tracking
+// Enhanced Navigation tracking with precise task boundary detection
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
-    // Listen for page navigation events from background.js
-    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview";
-    
+    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
+
     if (shouldTrackNavigation) {
       if (request.action === "pageNavigation" || request.action === "tabSwitch") {
-        const currentTaskId = (currentTaskIndex >= 0 && todo_tasks.length > 0 && currentTaskIndex < todo_tasks.length) 
-                              ? todo_tasks[currentTaskIndex].id 
-                              : null;
-        
-        const navigationEntry = {
+        const currentTaskId = resolveCurrentTaskId();
+        const recorded = recordNavigationEvent({
           action: request.action,
-          title: request.title,
           url: request.url,
+          title: request.title,
           timestamp: request.timestamp,
           taskId: currentTaskId,
           phase: currentPhase,
-          taskIndex: currentTaskIndex
-        };
-        
-        data_collection.navigation.push(navigationEntry);
-        
-        console.log("🧭 Navigation recorded:", {
-          url: request.url,
-          taskId: currentTaskId,
-          phase: currentPhase,
           taskIndex: currentTaskIndex,
-          totalNavigationEvents: data_collection.navigation.length
+          processIndex: currentProcessIndex,
+          source: "runtimeEvent"
         });
-        
-        // Send response back to background script
-        sendResponse({status: "success", navigationCount: data_collection.navigation.length});
+
+        sendResponse(recorded ? { status: "success", navigationCount: data_collection.navigation.length } : { status: "skipped" });
       }
     } else {
       console.log("🚫 Navigation not tracked - Current phase:", currentPhase);
@@ -400,6 +506,25 @@ function attachListenersAll() {
         taskStartTime = new Date().toISOString();
         taskEndTime = null;
 
+        // Set active task context for navigation tracking
+        activeTaskContext = {
+          taskId: task.task_id,
+          processId: proc.process_id,
+          startTime: taskStartTime,
+          endTime: null
+        };
+
+        // Update task boundaries
+        taskBoundaries.isTaskActive = true;
+        taskBoundaries.lastTaskId = task.task_id;
+
+        console.log("🎯 Task started:", {
+          taskId: task.task_id,
+          processId: proc.process_id,
+          startTime: taskStartTime,
+          taskBoundaries: taskBoundaries
+        });
+
         // Mostra título, descrição e instruções
         document.getElementById(`taskTitle${task.task_id}`).style.display = "block";
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
@@ -417,6 +542,7 @@ function attachListenersAll() {
 
         currentPhase = "task";
         updateDisplay();
+        captureCurrentTabNavigation({ source: "initialSnapshot", taskIdOverride: task.task_id });
       });
 
       // Conseguiu / Não tenho certeza / Não conseguiu
@@ -432,6 +558,20 @@ function attachListenersAll() {
 
           taskEndTime = new Date().toISOString();
 
+          if (activeTaskContext.taskId === task.task_id) {
+            activeTaskContext.endTime = taskEndTime;
+            console.log("🏁 Task ended:", {
+              taskId: task.task_id,
+              processId: proc.process_id,
+              endTime: taskEndTime,
+              status: typeMap[type]
+            });
+          }
+
+          captureCurrentTabNavigation({ source: "finalSnapshot", taskIdOverride: task.task_id });
+
+          taskBoundaries.isTaskActive = false;
+
           currentPhase = "review";
           updateDisplay();
         });
@@ -440,6 +580,19 @@ function attachListenersAll() {
       // Next: salvar resposta e avançar
       document.getElementById(`task${task.task_id}ReviewButton`).addEventListener("click", () => {
         saveTaskAnswer(proc.process_id, task.task_id);
+        
+        // Clear active task context when moving to next task
+        activeTaskContext = {
+          taskId: null,
+          processId: null,
+          startTime: null,
+          endTime: null
+        };
+        
+        // Clear task boundaries
+        taskBoundaries.isTaskActive = false;
+        taskBoundaries.lastTaskId = null;
+        
         if (currentTaskIndex < processes[currentProcessIndex].process_tasks.length - 1) {
           currentTaskIndex++;
           currentPhase = "task";
@@ -455,6 +608,19 @@ function attachListenersAll() {
       .getElementById(`process${proc.process_id}ReviewButton`)
       .addEventListener("click", () => {
         saveProcessAnswers(proc.process_id);
+        
+        // Clear active task context when moving to next process
+        activeTaskContext = {
+          taskId: null,
+          processId: null,
+          startTime: null,
+          endTime: null
+        };
+        
+        // Clear task boundaries
+        taskBoundaries.isTaskActive = false;
+        taskBoundaries.lastTaskId = null;
+        
         // avança processo
         if (currentProcessIndex < processes.length - 1) {
           currentProcessIndex++;
@@ -659,6 +825,13 @@ function sendData() {
     btn.textContent = "Submitting...";
     btn.classList.add('btn-loading');
   }
+  console.log("📤 Sending data to backend:", {
+    evaluation_code: data_collection.evaluation_code,
+    navigation_count: data_collection.navigation.length,
+    performed_tasks_count: data_collection.performed_tasks.length,
+    navigation_samples: data_collection.navigation.slice(0, 3) // Show first 3 navigation entries
+  });
+
   return fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {
     method: "POST",
     headers: {
