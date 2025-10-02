@@ -18,8 +18,17 @@ def about():
         email = session['user_signed_in']
         is_admin = isAdmin()
         return render_template('about.html', is_admin = is_admin)
-    
+
     return render_template('about.html')
+
+@app.route('/downloads')
+def downloads():
+    if isLogged():
+        email = session['user_signed_in']
+        is_admin = isAdmin()
+        return render_template('downloads.html', is_admin = is_admin)
+
+    return render_template('downloads.html')
 
 @app.route('/guidelines')
 def guidelines():
