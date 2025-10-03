@@ -9,206 +9,153 @@
 {% block title %}{{ evaluation.name}}{% endblock %}
 
 {% block content %}
-<br><br><br>
-<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
-<div class="container">
-    <div class="evaluation">
-        <div class="evaluation-header">
-            <h2>{{ evaluation.name }}</h2>
-            <div class="icon" id="openModalSettings">
-                <div class="gear"></div>
-            </div>
+<div class="eval-page">
+    <!-- Page Header with Breadcrumbs -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <nav class="breadcrumbs">
+                <a href="{{ url_for('index') }}" class="breadcrumb-link">Home</a>
+                <span class="breadcrumb-separator">›</span>
+                <a href="{{ url_for('evaluations') }}" class="breadcrumb-link">Evaluations</a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-current">{{ evaluation.name }}</span>
+            </nav>
+            <h1 class="page-title">{{ evaluation.name }}</h1>
         </div>
-        <div class="evaluation-content">
-                <div class="e-item">
-                    <h3>Evaluation Code</h3>
-                    <div class="warning" role="alert">
-                        <span class="warning-icon" aria-hidden="true">⚠️</span>
-                        <span>This code will be available only for the first 30 days after creating the evaluation</span>
+    </div>
+
+    <div class="eval-container">
+        <!-- Action Header -->
+        <header class="eval-header">
+            <div class="eval-title-section">
+                <a href="javascript:history.back()" class="back-btn">
+                    <span class="back-icon">←</span>
+                    <span>Back</span>
+                </a>
+                <div class="eval-actions">
+                    <button class="settings-btn" id="openModalSettings" aria-label="Settings">
+                        <span class="gear-icon">⚙️</span>
+                    </button>
+                    <a href="{{ url_for('eval_dashboard', id=evaluation.evaluation_id) }}" class="dashboard-btn">
+                        <span class="btn-icon">📊</span>
+                        <span>View Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="eval-main">
+            <!-- Left Column: Details + Procedures -->
+            <section class="info-section">
+                <!-- Evaluation Details -->
+                <div class="info-card">
+                    <h2 class="section-title">Evaluation Details</h2>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label class="info-label">Evaluation Code</label>
+                            <div class="info-value">
+                                <code class="eval-code">{{ evaluation.evaluation_id }}</code>
+                                <div class="warning-badge">
+                                    <span class="warning-icon">⚠️</span>
+                                    <span>Expires in 30 days</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <label class="info-label">Portal</label>
+                            <div class="info-value">
+                                <span class="portal-name">{{ evaluation.seco_portal }}</span>
+                                <a href="{{ evaluation.seco_portal_url }}" class="portal-link" target="_blank">
+                                    {{ evaluation.seco_portal_url }}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <label class="info-label">SECO Type</label>
+                            <div class="info-value">
+                                <span class="seco-type">{{ evaluation.seco_type.name.replace('_', ' ').title() if evaluation.seco_type else 'Not defined' }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <p>{{ evaluation.evaluation_id }}</p>
                 </div>
-                <div class="e-item">
-                    <h3>Portal</h3>
-                    <div class="seco-portal"><p>{{ evaluation.seco_portal }}</p> ● <a href="{{ evaluation.seco_portal_url }}">{{ evaluation.seco_portal_url }}</a></div>
-                </div>
-                <div class="portal">
-                    <h4>SECO Type</h4>
-                    <p>
-                        {{ evaluation.seco_type.name.replace('_', ' ').title() if evaluation.seco_type else 'Not defined' }}
-                    </p>
-                </div>
-                <div class="e-item">
-                    <h3>Related Common Software Ecosystem Procedures</h3>
-                    <div class="rel-proc">
-                        {% for p in evaluation.seco_processes %}<p>P{{ p.seco_process_id }}</p>{%endfor%}
-                    </div>
-                </div>
-                <div class="e-item">
-                    <h3>Related Guidelines</h3>
-                    <div class="guidelines modals">
-                        {% for g in guidelines %}
-                            <button class="openModal" id="openModal{{ g.guidelineID }}">{{ g.title }}</button>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="e-item">
-                    <h3>Related Tasks</h3>
-                    <div class="tasks modals">
-                        {% for t in tasks %}
-                            <button class="openModal" id="openModal{{ t.task_id }}">{{ t.title }}</button>
-                        {% endfor %}
-                    </div>
-                </div>
+
+                <!-- Collected Data -->
                 {% if collected_data %}
-                <div class="e-item">
-                    <h3>Collects</h3>
-                    <div class="cData modals">
+                <div class="related-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">📊</span>
+                        Collected Data
+                    </h3>
+                    <div class="item-list">
                         {% for c in collected_data %}
-                                <button class="openModal" id="openModal{{ c.collected_data_id }}">Collect {{ c.collected_data_id }}</button>
+                        <div class="item-badge">{{ c.display_name }}</div>
                         {% endfor %}
                     </div>
                 </div>
                 {% endif %}
-                <div class="div-dash">
-                    <a href="{{ url_for('eval_dashboard', id=evaluation.evaluation_id) }}" class="btn btn-dash">View dashboard</a>
+            </section>
+
+            <!-- Full Width Bottom: Procedures & Tasks -->
+            <section class="procedures-tasks-section">
+                <div class="related-card">
+                    <h3 class="card-title">
+                        <span class="card-icon">✅</span>
+                        Procedures & Tasks
+                    </h3>
+                    <div class="procedures-tasks">
+                        {% for proc_data in procedures_data %}
+                        <div class="procedure-task-group">
+                            <div class="procedure-header">
+                                <span class="procedure-id">P{{ proc_data.process.seco_process_id }}</span>
+                                <span class="procedure-description">{{ proc_data.process.description }}</span>
+                            </div>
+                            
+                            {% if proc_data.guideline %}
+                            <div class="procedure-guideline">
+                                <div class="guideline-label">Guideline</div>
+                                <div class="guideline-item">{{ proc_data.guideline.title }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="procedure-tasks">
+                                {% for task in proc_data.tasks %}
+                                <div class="task-item">{{ task.title }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-        </div>
+            </section>
+
+        </main>
     </div>
 
-    {% for g in guidelines %}
-        <div id="modalG{{ g.guidelineID }}" class="modal inv">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <h2>G{{ g.guidelineID }}: {{ g.title }}</h2>
-                <p>{{ g.description }}</p>
-
-                <div class="details">
-                    <div class="processes">
-                        <h3>Helps in Processes</h3>
-                        <ul>
-                            {% for p in g.seco_processes %}
-                            <li>P{{ p.seco_process_id }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="dimensions">
-                        <h3>Dimensions</h3>
-                        <ul class=>
-                            {% for d in g.seco_dimensions %}
-                                <li>{{ d.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="condFac">
-                        <h3>Conditioning Factors</h3>
-                        <ul>
-                            {% for cf in g.conditioning_factors %}
-                                <li>{{ cf.conditioning_factor_transp_id }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="dxFac">
-                        <h3>DX Factors</h3>
-                        <ul>
-                            {% for f in g.dx_factors %}
-                                <li>{{ f.dx_factor_id }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                <h3 class="ksch3">Key Sucess Criteria</h3>
-                <div class="success-criteria">
-                    {% for ksc in g.key_success_criteria %}
-                        <div class="success-criterion">
-                            <h4>{{ ksc.title }}</h4>
-                            <p>{{ ksc.description }}</p>
-                            {% for e in ksc.examples %}
-                                <div class="example">
-                                    <strong>Example: </strong> {{ e.description }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                    
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-    
-    {% for t in tasks %}
-        <div id="modalT{{ t.task_id }}" class="modal inv">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 id="modal-titleT{{ t.task_id }}">{{ t.title }}</h2>
-                <div class="details-flex">
-                    <h3>Task</h3>
-                    <ul id="modal-descriptionT{{ t.task_id }}">
-                        <li>{{ t.description }}</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-
-    {% for c in collected_data %}
-        <div id="modalC{{ c.collected_data_id }}" class="modal inv">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2 id="modal-titleC{{ c.collected_data_id }}">Collect {{ c.collected_data_id }}</h2>
-                <div class="details-flex">
-                    <h3>Performed Tasks</h3>
-                    <ul id="modal-descriptionC{{ c.collected_data_id }}">
-                        
-                            {% for p in c.performed_tasks %}
-                                <li {% if p.status.value == 'solved' %} style="background-color: rgba(149, 255, 128, 0.2);" {% else %} style="background-color: rgba(255, 128, 128, 0.2);" {% endif %}>
-                                    {% for t in tasks %}
-                                        {% if t.task_id == p.task_id %}
-                                            {{ t.title }}
-                                        {% endif %}
-                                    {% endfor %}
-                                </li>
-                            {% endfor %}
-                    </ul>
-                    <h3 style="margin-top: 60px;">Questionaire</h3>
-                    {% set ns = namespace(qCont=1) %}
-                    <ul>
-                        {% for p in c.performed_tasks %}
-                            {% for a in p.answers %}
-                                {% for q in questions %}
-                                    {% if q.question_id == a.question_id %}
-                                        <h4>Question {{ ns.qCont }}</h4>
-                                        <ul>
-                                            <li>{{ q.question }}</li>
-                                        </ul>
-                                        <h4 style="margin-top: 10px;">Answer {{ ns.qCont }}</h4>
-                                        {% set ns.qCont = ns.qCont + 1 %}
-                                        <ul>
-                                            <li>{{ a.answer }}</li>
-                                        </ul>
-                                        
-                                    {% endif %}
-                                {% endfor %}
-                            {% endfor %}
-                        {% endfor %}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-
+    <!-- Settings Modal -->
     <div id="modalConfig" class="modal inv">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="modal-title">Settings of {{ evaluation.name }}</h2>
-            <div class="options">
-                <a href="{{ url_for('edit_evaluation', id=evaluation.evaluation_id) }}" class="btn btn-sm btn-warning">Edit</a>
-                <a href="{{ url_for('delete_evaluation', id=evaluation.evaluation_id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this example?')">Delete</a>
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-actions">
+                    <a href="{{ url_for('edit_evaluation', id=evaluation.evaluation_id) }}" class="action-btn edit-btn">
+                        <span class="btn-icon">✏️</span>
+                        Edit Evaluation
+                    </a>
+                    <a href="{{ url_for('delete_evaluation', id=evaluation.evaluation_id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this evaluation?')">
+                        <span class="btn-icon">🗑️</span>
+                        Delete Evaluation
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 {% endblock %}
 

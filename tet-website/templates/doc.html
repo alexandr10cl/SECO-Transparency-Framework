@@ -2,6 +2,7 @@
 
 {% block head %}
  <link rel="stylesheet" href="{{ url_for('static', filename='css/documentation.css') }}">
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 {% endblock %}
 
@@ -25,12 +26,40 @@
             <li><a href="#chromeextension">Chrome Extension</a></li>
             <li><a href="#uxt">How to use UX-Tracking</a></li>
             <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#glossary">Glossary of Terms</a></li>
         </ul>
     </div>
     <div class="content">
         <section id="introduction">
             <h1>Introduction</h1>
-        </section>
+            <p>
+                The <strong>Evaluation Framework for Software Ecosystems Portals (SECO‑TransP)</strong> is an open framework designed to evaluate and improve transparency practices in 
+                software ecosystem (SECO) portals. It combines structured guidelines, hands-on tasks, and developer feedback to provide 
+                a holistic view of how transparency is perceived and operationalized in real-world SECOs.
+            </p>
+            <p>
+                By placing developer experience (DX) at the center of the evaluation process, SECO‑TransP helps SECO platform 
+                managers, researchers, and ecosystem participants better understand the conditions that foster trust, clarity, 
+                and meaningful contributions.
+            </p>
+
+            <h3>🔍 What does SECO‑TransP offer?</h3>
+            <ul>
+                <li>✅ <strong>10 Transparency Guidelines</strong>, mapped to common SECO procedures, DX factors, and conditioning factors for transparency;</li>
+                <li>🧪 <strong>Evaluation Tasks</strong> that simulate real developer interactions with portals;</li>
+                <li>📊 <strong>Perception Questionnaire</strong> using Visual Analogue Scales (VAS) to capture subjective experience;</li>
+                <li>🛠️ <strong>Browser Extension + Evaluation Portal</strong> for task tracking, feedback collection, and dashboard generation;</li>
+                <li>🏅 <strong>Transparency Badges</strong> with levels: High Transparency • Moderate Transparency • Low Transparency.</li>
+            </ul>
+
+            <h3>👩‍💻 Who is it for?</h3>
+            <ul>
+                <li><strong>Researchers</strong> seeking a reproducible method to analyze transparency in SECO portals.</li>
+                <li><strong>SECO Platform Managers</strong> aiming to identify and enhance transparency practices.</li>
+                <li><strong>Developers</strong> interested in contributing to better ecosystems through structured feedback.</li>
+            </ul>
+            </section>
+
         <hr>
         <section id="evaluationflow">
             <br>
@@ -73,21 +102,22 @@
                 <h2>Step 5 – Detailed Evaluation by Success Criteria</h2>
                 <p>
                     <strong>After all tasks of a procedure are completed:</strong><br>
-                    – A developer answers detailed questions based on the Key Success Criteria (KSC) of each guideline linked to the procedure.<br>
-                    – Each question uses a response scale: “Yes,” “Partially,” or “No,” with an optional field for observations.<br>
-                    – At the end of each procedure, the developer also rates their satisfaction level using a slider from 0 to 10.
+                    – A developer nswers detailed questions based on the Key Success Criteria (KSC) of each guideline linked to that procedure.<br>
+                    – Each question is rated using a Visual Analogue Scale (VAS) ranging from 0 to 100, allowing the developer to express the extent to which the criterion was perceived as fulfilled.<br>
+                    – An optional comment field is provided for qualitative observations.<br>
+                    – At the end of the evaluation, the developer also provides a general satisfaction rating regarding their overall experience using the portal, using a slider scale from 0 to 10.
                 </p>
 
                 <h2>Step 6 – Calculation and Interpretation of Results</h2>
                 <p>
                     <strong>Based on the developers’ responses:</strong><br>
-                    – Each answer is converted into a numerical value: Yes = 1, Partially = 0.5, No = 0.<br>
-                    – The system calculates average scores per criterion, guideline, and procedure.<br>
+                    – Each answer on the VAS is recorded as a numerical value from 0 to 100, where higher values indicate a stronger perception that the criterion was fully met in the portal.<br>
+                    – The system calculates average scores per criterion, and guideline, and procedure.<br>
                     – Guidelines are classified as:<br>
-                    &emsp;• Fulfilled if the average score is ≥ 0.75<br>
-                    &emsp;• Partially Fulfilled if the average score is between 0.5 and 0.75<br>
-                    &emsp;• Not Fulfilled if the average score is &lt; 0.5<br>
-                    – This approach is inspired by the System Usability Scale (SUS), ensuring objectivity and ease of interpretation.
+                    &emsp;• Fulfilled if the average score is ≥ 75<br>
+                    &emsp;• Partially Fulfilled if the average score is between 50 and 74<br>
+                    &emsp;• Not Fulfilled if the average score is &lt; 50<br>
+                    – These classifications are used to generate visual badges and support transparency benchmarking across portals.
                 </p>
 
         </section>
@@ -113,6 +143,8 @@
 
             <h3>1. Extension Installation</h3>
             <ul>
+                <li>Download the latest version of the SECO‑TransP browser extension from the following link: <a href="" target="_blank">SECO‑TransP Extension</a></li>
+                <li>Unzip the folder to a location on your computer</li>
                 <li>Go to <code>chrome://extensions/</code> in Google Chrome</li>
                 <li>Enable <strong>Developer mode</strong></li>
                 <li>Click <strong>“Load unpacked”</strong> and select the folder with your extension files</li>
@@ -200,7 +232,7 @@
             
             <h2>Official UX-Tracking Documentation</h2>
             <p>You can access the official website of the tool through the link below to learn how to use it properly:</p>
-            <p><a href="https://uxtracking.liis.com.br/guia" target="_blank">https://uxtracking.liis.com.br/guia</a></p>
+            <p><a href="https://uxtracking.netlify.app/" target="_blank">https://uxtracking.netlify.app/</a></p>
         </section>
         <hr>
         <section id="dashboard">
@@ -226,14 +258,137 @@
                 <li>Emotion chart showing developers' overall satisfaction</li>
             </ul>
 
-            <h3>2. Performed Tasks</h3>
-            <p>Displays details of all assigned tasks:</p>
-            <ul>
-                <li>Average completion time per task</li>
-                <li>Success rate (how many were able to solve it)</li>
-                <li>List of participant comments per task</li>
-            </ul>
-            <p>These insights help identify which tasks were most challenging or successful from the user’s perspective.</p>
+            <div class="guideline-info-card">
+                <h4>Transparency Score – Overview</h4>
+                <p>
+                    The overall transparency score of the portal is calculated based on the average ratings across all evaluated guidelines. 
+                    Based on this score, the portal is assigned one of the following transparency levels:
+                </p>
+                <div class="status-blocks">
+                    <div class="status-label">
+                    ✅ <strong>High Transparency</strong>: score ≥ 75
+                    </div>
+                    <div class="status-label">
+                    🟡 <strong>Moderate Transparency</strong>: score between 50 and 74
+                    </div>
+                    <div class="status-label">
+                    ❌ <strong>Low Transparency</strong>: score &lt; 50
+                    </div>
+                </div>
+            </div>
+
+            <h3>2. Performed Tasks — Metrics & Badges</h3>
+                <p>This section explains how each task metric is computed and which badge is displayed based on the thresholds.</p>
+
+                <!-- Time Performance -->
+                <div class="guideline-info-card">
+                    <h4>Metric: Time Performance</h4>
+                    <p><strong>Definition.</strong> Average completion time for a task.</p>
+                    <p><strong>How it’s calculated.</strong> Mean duration among participants who completed the task (failed or abandoned attempts are excluded). If no participant completed the task, the time metric is reported as N/A.</p>
+                    <p><strong>Badges.</strong> The following badge is shown based on the average time:</p>
+                    
+                    <div class="status-blocks">
+                        <div class="status-label">
+                            <strong>Fast</strong>: ≤ 30s
+                        </div>
+                        <div class="status-label">
+                            <strong>Moderate</strong>: 31–60s
+                        </div>
+                        <div class="status-label">
+                            <strong>Slow</strong>: 61–120s
+                        </div>
+                        <div class="status-label">
+                            <strong>Very Slow</strong>: &gt; 120s
+                        </div>
+                    </div>
+                    
+                    <details>
+                    <summary><strong>Examples</strong></summary>
+                    <ul>
+                        <li>Average time = <strong>24s</strong> → <span class="badge badge-excellent">Fast</span></li>
+                        <li>Average time = <strong>52s</strong> → <span class="badge badge-good">Moderate</span></li>
+                        <li>Average time = <strong>88s</strong> → <span class="badge badge-warning">Slow</span></li>
+                        <li>Average time = <strong>143s</strong> → <span class="badge badge-critical">Very Slow</span></li>
+                    </ul>
+                    </details>
+                </div>
+
+                <!-- Success Rate -->
+                <div class="guideline-info-card">
+                    <h4>Metric: Success Rate</h4>
+                    <p><strong>Definition.</strong> Percentage of participants who completed the task.</p>
+                    <p><strong>How it’s calculated.</strong> <code>success rate = (completed / attempted) × 100</code>.</p>
+                    <p><strong>Badges.</strong> The following badge is shown based on the success rate:</p>
+                    <div class="status-blocks">
+                        <div class="status-label">
+                            <strong>High Success</strong>: ≥ 90%
+                        </div>
+                        <div class="status-label">
+                            <strong>Good Success</strong>: 70–89%
+                        </div>
+                        <div class="status-label">
+                            <strong>Low Success</strong>: 50–69%
+                        </div>
+                        <div class="status-label">
+                            <strong>Poor Success</strong>: &lt; 50%
+                        </div>
+                    </div>
+                    <details>
+                    <summary><strong>Examples</strong></summary>
+                    <ul>
+                        <li>Success rate = <strong>93%</strong> → <span class="badge badge-excellent">High Success</span></li>
+                        <li>Success rate = <strong>78%</strong> → <span class="badge badge-good">Good Success</span></li>
+                        <li>Success rate = <strong>63%</strong> → <span class="badge badge-warning">Low Success</span></li>
+                        <li>Success rate = <strong>41%</strong> → <span class="badge badge-critical">Poor Success</span></li>
+                    </ul>
+                    </details>
+                </div>
+
+                <!-- Attention rule -->
+                <div class="guideline-info-card">
+                    <h4>Attention Badge</h4>
+                    <p><strong>Rule.</strong> The “Needs Attention” badge is displayed when <em>both</em> conditions are true:</p>
+                    <ul>
+                    <li>Average time &gt; 120s</li>
+                    <li>Success rate &lt; 50%.</li>
+                    </ul>
+                    <p>This combination indicates that the task is taking too long and many participants are failing.</p>
+                    <p><strong>Badge.</strong> <span class="attention-badge-small">Needs Attention</span></p>
+                    <details>
+                    <summary><strong>Examples</strong></summary>
+                    <ul>
+                        <li>Avg time = <strong>151s</strong>, success = <strong>42%</strong> → <span class="attention-badge-small">Needs Attention</span></li>
+                        <li>Avg time = <strong>132s</strong>, success = <strong>67%</strong> → <em>No attention badge</em> (time is high, but success is not &lt; 50%)</li>
+                        <li>Avg time = <strong>90s</strong>, success = <strong>38%</strong> → <em>No attention badge</em> (success is low, but time ≤ 120s)</li>
+                    </ul>
+                    </details>
+                </div>
+
+                <!-- Example Task Card combining all -->
+                <div class="guideline-info-card">
+                    <h4>Example Task Card</h4>
+                    <p>Below is how a task appears with its computed metrics and corresponding badges.</p>
+                        <h5>Task T1 — Locate the API Documentation</h5>
+                        <div class="status-blocks" aria-label="Task badges">
+                            <!-- Example badges (static for documentation) -->
+                            <span class="badge badge-warning">Slow</span>
+                            <span class="badge badge-critical">Poor Success</span>
+                            <span class="attention-badge-small">Needs Attention</span>
+                        </div>
+                        <ul>
+                            <li><strong>Average completion time:</strong> 01:32 (mm:ss)</li>
+                            <li><strong>Success rate:</strong> 47%</li>
+                            <li><strong>Average VAS:</strong> 71/100</li>
+                        </ul>
+                        <details>
+                            <summary><strong>Participant comments (examples)</strong></summary>
+                            <ul>
+                            <li>“Docs were easy to find once I used search.”</li>
+                            <li>“Navigation labels could be clearer.”</li>
+                            <li>“Great examples, but missing SDK snippet.”</li>
+                            </ul>
+                        </details>
+                </div>
 
             <h3>3. Hotspots (Heatmaps)</h3>
             <p>When multimodal tracking via UX-Tracking is enabled, this section presents heatmaps per task:</p>
@@ -245,7 +400,7 @@
 
             <h3>4. Guidelines Score</h3>
             <p>
-            The <strong>Guidelines Score</strong> section displays the evaluation results based on the transparency guidelines' <em>Key Success Criteria (KSCs)</em>. Each guideline is assessed through developer responses, which are translated into scores and statuses.
+            The <strong>Guidelines Score</strong> section displays the evaluation results based on the transparency KSC guidelines' <em>Key Success Criteria ()</em>. Each guideline is assessed through developer responses, which are translated into scores and statuses.
             </p>
 
             <p>
@@ -259,28 +414,95 @@
 
             <div class="guideline-info-card">
                 <h4>Average Score</h4>
-                <p>The system calculates an average score for each guideline based on developer responses to its associated KSCs. Responses follow a three-point scale: <strong>Yes</strong>, <strong>Partially</strong>, and <strong>No</strong>.</p>
+                <p>The system calculates an average score for each guideline based on developer responses to its associated KSC. Each response is given on a VAS from 0 to 100, where higher values indicate a stronger perception that the criterion was fully met in the portal.
+                    The average is computed across all KSC linked to the guideline and is used to determine the corresponding fulfillment badge classification.</p>
             </div>
 
             <div class="guideline-info-card">
                 <h4>Status Classification</h4>
                 <p>According to the average score, each guideline is classified as:</p>
                 <div class="status-blocks">
-                    <div class="status-label"><strong>Fulfilled</strong>: 75% or higher</div>
-                    <div class="status-label"><strong>Partially Fulfilled</strong>: between 50% and 74%</div>
-                    <div class="status-label"><strong>Not Fulfilled</strong>: below 50%</div>
+                    <div class="status-label"><strong>Fulfilled</strong>: 75 or higher</div>
+                    <div class="status-label"><strong>Partially Fulfilled</strong>: between 50 and 74</div>
+                    <div class="status-label"><strong>Not Fulfilled</strong>: below 50</div>
                 </div>
             </div>
 
             <div class="guideline-info-card">
                 <h4>KSC Visualization</h4>
-                <p>Each guideline includes a breakdown of its KSCs, showing individual scores and status indicators. This helps identify precisely where the portal meets or falls short on transparency expectations.</p>
+                <p>Each guideline includes a breakdown of its KSC, showing individual scores and status indicators. This helps identify precisely where the portal meets or falls short on transparency expectations.</p>
             </div>
 
             <p>
             This section is essential for diagnosing specific transparency issues and guiding improvements in the software ecosystem portal.
             </p>
         </section>
+
+         <section id="glossary">
+            <div class="container">
+                <h1>Glossary of Terms</h1>
+                <p>This glossary provides definitions for key terms used throughout the SECO‑TransP framework.</p>
+
+                <dl>
+                <dt><strong>Conditioning Factors for Transparency</strong></dt>
+                <dd>
+                    Elements, characteristics, or actions that are necessary but not sufficient for the transparency of software ecosystems. A recent study identified and analyzed these factors through a systematic mapping and field study, structuring them around themes like access to information, communication channels, and requirements engineering (<a href="https://doi.org/10.5753/jserd.2024.4086" target="_blank">Zacarias et al., 2024</a>).
+                </dd>
+
+                <dt><strong>Developer Experience</strong></dt>
+                <dd>
+                    A broad concept that captures how developers feel about, think about, and value their interactions with tools, platforms, processes, and documentation. It encompasses emotional, cognitive, and practical aspects that influence developer satisfaction, efficiency, and motivation.
+                </dd>
+
+                <dt><strong>Developer Experience Factor</strong></dt>
+                <dd>
+                    A specific circumstance, condition, or influence that affects how developers perceive and experience their interactions within a software ecosystem. These factors can be technical, cognitive, social, or emotional, and collectively shape the overall developer experience. A recent study identified 27 such factors, highlighting especially the influence of “financial costs for using the platform”, “desired technical resources for development”, “low barriers to entry into the application market”, and “more financial gains”, as key determinants for third‑party developers when deciding to adopt and continue contributing to a SECO (<a href="https://doi.org/10.1016/j.jss.2025.112549" target="_blank">Zacarias et al., 2025</a>).
+                </dd>
+
+                <dt><strong>Evaluation Task</strong></dt>
+                <dd>
+                    A practical task performed by developers in the portal to simulate real interactions and assess the level of transparency in a specific procedure.
+                </dd>
+
+                <dt><strong>Key Success Criterion</strong></dt>
+                <dd>
+                    A concrete indicator used to evaluate whether a transparency guideline is effectively fulfilled from a developer's point of view.
+                </dd>
+
+                <dt><strong>Software Ecosystem</strong></dt>
+                <dd>
+                    A set of actors that function as a unit and their relationships and interactions within a distributed market of software and services. These relationships are typically centered around a common technological platform, allowing the exchange of information, resources, and artifacts.
+                </dd>
+
+                <dt><strong>Software Ecosystem Portal</strong></dt>
+                <dd>
+                    A web-based interface that provides access to artifacts, tools, documentation, and services offered by a common technological platform within a software ecosystem.
+                </dd>
+
+                <dt><strong>Transparency</strong></dt>
+                <dd>
+                    A condition in which information about capabilities, priorities, and behaviors is openly available, enabling informed decision‑making by stakeholders and reducing inefficiencies caused by information asymmetry.
+                </dd>
+
+                <dt><strong>Transparency Badge</strong></dt>
+                <dd>
+                    A visual indicator assigned to a guideline based on evaluation scores. The three levels are: <strong>High Transparency</strong> (≥ 75), <strong>Moderate Transparency</strong> (50–74), and <strong>Low Transparency</strong> (< 50).
+                </dd>
+
+                <dt><strong>Transparency Guideline</strong></dt>
+                <dd>
+                    A recommended practice aimed at increasing visibility, clarity, and fairness in specific areas of the SECO portal (e.g., source code access, governance, contribution policies).
+                </dd>
+
+                <dt><strong>VAS (Visual Analogue Scale)</strong></dt>
+                <dd>
+                    A type of measurement scale where developers indicate their perception by selecting a position along a continuous line, typically from 0 to 100.
+                </dd>
+                </dl>
+            </div>
+        </section>
+
+
 
     </div>
     <script>

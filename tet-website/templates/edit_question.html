@@ -1,48 +1,63 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
 {% endblock %}
 
 {% block title %}Edit Question Q{{ question.question_id }}{% endblock %}
 
 {% block content %}
-<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<a href="javascript:history.back()" class="back-arrow">
+    <span>←</span>
+    <span>Back</span>
+</a>
+
 <div class="container">
-    <div id="questions-section">
-        <div class="card">
-            <div class="card-header">
-                <h4>Edit Question Q{{ question.question_id }}</h4>
-            </div>
-            <div class="card-body">
-                <form action="{{ url_for('update_question', id=question.question_id) }}" method="POST">
-                    <div class="mb-3">
-                        <textarea class="form-control" name="question" placeholder="Question" rows="4" required>{{ question.question }}</textarea>
-                        <div class="mb-3">
-                            <h4 class="form-label">Related task</h4>
-                            <div class="checkbox-group">
-                                {% for t in tasks %}
-                                <div class="checkbox-item">
-                                    <label for="task_{{ t.task_id }}" title="T{{ t.task_id }}">{{ t.title }}</label>
-                                    <input type="checkbox" id="task_{{ t.task_id }}" 
-                                            name="task_id" value="{{ t.task_id }}" onclick="handleCheckboxSelection(this)" 
-                                            {% if t.task_id == question.task_id %} checked {% endif %}>
-                                </div>
-                                {% endfor %}
-                            </div>
+    <div class="card">
+        <div class="card-header">
+            <h4>Edit Question Q{{ question.question_id }}</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('update_question', id=question.question_id) }}" method="POST">
+                <div class="mb-3">
+                    <label for="question" class="form-label">Question</label>
+                    <textarea 
+                        id="question"
+                        class="form-control" 
+                        name="question" 
+                        placeholder="Enter your question..." 
+                        rows="4" 
+                        required
+                    >{{ question.question }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Related Task</label>
+                    <div class="checkbox-group">
+                        {% for t in tasks %}
+                        <div class="checkbox-item">
+                            <input type="checkbox" 
+                                   id="task_{{ t.task_id }}" 
+                                   name="task_id" 
+                                   value="{{ t.task_id }}" 
+                                   {% if t.task_id == question.task_id %}checked{% endif %}>
+                            <label for="task_{{ t.task_id }}" title="T{{ t.task_id }}">
+                                {{ t.title }}
+                            </label>
                         </div>
+                        {% endfor %}
                     </div>
-                    <div class="mb-7">
-                        <button type="submit" class="btn btn-primary">Add Question</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                
+                <div class="mb-7">
+                    <button type="submit" class="btn btn-primary">
+                        <span>Update Question</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-
 {% endblock %}
 
 {% block scripts %}

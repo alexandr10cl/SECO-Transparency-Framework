@@ -1,71 +1,92 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
 {% endblock %}
 
 {% block title %}Edit Task T{{ task.task_id }}{% endblock %}
 
 {% block content %}
-<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<a href="javascript:history.back()" class="back-arrow">
+    <span>←</span>
+    <span>Back</span>
+</a>
+
 <div class="container">
-    <div id="tasks-section">
-        <div class="card">
-            <div class="card-header">
-                <h4>Edit Task T{{ task.task_id }}</h4>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('update_task', id=task.task_id) }}">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="title" placeholder="Title" required value="{{ task.title }}">
-                        <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ task.description }}</textarea>
-                        <div class="mb-3">
-                        <h4 class="form-label">SECO Types</h4>
-                            <div class="checkbox-group">
-                               {% for opt in seco_types %}
-                                <div class="checkbox-item">
-                                    <label for="seco_type_{{ opt.name }}" title="{{ opt.name }}">
-                                    {{ opt.name.replace('_', ' ').title() }}
-                                    </label>
-                                    <input type="checkbox"
-                                        id="seco_type_{{ opt.name }}"
-                                        name="seco_types"
-                                        value="{{ opt.name }}"
-                                        {% if selected_seco_types and opt in selected_seco_types %}checked{% endif %}>
-                                </div>
-                                {% endfor %}
-                            </div>
+    <div class="card">
+        <div class="card-header">
+            <h4>Edit Task T{{ task.task_id }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_task', id=task.task_id) }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input 
+                        type="text" 
+                        id="title"
+                        class="form-control" 
+                        name="title" 
+                        placeholder="Enter task title..." 
+                        required 
+                        value="{{ task.title }}"
+                    >
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea 
+                        id="description"
+                        class="form-control" 
+                        name="description" 
+                        placeholder="Enter task description..." 
+                        rows="4" 
+                        required
+                    >{{ task.description }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">SECO Types</label>
+                    <div class="checkbox-group">
+                        {% for opt in seco_types %}
+                        <div class="checkbox-item">
+                            <input type="checkbox"
+                                id="seco_type_{{ opt.name }}"
+                                name="seco_types"
+                                value="{{ opt.name }}"
+                                {% if selected_seco_types and opt in selected_seco_types %}checked{% endif %}>
+                            <label for="seco_type_{{ opt.name }}" title="{{ opt.name }}">
+                                {{ opt.name.replace('_', ' ').title() }}
+                            </label>
                         </div>
-                        
-                        <div class="mb-3">
-                            <h4 class="form-label">Related Processes</h4>
-                            <div class="checkbox-group">
-                                {% for p in seco_processes %}
-                                <div class="checkbox-item">
-                                    <label for="process_{{ p.seco_process_id }}" title="P{{ p.seco_process_id }}">
-                                    P{{ p.seco_process_id }} - {{ p.description }}
-                                    </label>
-                                    <input
-                                    type="checkbox"
-                                    id="process_{{ p.seco_process_id }}"
-                                    name="process_ids"
-                                    value="{{ p.seco_process_id }}"
-                                    {% if p.seco_process_id in selected_process_ids %}checked{% endif %}
-                                    >
-                                </div>
-                                {% endfor %}
-                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Related Processes</label>
+                    <div class="checkbox-group">
+                        {% for p in seco_processes %}
+                        <div class="checkbox-item">
+                            <input type="checkbox"
+                                id="process_{{ p.seco_process_id }}"
+                                name="process_ids"
+                                value="{{ p.seco_process_id }}"
+                                {% if p.seco_process_id in selected_process_ids %}checked{% endif %}>
+                            <label for="process_{{ p.seco_process_id }}" title="P{{ p.seco_process_id }}">
+                                P{{ p.seco_process_id }} - {{ p.description }}
+                            </label>
                         </div>
+                        {% endfor %}
                     </div>
-                    <div class="mb-7">
-                        <button type="submit" class="btn btn-primary">Update Task</button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                
+                <div class="mb-7">
+                    <button type="submit" class="btn btn-primary">
+                        <span>Update Task</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-
-
 {% endblock %}

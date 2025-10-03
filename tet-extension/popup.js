@@ -9,7 +9,7 @@ let overlay = document.getElementById('overlay');
 // API Configuration
 // Change isDevelopment to false for production deployment
 const CONFIG = {
-  isDevelopment: true, // Set to false for production
+  isDevelopment: false, // Set to false for production
   DEVELOPMENT_URL: "http://127.0.0.1:5000",
   PRODUCTION_URL: "https://seco-tranp-website.vercel.app/", // deployed URL
   get API_BASE_URL() {
@@ -37,30 +37,158 @@ let currentTaskTimestamp = "Erro ao obter o timestamp"; // Armazena o timestamp 
 let currentTaskStatus = "solving" // alterado para "solved" ou "couldntsolve" no botão de finalizar a task
 let taskStartTime = null; // Armazena o timestamp da task atual
 let taskEndTime = null; // Armazena o timestamp da task atual
+let isSubmitting = false; // Evita envios duplicados do resultado
+
+// Task context tracking for navigation
+let activeTaskContext = {
+  taskId: null,
+  processId: null,
+  startTime: null,
+  endTime: null
+};
+
+// Task boundary tracking
+let taskBoundaries = {
+  isTaskActive: false,
+  pendingNavigationEvents: [],
+  lastTaskId: null
+};
+
+function resolveCurrentTaskId() {
+  if (activeTaskContext.taskId) {
+    return activeTaskContext.taskId;
+  }
+
+  if (currentPhase === "task" && currentProcessIndex >= 0 && currentTaskIndex >= 0) {
+    const currentProcess = processes[currentProcessIndex];
+    if (currentProcess && currentProcess.process_tasks[currentTaskIndex]) {
+      return currentProcess.process_tasks[currentTaskIndex].task_id;
+    }
+  }
+
+  if (taskBoundaries.lastTaskId) {
+    return taskBoundaries.lastTaskId;
+  }
+
+  return null;
+}
+
+function recordNavigationEvent({
+  action = "pageNavigation",
+  url,
+  title = "",
+  timestamp = new Date().toISOString(),
+  taskId,
+  phase = currentPhase,
+  taskIndex = currentTaskIndex,
+  processIndex = currentProcessIndex,
+  source = "event"
+}) {
+  if (!url || !taskId) {
+    console.warn("⚠️ Skipping navigation record due to missing url/taskId", { url, taskId, source });
+    return false;
+  }
+
+  if (source === "finalSnapshot") {
+    const hasSameEntry = data_collection.navigation.some(entry => entry.taskId === taskId && entry.url === url);
+    if (hasSameEntry) {
+      console.log("🛑 Final snapshot skipped (duplicate for task)", { url, taskId });
+      return false;
+    }
+  }
+
+  const lastEntry = data_collection.navigation[data_collection.navigation.length - 1];
+  if (lastEntry && lastEntry.url === url && lastEntry.taskId === taskId && lastEntry.action === action) {
+    const lastTs = new Date(lastEntry.timestamp).getTime();
+    const currentTs = new Date(timestamp).getTime();
+    if (!Number.isNaN(lastTs) && !Number.isNaN(currentTs) && Math.abs(currentTs - lastTs) < 2000) {
+      console.log("🔁 Navigation deduplicated", { url, taskId, source });
+      return false;
+    }
+  }
+
+  const entry = {
+    action,
+    title,
+    url,
+    timestamp,
+    taskId,
+    phase,
+    taskIndex,
+    processIndex,
+    source
+  };
+
+  data_collection.navigation.push(entry);
+  console.log("🧭 Navigation recorded:", entry, { navigationCount: data_collection.navigation.length });
+  return true;
+}
+
+function captureCurrentTabNavigation({ source = "snapshot", taskIdOverride = null } = {}) {
+  const resolvedTaskId = taskIdOverride || resolveCurrentTaskId();
+  if (!resolvedTaskId) {
+    console.warn("⚠️ No task id available for navigation snapshot", { source });
+    return;
+  }
+
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+      if (chrome.runtime.lastError) {
+        console.error("❌ Error capturing tab navigation:", chrome.runtime.lastError.message);
+        return;
+      }
+
+      const activeTab = tabs && tabs[0];
+      if (!activeTab || !activeTab.url) {
+        console.warn("⚠️ No active tab information available for snapshot", { source });
+        return;
+      }
+
+      recordNavigationEvent({
+        url: activeTab.url,
+        title: activeTab.title || "",
+        timestamp: new Date().toISOString(),
+        taskId: resolvedTaskId,
+        phase: currentPhase,
+        taskIndex: currentTaskIndex,
+        processIndex: currentProcessIndex,
+        source
+      });
+    });
+  } catch (error) {
+    console.error("❌ Exception capturing tab navigation:", error);
+  }
+}
 
 
-
-
-// Navigation tracking
+// Enhanced Navigation tracking with precise task boundary detection
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
-    // Listen for page navigation events from background.js
-    if (currentPhase === "task" || currentPhase === "review") { // Só captura navegação na etapa de resolução de tarefas ou revisão
-      if (request.action === "pageNavigation" || request.action === "tab_switch") {
-        data_collection.navigation.push({
-          action : request.action,
-          title: request.title,
+    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
+
+    if (shouldTrackNavigation) {
+      if (request.action === "pageNavigation" || request.action === "tabSwitch") {
+        const currentTaskId = resolveCurrentTaskId();
+        const recorded = recordNavigationEvent({
+          action: request.action,
           url: request.url,
+          title: request.title,
           timestamp: request.timestamp,
-          taskId: (currentTaskIndex >= 0 && todo_tasks.length > 0 && currentTaskIndex < todo_tasks.length) 
-                  ? todo_tasks[currentTaskIndex].id 
-                  : null
+          taskId: currentTaskId,
+          phase: currentPhase,
+          taskIndex: currentTaskIndex,
+          processIndex: currentProcessIndex,
+          source: "runtimeEvent"
         });
-        console.log("Navigation recorded:", request.url);
+
+        sendResponse(recorded ? { status: "success", navigationCount: data_collection.navigation.length } : { status: "skipped" });
       }
+    } else {
+      console.log("🚫 Navigation not tracked - Current phase:", currentPhase);
     }
   } catch (error) {
-    console.error("Error processing message:", error);
+    console.error("❌ Error processing navigation message:", error);
+    sendResponse({status: "error", error: error.message});
   }
 });
 
@@ -378,6 +506,25 @@ function attachListenersAll() {
         taskStartTime = new Date().toISOString();
         taskEndTime = null;
 
+        // Set active task context for navigation tracking
+        activeTaskContext = {
+          taskId: task.task_id,
+          processId: proc.process_id,
+          startTime: taskStartTime,
+          endTime: null
+        };
+
+        // Update task boundaries
+        taskBoundaries.isTaskActive = true;
+        taskBoundaries.lastTaskId = task.task_id;
+
+        console.log("🎯 Task started:", {
+          taskId: task.task_id,
+          processId: proc.process_id,
+          startTime: taskStartTime,
+          taskBoundaries: taskBoundaries
+        });
+
         // Mostra título, descrição e instruções
         document.getElementById(`taskTitle${task.task_id}`).style.display = "block";
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
@@ -395,6 +542,7 @@ function attachListenersAll() {
 
         currentPhase = "task";
         updateDisplay();
+        captureCurrentTabNavigation({ source: "initialSnapshot", taskIdOverride: task.task_id });
       });
 
       // Conseguiu / Não tenho certeza / Não conseguiu
@@ -410,6 +558,20 @@ function attachListenersAll() {
 
           taskEndTime = new Date().toISOString();
 
+          if (activeTaskContext.taskId === task.task_id) {
+            activeTaskContext.endTime = taskEndTime;
+            console.log("🏁 Task ended:", {
+              taskId: task.task_id,
+              processId: proc.process_id,
+              endTime: taskEndTime,
+              status: typeMap[type]
+            });
+          }
+
+          captureCurrentTabNavigation({ source: "finalSnapshot", taskIdOverride: task.task_id });
+
+          taskBoundaries.isTaskActive = false;
+
           currentPhase = "review";
           updateDisplay();
         });
@@ -418,6 +580,19 @@ function attachListenersAll() {
       // Next: salvar resposta e avançar
       document.getElementById(`task${task.task_id}ReviewButton`).addEventListener("click", () => {
         saveTaskAnswer(proc.process_id, task.task_id);
+        
+        // Clear active task context when moving to next task
+        activeTaskContext = {
+          taskId: null,
+          processId: null,
+          startTime: null,
+          endTime: null
+        };
+        
+        // Clear task boundaries
+        taskBoundaries.isTaskActive = false;
+        taskBoundaries.lastTaskId = null;
+        
         if (currentTaskIndex < processes[currentProcessIndex].process_tasks.length - 1) {
           currentTaskIndex++;
           currentPhase = "task";
@@ -433,6 +608,19 @@ function attachListenersAll() {
       .getElementById(`process${proc.process_id}ReviewButton`)
       .addEventListener("click", () => {
         saveProcessAnswers(proc.process_id);
+        
+        // Clear active task context when moving to next process
+        activeTaskContext = {
+          taskId: null,
+          processId: null,
+          startTime: null,
+          endTime: null
+        };
+        
+        // Clear task boundaries
+        taskBoundaries.isTaskActive = false;
+        taskBoundaries.lastTaskId = null;
+        
         // avança processo
         if (currentProcessIndex < processes.length - 1) {
           currentProcessIndex++;
@@ -623,7 +811,28 @@ document.getElementById("finishevaluationbtn").addEventListener("click", functio
 
 // Enviar dados da coleta para o Flask
 function sendData() {
-  fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {
+  // Evita envios duplicados
+  if (isSubmitting) {
+    return Promise.resolve();
+  }
+  isSubmitting = true;
+
+  const btn = document.getElementById("finishevaluationbtn");
+  if (btn) {
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.dataset.originalText = originalText;
+    btn.textContent = "Submitting...";
+    btn.classList.add('btn-loading');
+  }
+  console.log("📤 Sending data to backend:", {
+    evaluation_code: data_collection.evaluation_code,
+    navigation_count: data_collection.navigation.length,
+    performed_tasks_count: data_collection.performed_tasks.length,
+    navigation_samples: data_collection.navigation.slice(0, 3) // Show first 3 navigation entries
+  });
+
+  return fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {
     method: "POST",
     headers: {
         "Content-Type": "application/json" // informar ao flask que o dado que esta sendo enviado é um json
@@ -632,13 +841,38 @@ function sendData() {
   })
   .then(response => response.json()) // converte a resposta recebida pela api em um json
   .then(data => { // Agora com os dados convertidos, exibe na tela que foi enviado com sucesso
-    document.getElementById("finishevaluationbtn").disabled = true; // Desabilita o botão de finalizar
+    const btnGuard = document.getElementById("finishevaluationbtn");
+    if (btnGuard) {
+      btnGuard.disabled = true;
+      btnGuard.classList.remove('btn-loading');
+      btnGuard.textContent = "Submitted";
+    }
+    // Mostrar aviso de finalizar UX-Tracking somente após envio com sucesso
+    const notice = document.getElementById("uxtEndBlock");
+    if (notice) notice.style.display = "block";
+    // Esconder instrução inicial após envio
+    const instruction = document.getElementById("submitInstruction");
+    if (instruction) instruction.style.display = "none";
     console.log("Resposta do servidor:", data);
     alert("Dados enviados com sucesso");
+    // Toast feedback
+    const toast = document.getElementById('toast');
+    if (toast) {
+      toast.textContent = 'Submission successful. You may stop UX‑tracking now.';
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
   })
   .catch(error => { //tratamento de erro
     alert("Erro ao enviar os dados");
     console.error("Erro ao enviar os dados:", error);
+    const btnReenable = document.getElementById("finishevaluationbtn");
+    if (btnReenable) {
+      btnReenable.disabled = false;
+      btnReenable.classList.remove('btn-loading');
+      btnReenable.textContent = btnReenable.dataset.originalText || btnReenable.textContent || "Submit and Finish evaluation";
+    }
+    isSubmitting = false;
   });
 }
 

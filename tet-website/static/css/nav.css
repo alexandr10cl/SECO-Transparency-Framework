@@ -29,7 +29,8 @@ body {
     width: 100%;
     z-index: 1005;
     top: 0;
-    height: 50px;
+    height: 60px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
@@ -70,14 +71,18 @@ body {
 }
 
 .btn {
-    padding: 10px 15px;
+    padding: 8px 16px;
     text-decoration: none;
-    font-size: 1rem;
+    font-size: 0.875rem;
     color: var(--cor-1);
     background-color: var(--cor-2);
-    border-radius: 5px;
+    border-radius: 6px;
     transition: 0.3s;
-    font-weight: bold;
+    font-weight: 600;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {

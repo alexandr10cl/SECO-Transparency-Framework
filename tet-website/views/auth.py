@@ -61,6 +61,8 @@ def auth():
                 access_token = resposta.json().get('access_token')
                 if access_token:
                     session['uxt_access_token'] = access_token
+                    session['user_signed_in'] = user.email
+                    session['user_type'] = user.type.value
                     print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
                     message = ''
                     messageEA = ''
@@ -68,6 +70,8 @@ def auth():
                     messageType = ''
                 else:
                     print("[UXT] Nenhum token de acesso retornado.")
+                    messageType = 'error'
+                    message = 'Error authenticating with UXTracking service. Please try again later.'
             else:
                 print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
                 print(f"[UXT] Resposta: {resposta.text}")
@@ -136,7 +140,7 @@ def register():
                 message = 'UXTracking service is temporarily unavailable. Please try again in a few minutes.'
             elif resposta.status_code == 409:
                 messageType = 'error'
-                message = 'This email is already registered in our tracking system. Please use a different email address.'
+                message = 'This email or username is already registered in our tracking system. Please use a different email address.'
             elif resposta.status_code == 400:
                 messageType = 'error'
                 message = 'Invalid registration data. Please check your information and try again.'

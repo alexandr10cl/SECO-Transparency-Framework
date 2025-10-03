@@ -185,6 +185,10 @@ body {
     margin-bottom: 10px;
 }
 
+.content h5 {
+    color: #1E3A8A;
+}
+
 .content p {
     color: #1D4ED8;
     line-height: 1.6;
@@ -478,3 +482,89 @@ section {
         white-space: nowrap;
     }
 }
+
+/* Glossary styles */
+dl {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    padding-left: 0;
+}
+
+dt {
+    font-weight: 600;
+    color: #1E3A8A;
+    font-size: 1.05rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.4rem;
+}
+
+dd {
+    color: #1D4ED8;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-left: 0;
+    margin-bottom: 1.2rem;
+    text-align: justify;
+}
+
+@media screen and (min-width: 768px) {
+    dt {
+        font-size: 1.1rem;
+    }
+
+    dd {
+        font-size: 1rem;
+    }
+}
+
+/* Estilo base para <details> */
+details {
+  background-color: #F1F5F9; /* mesmo fundo de cards */
+  border-left: 4px solid #2563EB;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  color: #1E3A8A;
+  font-size: 0.95rem;
+}
+
+/* Estilo para <summary> */
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #1E3A8A;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  list-style: none; /* remove o triângulo padrão */
+  position: relative;
+  padding-left: 1.2rem;
+}
+
+/* Custom bullet (⯈) para o summary */
+details summary::before {
+  content: "⯈";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #2563EB;
+  transition: transform 0.2s ease;
+}
+
+/* Rotate bullet when open */
+details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+/* Lista dentro do details */
+details ul {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+details ul li {
+  color: #1D4ED8;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+}
+
