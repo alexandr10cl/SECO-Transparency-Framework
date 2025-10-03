@@ -111,9 +111,8 @@ body {
 }
 
 .overview-container,
-  .performed-tasks-container,
-  .hotspots-container,
-  .guidelines-score-container {
+  .evaluated-procedures-container,
+  .hotspots-container {
     display: none;
   }
 
@@ -391,7 +390,19 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    gap: 20px;
+    align-items: stretch;
 }
+
+/* Ensure the two cards fill the row on desktop */
+.aside > .word-cloud,
+.aside > .dev-emotion {
+    flex: 1 1 48%;
+    min-width: 0;
+}
+
+/* Make the pie chart canvas fill its card on desktop */
+.dev-emotion canvas { width: 100% !important; height: 360px !important; display: block; }
 
 .d1 .percentage-bar div{
     background-color: rgb(117, 0, 0);
@@ -467,8 +478,8 @@ body {
 
 
 .tasks-summary {
-    max-width: 1000px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0; /* align with task sections below */
 }
 
 .tasks-summary h2 {
@@ -479,6 +490,20 @@ body {
     max-width: 80rem;
     margin: 0 auto;
     padding: 0 1rem; 
+}
+
+/* Grouped tasks by SECO process */
+.task-sections { margin-top: 24px; }
+.task-section { margin-bottom: 32px; }
+.task-section-title { margin: 0 0 12px 0; font-size: 1.35rem; }
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .task-grid { grid-template-columns: 1fr; }
 }
 
 .task-overview-card {
@@ -656,6 +681,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .guideline-status {
@@ -858,13 +884,49 @@ body {
     }
 }
 
+/* --- Responsive additions for dashboard & word cloud --- */
+.word-cloud { min-height: 320px; }
+.word-cloud canvas { width: 100%; height: auto; display: block; }
+
+/* Make heatmap images scale within container */
+.heatmap-image img { max-width: 100%; height: auto; }
+
+/* General responsive tweaks */
+@media (max-width: 1024px) {
+  .dashboard-container { padding: 24px; }
+  .aside { flex-direction: column; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container { padding: 16px; }
+  .evaluation-info { flex-direction: column; align-items: stretch; gap: 12px; }
+  .dimensions, .dx_categorys { flex-direction: column; gap: 12px; }
+  .score { width: 100%; }
+  .overall { transform: none; max-width: 100%; }
+  .profilecharts { flex-direction: column; align-items: stretch; }
+  #pieChart, #experienceChart, #educationChart { width: 100% !important; height: 320px !important; }
+  .dashboard-navbar { max-width: 100%; }
+  .dashboard-navbar ul { flex-wrap: wrap; }
+
+  /* Make guideline headers stack on mobile to avoid overflow */
+  .guideline-info-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .guideline-status { white-space: normal; align-self: flex-start; }
+  .ksc-card { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .dashboard-title h2 { font-size: 1.25rem; }
+  .overview-header h2, .tasks-card h2, .guidelines-card h2 { font-size: 1.5rem; }
+}
+
 /* Badge Legend Styles */
 .badge-legend {
     background-color: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
+    width: 100%;
 }
 
 .badge-legend h4 {
@@ -878,7 +940,114 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
+    align-items: start; /* top-align all columns */
 }
+@media (min-width: 1024px) {
+  .legend-grid { grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+  /* Align the third (Attention) column neatly to the right edge */
+  .legend-grid > .legend-section:nth-child(3) { text-align: right; justify-self: end; width: 100%; }
+}
+
+/* Task Filters Styles */
+.task-filters-container {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.task-filters-container h3 {
+    margin: 0 0 1rem 0;
+    color: hsl(var(--foreground));
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.task-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.filter-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.filter-item label {
+    font-size: 0.875rem;
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    user-select: none;
+}
+
+.filter-item label:hover {
+    color: #2563eb;
+}
+
+/* Task Badge Styles */
+.task-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: #2563eb;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.task-badge.no-task {
+    background-color: #6b7280;
+}
+
+/* Heatmap Container Updates */
+.heatmap-wrapper {
+    position: relative !important;
+}
+
+.heatmap-wrapper[data-task-id] {
+    transition: opacity 0.3s ease;
+}
+
+.heatmap-wrapper.filtered-out {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .task-filters {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .task-filters-container {
+        padding: 1rem;
+    }
+}
+  .legend-grid > .legend-section:nth-child(3) .legend-items { align-items: flex-end; }
+  /* Ensure the orange badge uses the column width elegantly */
+  .legend-grid > .legend-section:nth-child(3) .attention-badge-small { width: 100%; max-width: 560px; }
+
 
 .legend-section {
     display: flex;
@@ -1093,5 +1262,1175 @@ body {
     
     .ksc-example-item .material-symbols-outlined {
         font-size: 14px !important;
+    }
+}
+
+/* ============================================
+   🔥 HEATMAPS MODERNOS - NOVA INTERFACE
+============================================ */
+
+/* Animações */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Container principal dos heatmaps */
+.heatmaps {
+  display: grid;
+  gap: 32px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Wrapper individual do heatmap - estilos já aplicados via JS */
+.heatmap-wrapper {
+  position: relative;
+  animation: slideInUp 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+.heatmap-wrapper:nth-child(1) { animation-delay: 0.1s; }
+.heatmap-wrapper:nth-child(2) { animation-delay: 0.2s; }
+.heatmap-wrapper:nth-child(3) { animation-delay: 0.3s; }
+.heatmap-wrapper:nth-child(4) { animation-delay: 0.4s; }
+.heatmap-wrapper:nth-child(n+5) { animation-delay: 0.5s; }
+
+/* Overlay de tarefas */
+.task-overlay {
+  animation: slideInDown 0.4s ease-out 0.2s;
+  animation-fill-mode: both;
+}
+
+/* Cards de tarefas individuais */
+.task-card {
+  position: relative;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Indicador de cobertura */
+.coverage-indicator {
+  animation: slideInUp 0.4s ease-out 0.3s;
+  animation-fill-mode: both;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+.coverage-indicator:hover {
+  transform: scale(1.05);
+  background: rgba(34, 197, 94, 1) !important;
+}
+
+/* Estados de filtro melhorados - substituir o antigo */
+.heatmap-wrapper.filtered-out {
+  opacity: 0 !important;
+  transform: scale(0.95) !important;
+  pointer-events: none !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-bottom: 0 !important;
+  overflow: hidden !important;
+  height: 0 !important;
+}
+
+.heatmap-wrapper:not(.filtered-out) {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Filtros melhorados */
+.task-filters-container {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.task-filters-container h3 {
+  margin-bottom: 16px;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.task-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.filter-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.filter-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.filter-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Filtro "Show All" especial */
+.filter-item:first-child {
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.filter-item:first-child label {
+  color: white;
+}
+
+.filter-item:first-child:hover {
+  background: linear-gradient(145deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Loading state melhorado */
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: #6b7280;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.loading::before {
+  content: "🔄";
+  display: block;
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Task section headers */
+.task-section-header {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-section-header h3 {
+  color: #007bff;
+  margin: 0 0 10px 0;
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+.task-section-header p {
+  color: #6c757d;
+  margin: 0 0 10px 0;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.task-stats {
+  background: #e9ecef;
+  color: #495057;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* Data Quality Information */
+.data-quality-info {
+  background: #fff;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.quality-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.quality-header h4 {
+  margin: 0;
+  color: #495057;
+  font-size: 1.2em;
+}
+
+.quality-score {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.quality-score.good {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.quality-score.fair {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.quality-score.poor {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.quality-details p {
+  margin: 8px 0;
+  color: #495057;
+}
+
+.quality-warnings {
+  margin-top: 15px;
+  padding: 15px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+}
+
+.quality-warnings ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+}
+
+.quality-warnings li {
+  margin: 5px 0;
+  color: #856404;
+}
+
+/* Responsividade para heatmaps */
+@media (max-width: 768px) {
+  .heatmap-wrapper {
+    margin-bottom: 24px !important;
+  }
+  
+  .task-overlay {
+    top: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+    gap: 6px !important;
+  }
+  
+  .task-card {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    max-width: 150px !important;
+  }
+  
+  .coverage-indicator {
+    bottom: 12px !important;
+    right: 12px !important;
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+  
+  .task-filters {
+    gap: 8px;
+  }
+  
+  .filter-item {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   EVALUATED PROCEDURES - NOVA ABA
+============================================ */
+
+.procedures-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    min-height: 600px;
+    background-color: hsl(var(--card));
+    border-radius: 20px;
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.08),
+        0 8px 16px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+/* Sidebar de procedimentos */
+.procedures-sidebar {
+    background-color: hsl(var(--muted));
+    padding: 24px;
+    border-right: 1px solid hsl(var(--border));
+}
+
+.procedures-sidebar h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: hsl(var(--foreground));
+}
+
+.procedures-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.procedure-item {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.procedure-item:hover {
+    background-color: hsl(var(--border));
+}
+
+.procedure-item.active {
+    background-color: hsl(var(--foreground));
+    color: white;
+    border-color: hsl(var(--foreground));
+}
+
+.procedure-id {
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.procedure-description {
+    font-size: 0.8rem;
+    flex: 1;
+    line-height: 1.3;
+}
+
+/* Conteúdo dos procedimentos */
+.procedures-content {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: 800px;
+}
+
+.procedure-panel {
+    display: none;
+}
+
+.procedure-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Guidelines associadas */
+.procedure-guidelines {
+    margin-bottom: 32px;
+}
+
+.procedure-guidelines h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: hsl(var(--foreground));
+}
+
+.guidelines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.guideline-card {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 16px;
+    transition: box-shadow 0.3s ease;
+}
+
+.guideline-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.guideline-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: hsl(var(--foreground));
+}
+
+.guideline-card p {
+    font-size: 0.9rem;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 8px;
+}
+
+.score-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Tasks accordion */
+.procedure-tasks h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: hsl(var(--foreground));
+}
+
+.tasks-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.task-accordion-item {
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: hsl(var(--card));
+    transition: box-shadow 0.3s ease;
+}
+
+.task-accordion-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.task-accordion-header {
+    padding: 16px;
+    background-color: hsl(var(--muted));
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    user-select: none;
+}
+
+.task-accordion-header:hover {
+    background-color: hsl(var(--border));
+}
+
+.task-accordion-header.expanded {
+    background-color: hsl(var(--foreground));
+    color: white;
+}
+
+.task-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.task-toggle {
+    font-size: 24px !important;
+    transition: transform 0.3s ease;
+}
+
+.task-accordion-header.expanded .task-toggle {
+    color: white;
+}
+
+.task-accordion-content {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.task-accordion-content.show {
+    padding: 20px;
+    max-height: 1000px;
+}
+
+/* Métricas das tasks */
+.metric-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: hsl(var(--muted));
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.metric-row strong {
+    min-width: 120px;
+}
+
+/* Comentários */
+.task-comments-section {
+    margin-top: 20px;
+    padding: 16px;
+    background-color: hsl(var(--muted));
+    border-radius: 8px;
+}
+
+.task-comments-section h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: hsl(var(--foreground));
+}
+
+.comments-list {
+    list-style: none;
+    padding-left: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.comments-list li {
+    padding: 8px 12px;
+    background-color: hsl(var(--card));
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+}
+
+.no-comments {
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9rem;
+}
+
+/* Key Success Criteria Section in Guidelines */
+.guideline-ksc-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid hsl(var(--border));
+}
+
+.guideline-ksc-section h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: hsl(var(--foreground));
+}
+
+.guideline-card .ksc-item {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.guideline-card .ksc-item h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    color: hsl(var(--foreground));
+}
+
+.guideline-card .ksc-item p {
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.ksc-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.ksc-score span:first-child {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.ksc-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ksc-status.fulfilled {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #15803d;
+}
+
+.ksc-status.partially-fulfilled {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+}
+
+.ksc-status.not-fulfilled {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+}
+
+.ksc-status.no-answers {
+    background-color: rgba(107, 114, 128, 0.15);
+    color: #4b5563;
+}
+
+.no-tasks {
+    padding: 20px;
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .procedures-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .procedures-sidebar {
+        border-right: none;
+        border-bottom: 1px solid hsl(var(--border));
+        padding: 16px;
+    }
+
+    .procedures-list {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .procedure-item {
+        flex: 0 1 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .procedures-content {
+        padding: 16px;
+    }
+
+    .guideline-card,
+    .task-accordion-item {
+        margin-bottom: 8px;
+    }
+
+    .task-accordion-content.show {
+        padding: 16px;
+    }
+
+    .metric-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ============================================
+   MODAL DE INFORMAÇÕES SOBRE MÉTRICAS
+============================================ */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background-color: hsl(var(--card));
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    width: 90%;
+    max-width: 600px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideInUp 0.3s ease;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    background-color: hsl(var(--foreground));
+    color: white;
+    border-radius: 16px 16px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.close-modal {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.close-modal:hover {
+    opacity: 0.7;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.metric-info-section {
+    margin-bottom: 24px;
+}
+
+.metric-info-section:last-child {
+    margin-bottom: 0;
+}
+
+.metric-info-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: hsl(var(--foreground));
+}
+
+.metric-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.metric-info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    background-color: hsl(var(--muted));
+    border-radius: 8px;
+}
+
+.metric-info-item .badge {
+    min-width: 100px;
+}
+
+/* Botão de informação nas métricas */
+.metrics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.metrics-header span:first-child {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+.info-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.info-btn:hover {
+    background-color: hsl(var(--border));
+}
+
+.info-btn .material-symbols-outlined {
+    font-size: 20px !important;
+    color: hsl(var(--muted-foreground));
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsivo para modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .metric-info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+}
+
+/* ===== NEW OVERVIEW LAYOUT STYLES ===== */
+
+/* Overall Score Section */
+.overall-score-section {
+    margin-bottom: 2rem;
+}
+
+.overall-score-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.overall-score-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    color: hsl(var(--foreground));
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+.score-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+}
+
+/* Transparency Badges */
+.transparency-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.transparency-badge.good-transparency {
+    background-color: var(--success-alert);
+}
+
+.transparency-badge.moderate-transparency {
+    background-color: var(--warning-alert);
+}
+
+.transparency-badge.bad-transparency {
+    background-color: var(--critical-alert);
+}
+
+.transparency-badge.no-data,
+.transparency-badge.no-procedures {
+    background-color: hsl(var(--muted-foreground));
+    color: white;
+}
+
+/* Evaluated Procedures Overview */
+.evaluated-procedures-overview {
+    margin-bottom: 2rem;
+}
+
+.evaluated-procedures-overview h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    color: hsl(var(--foreground));
+}
+
+.procedures-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.procedure-overview-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.procedure-overview-card .procedure-id {
+    font-weight: 700;
+    color: #3b82f6;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.procedure-overview-card p {
+    margin: 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+/* Software Ecosystems Dimensions Section */
+.seco-dimensions-section {
+    margin-bottom: 2rem;
+}
+
+.seco-dimensions-section h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: hsl(var(--foreground));
+}
+
+.dimensions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.dimension-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dimension-card h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: hsl(var(--foreground));
+}
+
+.dimension-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.dimension-score .score {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+/* Developer Experience Section */
+.developer-experience-section {
+    margin-bottom: 2rem;
+}
+
+.developer-experience-section h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    color: hsl(var(--foreground));
+}
+
+.dx-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.dx-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dx-card h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: hsl(var(--foreground));
+}
+
+.dx-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.dx-score .score {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+/* Procedure Progress Bars */
+.procedure-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.procedure-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.procedure-label {
+    font-weight: 600;
+    color: #3b82f6;
+    min-width: 24px;
+    font-size: 0.9rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: hsl(var(--muted));
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.procedure-score {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    min-width: 32px;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .score-display {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .score-number {
+        font-size: 2.5rem;
+    }
+
+    .dimensions-grid,
+    .dx-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .procedures-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .procedure-bar {
+        flex-wrap: wrap;
+    }
+
+    .procedure-label {
+        min-width: 20px;
     }
 }

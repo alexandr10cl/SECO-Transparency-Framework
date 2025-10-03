@@ -9,7 +9,7 @@
 {% block content %}
 <div class="signin">
     <form class="signinForm" action="{{ url_for('auth') }}" method="post">
-        <h2>Sign in</h2>
+        <h2 class="signup">Sign in</h2>
         <input type="email" name="email" id="email" placeholder="Type your email">
         <input type="password" name="passw" id="passw" placeholder="Type your password">
         <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>

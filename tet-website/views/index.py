@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from index import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -151,39 +151,35 @@ def add_evaluation():
     if not evaluation_id:
         print(f"LOG: Usando geração aleatória de código (fallback)")
         while True:
-            evaluation_id = ''.join(rd.choices('0123456789', k=6))
             if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
                 break
-        print(f"LOG: Código gerado aleatoriamente: {evaluation_id}")
-    
-    print(f"LOG: Código final da avaliação: {evaluation_id}")
-    print(f"LOG: SECO Type da avaliação: {seco_type}")
-    print(f"=== LOG: Fim da geração de código ===")    
 
-    # map selected processes
-    seco_processes = []
-    if seco_process_ids:
-        seco_processes = SECO_process.query.filter(
-            SECO_process.seco_process_id.in_(seco_process_ids)
-        ).all()
+    if r and r.status_code == 201 and evaluation_id:
 
-    # create and save
-    new_evaluation = Evaluation(
-        evaluation_id=evaluation_id,
-        name=name,
-        user_id=user.user_id,
-        seco_processes=seco_processes,
-        seco_portal=seco_portal,
-        seco_portal_url=seco_portal_url,
-        seco_type=seco_type
-    )
+        # map selected processes
+        seco_processes = []
+        if seco_process_ids:
+            seco_processes = SECO_process.query.filter(
+                SECO_process.seco_process_id.in_(seco_process_ids)
+            ).all()
 
-    try:
-        db.session.add(new_evaluation)
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        return redirect(url_for('evaluations'))
+        # create and save
+        new_evaluation = Evaluation(
+            evaluation_id=evaluation_id,
+            name=name,
+            user_id=user.user_id,
+            seco_processes=seco_processes,
+            seco_portal=seco_portal,
+            seco_portal_url=seco_portal_url,
+            seco_type=seco_type
+        )
+
+        try:
+            db.session.add(new_evaluation)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return redirect(url_for('evaluations'))
 
     return redirect(url_for('evaluations'))
 
@@ -234,13 +230,25 @@ def update_evaluation(id):
 def delete_evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
     
+    # Delete all related objects tied to this evaluation's collected data
     for c in evaluation.collected_data:
+        # Answers are linked to CollectedData (not PerformedTask)
+        for a in c.answers:
+            db.session.delete(a)
+
+        # Delete navigation events tied to this CollectedData
+        for n in c.navigation:
+            db.session.delete(n)
+
+        # Delete performed tasks tied to this CollectedData
         for p in c.performed_tasks:
-            for a in p.answers:
-                db.session.delete(a)
             db.session.delete(p)
-        
-        db.session.delete(c.developer_questionnaire)
+
+        # Delete developer questionnaire if present
+        if getattr(c, 'developer_questionnaire', None):
+            db.session.delete(c.developer_questionnaire)
+
+        # Finally, delete the collected data record itself
         db.session.delete(c)
     
     db.session.delete(evaluation)
@@ -255,19 +263,55 @@ def evaluation(id):
     seco_processes = evaluation.seco_processes
     collected_data = evaluation.collected_data
     questions = Question.query.all()
-    guidelines = []
-    tasks = []
-    for p in seco_processes:
-        for t in p.tasks:
-            if t not in tasks:
-                tasks.append(t)
-        for g in p.guidelines:
-            if g not in guidelines:
-                guidelines.append(g)
+    
+    # Build procedure-organized data structure
+    procedures_data = []
+    all_guidelines = []
+    all_tasks = []
+    
+    for process in seco_processes:
+        # Get guideline for this process (1:1 relationship)
+        guideline = process.guidelines[0] if process.guidelines else None
+        
+        # Get tasks for this process
+        process_tasks = process.tasks
+        
+        # Build procedure data structure
+        procedure_data = {
+            'process': process,
+            'guideline': guideline,
+            'tasks': process_tasks
+        }
+        procedures_data.append(procedure_data)
+        
+        # Collect all guidelines and tasks for backward compatibility
+        if guideline and guideline not in all_guidelines:
+            all_guidelines.append(guideline)
+        for task in process_tasks:
+            if task not in all_tasks:
+                all_tasks.append(task)
+    
+    # Renumber collected data per evaluation
+    collected_data_renumbered = []
+    for i, data in enumerate(collected_data, 1):
+        collected_data_renumbered.append({
+            'display_name': f'Collect {i}',
+            'original_id': data.collected_data_id,
+            'data': data
+        })
                 
     count_collected_data = len(collected_data)
 
-    return render_template('eval.html', evaluation=evaluation, user=user, seco_processes=seco_processes, count_collected_data=count_collected_data, guidelines=guidelines, tasks=tasks, collected_data=collected_data, questions=questions)
+    return render_template('eval.html', 
+                         evaluation=evaluation, 
+                         user=user, 
+                         seco_processes=seco_processes, 
+                         count_collected_data=count_collected_data, 
+                         guidelines=all_guidelines, 
+                         tasks=all_tasks, 
+                         collected_data=collected_data_renumbered, 
+                         questions=questions,
+                         procedures_data=procedures_data)
 
 @app.route('/eval_dashboard/<int:id>')
 def eval_dashboard(id):
@@ -510,10 +554,45 @@ def eval_dashboard(id):
         completion_rate = round((info["solved_count"] / info["total_count"]) * 100, 1) if info["total_count"] > 0 else 0
 
         processed_tasks.append({
+            "task_id": task_id,
             "title": info["title"],
             "comments": info["comments"],
             "avg_time": avg_time,
             "completion_rate": completion_rate
+        })
+
+    # Agrupar tasks por SECO process (para desktop layout mais informativo)
+    # Mapa de task_id -> lista de process_ids
+    task_to_process = {}
+    for p in evaluation.seco_processes:
+        for t in p.tasks:
+            task_to_process.setdefault(t.task_id, []).append(p.seco_process_id)
+
+    # Índice rápido de processed_tasks por id
+    processed_by_id = {t["task_id"]: t for t in processed_tasks}
+
+    tasks_by_process = []
+    seen_in_process = set()
+    for p in evaluation.seco_processes:
+        section_tasks = []
+        for t in p.tasks:
+            pt = processed_by_id.get(t.task_id)
+            if pt:
+                section_tasks.append(pt)
+                seen_in_process.add(pt["task_id"])
+        tasks_by_process.append({
+            "process_id": p.seco_process_id,
+            "process_title": p.description,
+            "tasks": section_tasks,
+        })
+
+    # Qualquer task realizada que não esteja associada a um processo da avaliação
+    uncategorized = [pt for pt in processed_tasks if pt["task_id"] not in seen_in_process]
+    if uncategorized:
+        tasks_by_process.append({
+            "process_id": 0,
+            "process_title": "Other Tasks",
+            "tasks": uncategorized,
         })
         
     dimension_scores = []
@@ -540,6 +619,43 @@ def eval_dashboard(id):
             
         dimension_scores.append(dim_data)
     
+    # DX_factor ID to category mapping (same as evaluation details)
+    dx_factor_categories = {
+        # Common Technological Platform
+        1: 'common_technological_platform',   # Desired technical resources for development
+        2: 'common_technological_platform',   # Easy to configure platform
+        5: 'common_technological_platform',   # Platform transparency
+        6: 'common_technological_platform',   # Documentation quality
+        7: 'common_technological_platform',   # Existence of communication channels
+        8: 'common_technological_platform',   # Platform openness level
+        26: 'common_technological_platform',  # Qualities and characteristics of platform
+
+        # Projects and Applications
+        9: 'projects_and_applications',       # More clients/users for applications
+        10: 'projects_and_applications',     # Application distribution methods
+        11: 'projects_and_applications',     # Application interface and appearance standards
+        12: 'projects_and_applications',     # Requirements for developing applications
+        13: 'projects_and_applications',     # Ease of learning about technology
+        14: 'projects_and_applications',     # Low barriers to entry into applications market
+
+        # Community Interaction
+        15: 'community_interaction',         # Obtaining community recognition
+        16: 'community_interaction',         # Commitment to the community
+        17: 'community_interaction',         # A good relationship with the community
+        18: 'community_interaction',         # Knowledge exchange between community developers
+        19: 'community_interaction',         # A good developer relations program
+        20: 'community_interaction',         # Community size and scalability
+
+        # Expectations and Value
+        3: 'expectations_and_value',         # Financial costs for using the platform
+        21: 'expectations_and_value',        # Emergence of new market and job opportunities
+        22: 'expectations_and_value',        # More financial gains
+        23: 'expectations_and_value',        # Fun while developing
+        24: 'expectations_and_value',        # Improvement of developer skills and intellect
+        25: 'expectations_and_value',        # Autonomy and self-control of workflow
+        27: 'expectations_and_value'         # Engagement and rewards for work
+    }
+
     # Calcular pontuações para Developer Experience Categories
     dx_categories = {
         'common_technological_platform': {
@@ -564,17 +680,28 @@ def eval_dashboard(id):
         }
     }
     
-    # Distribuir guidelines entre categorias DX (mantive sua lógica atual)
-    for idx, g_result in enumerate(result):
+    # Distribuir guidelines entre categorias DX usando mapeamento baseado em DX_factors
+    for g_result in result:
         if g_result['average_score'] is not None:
-            if idx % 4 == 0:
-                dx_categories['common_technological_platform']['guidelines'].append(g_result['average_score'])
-            elif idx % 4 == 1:
-                dx_categories['projects_and_applications']['guidelines'].append(g_result['average_score'])
-            elif idx % 4 == 2:
-                dx_categories['community_interaction']['guidelines'].append(g_result['average_score'])
+            # Buscar a guideline completa para obter seus DX_factors
+            guideline_obj = next((g for g in guidelines if g.title == g_result['title']), None)
+
+            if guideline_obj:
+                # Coletar categorias únicas para esta guideline
+                guideline_categories = set()
+                for dx_factor in guideline_obj.dx_factors:
+                    category = dx_factor_categories.get(dx_factor.dx_factor_id)
+                    if category:
+                        guideline_categories.add(category)
+
+                # Adicionar score apenas uma vez para cada categoria única
+                for category in guideline_categories:
+                    dx_categories[category]['guidelines'].append(g_result['average_score'])
             else:
-                dx_categories['expectations_and_value']['guidelines'].append(g_result['average_score'])
+                # Fallback: distribuição equilibrada als niet kan mappen
+                hash_value = hash(g_result['title']) % 4
+                category_keys = list(dx_categories.keys())
+                dx_categories[category_keys[hash_value]]['guidelines'].append(g_result['average_score'])
     
     # Calcular média para cada categoria DX
     for category in dx_categories.values():
@@ -583,7 +710,72 @@ def eval_dashboard(id):
         else:
             category['score'] = 0
 
-    return render_template('dashboard.html', 
+    # Função helper para determinar badge de transparência
+    def get_transparency_badge(score):
+        if score is None or score == 0:
+            return "No Procedures"
+        elif score >= 75:
+            return "Good Transparency"
+        elif score >= 50:
+            return "Moderate Transparency"
+        else:
+            return "Bad Transparency"
+
+    # Adicionar badges de transparência
+    transparency_badge_overall = get_transparency_badge(score_geral)
+
+    for dim in dimension_scores:
+        dim['transparency_badge'] = get_transparency_badge(dim['average_score'])
+
+    for category in dx_categories.values():
+        category['transparency_badge'] = get_transparency_badge(category['score'])
+
+    # Calcular scores por procedure para cada dimensão
+    for dim in dimension_scores:
+        dim['procedure_scores'] = {}
+        for process in seco_processes:
+            process_id = process.seco_process_id
+            process_guidelines_scores = []
+
+            for g in process.guidelines:
+                if any(d.seco_dimension_id == dim['id'] for d in g.seco_dimensions):
+                    g_result = next((item for item in result if item['title'] == g.title), None)
+                    if g_result and g_result['average_score'] is not None:
+                        process_guidelines_scores.append(g_result['average_score'])
+
+            if process_guidelines_scores:
+                dim['procedure_scores'][f'P{process_id}'] = round(sum(process_guidelines_scores) / len(process_guidelines_scores))
+            else:
+                dim['procedure_scores'][f'P{process_id}'] = 0
+
+    # Calcular scores por procedure para categorias DX usando mapeamento gebaseerd op DX_factors
+    for category_key, category in dx_categories.items():
+        category['procedure_scores'] = {}
+
+        for process in seco_processes:
+            process_id = process.seco_process_id
+            process_guidelines_scores = []
+
+            # Mapear guidelines van dit proces naar de DX categorie
+            for g in process.guidelines:
+                g_result = next((item for item in result if item['title'] == g.title), None)
+                if g_result and g_result['average_score'] is not None:
+                    # Controleren of een DX_factor van deze guideline tot de categorie behoort
+                    guideline_belongs_to_category = False
+                    for dx_factor in g.dx_factors:
+                        if dx_factor_categories.get(dx_factor.dx_factor_id) == category_key:
+                            guideline_belongs_to_category = True
+                            break
+
+                    if guideline_belongs_to_category:
+                        process_guidelines_scores.append(g_result['average_score'])
+
+            if process_guidelines_scores:
+                category['procedure_scores'][f'P{process_id}'] = round(sum(process_guidelines_scores) / len(process_guidelines_scores))
+            else:
+                category['procedure_scores'][f'P{process_id}'] = 0
+
+    return render_template('dashboard.html',
                             evaluation=evaluation,
                             user=user,
                             seco_processes=seco_processes,
@@ -598,8 +790,10 @@ def eval_dashboard(id):
                             ePortalUrl=ePortalUrl,
                             dimensions=dimensions,
                             processed_tasks=processed_tasks,
+                            tasks_by_process=tasks_by_process,
                             result=result,
                             score_geral=score_geral,
+                            transparency_badge_overall=transparency_badge_overall,
                             g_dimensions=g_dimensions_flat,
                             dimension_scores=dimension_scores,
                             dx_categories=dx_categories)

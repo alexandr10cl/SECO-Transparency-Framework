@@ -1,33 +1,56 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
 {% endblock %}
 
 {% block title %}Edit Key Success Criterion KSC{{ criterion.key_success_criterion_id }}{% endblock %}
 
 {% block content %}
-<a href="javascript:history.back()" class="back-arrow">⬅︎ Back</a>
+<a href="javascript:history.back()" class="back-arrow">
+    <span>←</span>
+    <span>Back</span>
+</a>
+
 <div class="container">
-    <div id="key_success_criteria-section">
-        <div class="card">
-            <div class="card-header">
-                <h4>Edit Key Success Criterion KSC{{ criterion.key_success_criterion_id }}</h4>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('update_key_success_criterion', id=criterion.key_success_criterion_id) }}">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" name="title" placeholder="Title" required value="{{ criterion.title }}">
-                        <textarea class="form-control" name="description" placeholder="Description" rows="4" required>{{ criterion.description }}</textarea>
-                    </div>
-                    <div class="mb-7">
-                        <button type="submit" class="btn btn-primary">Update Criterion</button>
-                    </div>
-                </form>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h4>Edit Key Success Criterion KSC{{ criterion.key_success_criterion_id }}</h4>
         </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_key_success_criterion', id=criterion.key_success_criterion_id) }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input 
+                        type="text" 
+                        id="title"
+                        class="form-control" 
+                        name="title" 
+                        placeholder="Enter criterion title..." 
+                        required 
+                        value="{{ criterion.title }}"
+                    >
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea 
+                        id="description"
+                        class="form-control" 
+                        name="description" 
+                        placeholder="Enter criterion description..." 
+                        rows="4" 
+                        required
+                    >{{ criterion.description }}</textarea>
+                </div>
+                
+                <div class="mb-7">
+                    <button type="submit" class="btn btn-primary">
+                        <span>Update Criterion</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
-
 {% endblock %}

@@ -62,12 +62,50 @@ def data_collected():
 @app.route('/submit_tasks', methods=['POST'])
 def submit_tasks():
     data = request.get_json(force=True)
+    print("=== SUBMIT_TASKS DEBUG ===")
     print("Dados recebidos:", data)
+    print(f"Navigation data count: {len(data.get('navigation', []))}")
+    if data.get('navigation'):
+        print("Navigation samples:", data.get('navigation')[:2])  # Show first 2 navigation entries
 
     # Busca a avaliação pelo código
     evaluation = Evaluation.query.filter_by(evaluation_id=data.get("evaluation_code")).first()
     if not evaluation:
         return jsonify({"error": "Evaluation not found"}), 404
+
+    # Idempotency guard: ignore replays of the SAME run (not new runs)
+    session_raw = data.get("uxt_sessionId")
+    try:
+        session_id = int(session_raw) if session_raw is not None else None
+    except (TypeError, ValueError):
+        session_id = None
+
+    # Use combination of (evaluation, session or cod, start_time, end_time)
+    # to detect duplicates of the same evaluation run.
+    start_time_iso = data.get("startTime")
+    end_time_iso = data.get("endTime")
+    existing = None
+    if session_id is not None:
+        existing = CollectedData.query.filter(
+            CollectedData.evaluation_id == evaluation.evaluation_id,
+            CollectedData.sessionId == session_id,
+            CollectedData.start_time == datetime.fromisoformat(start_time_iso),
+            CollectedData.end_time == datetime.fromisoformat(end_time_iso)
+        ).first()
+    else:
+        # Fallback to cod when sessionId is unavailable
+        existing = CollectedData.query.filter(
+            CollectedData.evaluation_id == evaluation.evaluation_id,
+            CollectedData.cod == data.get("uxt_cod"),
+            CollectedData.start_time == datetime.fromisoformat(start_time_iso),
+            CollectedData.end_time == datetime.fromisoformat(end_time_iso)
+        ).first()
+
+    if existing:
+        return jsonify({
+            "message": "Already submitted. Duplicate ignored.",
+            "collected_data_id": existing.collected_data_id
+        }), 200
 
 
     # Cria o objeto CollectedData
@@ -126,12 +164,34 @@ def submit_tasks():
             elif answer_value is None:
                 answer_value = 50  # default value
             
-            answer = Answer(
-                answer              = int(answer_value),
-                question_id         = item.get("question_id"),
-                collected_data_id   = collected.collected_data_id
-            )
-            db.session.add(answer)
+            # Persist answer for the selected question_id and any other question rows
+            # that share the exact same text (deduplicated display, but full DB coverage)
+            qid = item.get("question_id")
+            question_row = Question.query.get(qid) if qid is not None else None
+
+            if question_row is None:
+                # Fallback: save only for provided question_id
+                answer = Answer(
+                    answer            = int(answer_value),
+                    question_id       = qid,
+                    collected_data_id = collected.collected_data_id
+                )
+                db.session.add(answer)
+            else:
+                # Find all questions with identical text and save the same answer to each
+                same_text_questions = Question.query.filter_by(question=question_row.question).all()
+                for q2 in same_text_questions:
+                    # Avoid duplicate Answer rows for the same (collected_data, question)
+                    existing_ans = Answer.query.filter_by(
+                        collected_data_id=collected.collected_data_id,
+                        question_id=q2.question_id
+                    ).first()
+                    if existing_ans is None:
+                        db.session.add(Answer(
+                            answer            = int(answer_value),
+                            question_id       = q2.question_id,
+                            collected_data_id = collected.collected_data_id
+                        ))
 
     # Salva o questionário do desenvolvedor
     prof = data.get("profile_questionnaire", {})
@@ -149,16 +209,27 @@ def submit_tasks():
     db.session.add(dev_q)
 
     # Salva a navegação (caso exista)
-    #for nav in data.get("navigation", []):
-        #nav_entry = Navigation(
-          #  action              = NavigationType(nav.get("action")),
-          #  title               = nav.get("title"),
-          #  url                 = nav.get("url"),
-          #  timestamp           = datetime.fromisoformat(nav.get("timestamp")),
-           # task_id             = nav.get("taskId"),
-          #  collected_data_id   = collected.collected_data_id
-       # )
-      #  db.session.add(nav_entry)
+    for nav in data.get("navigation", []):
+        # Convert extension action values to database enum values
+        action_value = nav.get("action")
+        if action_value == "pageNavigation":
+            action_enum = NavigationType.PAGE_NAVIGATION
+        elif action_value == "tabSwitch":
+            action_enum = NavigationType.TAB_SWITCH
+        else:
+            print(f"⚠️ Unknown navigation action: {action_value}")
+            continue
+            
+        nav_entry = Navigation(
+            action              = action_enum,
+            title               = nav.get("title"),
+            url                 = nav.get("url"),
+            timestamp           = datetime.fromisoformat(nav.get("timestamp")),
+            task_id             = nav.get("taskId"),
+            collected_data_id   = collected.collected_data_id
+        )
+        db.session.add(nav_entry)
+        print(f"✅ Navigation entry added: {action_value} -> {action_enum.value}")
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200
@@ -217,14 +288,14 @@ def get_data(evaluation_id):
             }
 
         # Navegação
-        # navs = Navigation.query.filter_by(collected_data_id=col.collected_data_id).all()
-        # collected_dict["navigation"] = [{
-        #     "action": n.action.value if hasattr(n.action, "value") else n.action,
-        #     "url": n.url,
-        #     "title": n.title,
-        #     "timestamp": n.timestamp.isoformat(),
-        #     "task_id": n.task_id
-        # } for n in navs]
+        navs = Navigation.query.filter_by(collected_data_id=col.collected_data_id).all()
+        collected_dict["navigation"] = [{
+            "action": n.action.value if hasattr(n.action, "value") else n.action,
+            "url": n.url,
+            "title": n.title,
+            "timestamp": n.timestamp.isoformat(),
+            "task_id": n.task_id
+        } for n in navs]
 
         result.append(collected_dict)
 
@@ -246,6 +317,7 @@ def load_tasks():
         result = []
         evaluation_seco_type = evaluation.seco_type  # Obtém o seco_type da avaliação
         
+        seen_question_texts = set()
         for process in evaluation.seco_processes:
             process_obj = {
                 "process_id": process.seco_process_id,
@@ -278,17 +350,24 @@ def load_tasks():
                         "task_description": task.description
                     })
             # Adiciona perguntas de review (questions dos Key Success Criteria das guidelines do processo)
-            review_questions = set()
+            # Evita duplicatas entre processos por texto de pergunta
+            local_seen_texts = set()
             for guideline in process.guidelines:
                 for ksc in guideline.key_success_criteria:
                     for question in ksc.questions:
-                        review_questions.add((question.question, question.question_id))
-            # Adiciona ao objeto, evitando duplicatas
-            for q_text, q_id in review_questions:
-                process_obj["process_review"].append({
-                    "process_review_question_text": q_text,
-                    "process_review_question_id": q_id
-                })
+                        if question.question in local_seen_texts:
+                            continue
+                        local_seen_texts.add(question.question)
+
+                        if question.question in seen_question_texts:
+                            # Já exibida em processo anterior nesta avaliação
+                            continue
+
+                        seen_question_texts.add(question.question)
+                        process_obj["process_review"].append({
+                            "process_review_question_text": question.question,
+                            "process_review_question_id": question.question_id
+                        })
             result.append(process_obj)
         
         print("Resultado:", result)

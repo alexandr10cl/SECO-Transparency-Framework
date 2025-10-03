@@ -1,71 +1,104 @@
 {% extends "base.html" %}
 
 {% block head %}
-<link rel="stylesheet" href="/static/css/evaluation.css">
+<link rel="stylesheet" href="/static/css/eval.css">
 {% endblock %}
 
 {% block title %}Evaluations{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="header">
-        <h1 class="title">Evaluations</h1>
-        <p>An easy way to evaluate the transparency of your portal</p>
+<div class="eval-page">
+    <!-- Page Header with Breadcrumbs -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <nav class="breadcrumbs">
+                <a href="{{ url_for('index') }}" class="breadcrumb-link">Home</a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-current">Evaluations</span>
+            </nav>
+            <h1 class="page-title">Evaluations</h1>
+            <p class="page-subtitle">An easy way to evaluate the transparency of your portal</p>
+        </div>
     </div>
-    <div class="evaluations">
-        <h2>Your Evaluations</h2>
-        <div class="evaluations-content">
-            {% if evaluations %}
-                {% for e in evaluations %}
-                    <a class="a-eval" href="{{ url_for('evaluation', id=e.evaluation_id) }}" style="text-decoration: none; color: black;">
-                        <div class="eval" id="eval_{{ e.evaluation_id }}">
-                            <h3 id="eval-name">{{ e.name }}</h3> 
-                            <div class="portal">
-                                <h4>Portal</h4>
-                                <p>{{ e.seco_portal }}  ● <span>{{ e.seco_portal_url }}</span></p>
+
+    <div class="eval-container">
+        <!-- Action Header -->
+        <header class="eval-header">
+            <div class="eval-title-section">
+                <div class="eval-actions">
+                    <a href="{{ url_for('create_evaluation') }}" class="dashboard-btn">
+                        <span class="btn-icon">+</span>
+                        <span>Create Evaluation</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="eval-main">
+            <section class="evaluations-section">
+                <h2 class="section-title">Your Evaluations</h2>
+                
+                <div class="evaluations-grid">
+                    {% if evaluations %}
+                        {% for e in evaluations %}
+                        <div class="evaluation-card">
+                            <div class="card-header">
+                                <div class="card-title-section">
+                                    <h3 class="card-title">{{ e.name }}</h3>
+                                    <div class="evaluation-code">{{ e.evaluation_id }}</div>
+                                </div>
+                                <a href="{{ url_for('eval_dashboard', id=e.evaluation_id) }}" class="dashboard-link" title="View Dashboard">
+                                    <span class="dashboard-icon">📊</span>
+                                </a>
                             </div>
-                            <div class="portal">
-                                <h4>SECO Type</h4>
-                                <p>
-                                    {{ e.seco_type.name.replace('_', ' ').title() if e.seco_type else 'Not defined' }}
-                                </p>
-                            </div>
-                            <div class="processes">
-                                <h4>Related Processes</h4>
-                                <div class="processes-content">
-                                    {% for p in e.seco_processes %}
-                                        <p>P{{ p.seco_process_id }} - {{ p.description }}</p>
-                                    {% endfor %}
+                            
+                            <div class="card-content">
+                                <div class="info-item">
+                                    <label class="info-label">Portal</label>
+                                    <div class="info-value">
+                                        <span class="portal-name">{{ e.seco_portal }}</span>
+                                        <span class="portal-url">{{ e.seco_portal_url }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <label class="info-label">SECO Type</label>
+                                    <div class="info-value">
+                                        <span class="seco-type">{{ e.seco_type.name.replace('_', ' ').title() if e.seco_type else 'Not defined' }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-item">
+                                    <label class="info-label">Related Processes</label>
+                                    <div class="processes-list">
+                                        {% for p in e.seco_processes %}
+                                        <div class="process-badge">P{{ p.seco_process_id }} - {{ p.description }}</div>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <div class="card-footer">
+                                <a href="{{ url_for('evaluation', id=e.evaluation_id) }}" class="details-link">
+                                    <span>View Details</span>
+                                    <span class="arrow-icon">→</span>
+                                </a>
+                            </div>
                         </div>
-                    </a>
-                {% endfor %}
-                <a href="{{ url_for('create_evaluation') }}" class="btn-evaluation">&plus;</a>
-            {% else %}
-                
-                <p>You don't have any <span id="eval">evaluations</span>. Create one now!</p>
-                <a href="{{ url_for('create_evaluation') }}" class="btn-evaluation">&plus;</a>
-            {% endif %}
-        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>You don't have any evaluations. Create one now!</p>
+                            <a href="{{ url_for('create_evaluation') }}" class="dashboard-btn">
+                                <span class="btn-icon">+</span>
+                                <span>Create Evaluation</span>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
     </div>
-    <footer>
-        <div class="footer-content">
-            <div class="info">
-                <div class="i">
-                    <h4>LabESC</h4>
-                    <p>Complex Systems Engineering Laboratory</p>
-                </div>
-                <div class="i">
-                    <h4>Contato</h4>
-                    <p>(21) 98765-4321</p>
-                    <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
-                </div>
-            </div>
-            <div class="copy">
-                <p>&copy; 2025 UNIRIO. Todos os direitos reservados.</p> 
-            </div>
-        </div>
-    </footer>
 </div>
 {% endblock %}

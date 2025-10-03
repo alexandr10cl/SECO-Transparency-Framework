@@ -1,9 +1,8 @@
 const navItems = document.querySelectorAll(".dashboard-navbar ul li");
   const containers = {
     "Overview": document.querySelector(".overview-container"),
-    "Performed Tasks": document.querySelector(".performed-tasks-container"),
+    "Evaluated Procedures": document.querySelector(".evaluated-procedures-container"),
     "Hotspots": document.querySelector(".hotspots-container"),
-    "Guidelines Score": document.querySelector(".guidelines-score-container"),
 };
 
 navItems.forEach(item => {
@@ -13,7 +12,9 @@ navItems.forEach(item => {
         item.classList.add("active");
 
         // Esconde todos os containers
-        Object.values(containers).forEach(div => div.classList.remove("active-container"));
+        Object.values(containers).forEach(div => {
+            if(div) div.classList.remove("active-container");
+        });
 
         // Mostra o container correspondente
         const texto = item.textContent.trim();
@@ -22,6 +23,69 @@ navItems.forEach(item => {
         }
     });
 });
+
+// Funcionalidade do menu lateral de procedimentos
+function initProceduresSidebar() {
+    const procedureItems = document.querySelectorAll('.procedure-item');
+    const procedurePanels = document.querySelectorAll('.procedure-panel');
+
+    if (!procedureItems.length || !procedurePanels.length) return;
+
+    procedureItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const processId = item.dataset.processId;
+
+            // Atualizar items ativos no menu
+            procedureItems.forEach(pi => pi.classList.remove('active'));
+            item.classList.add('active');
+
+            // Mostrar panel correspondente
+            procedurePanels.forEach(panel => {
+                if (panel.dataset.processId === processId) {
+                    panel.classList.add('active');
+                } else {
+                    panel.classList.remove('active');
+                }
+            });
+        });
+    });
+}
+
+// Funcionalidade accordion das tasks
+function initTaskAccordions() {
+    const accordionHeaders = document.querySelectorAll('.task-accordion-header');
+
+    accordionHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.task-toggle');
+
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                header.classList.remove('expanded');
+                if (toggle) toggle.textContent = 'expand_more';
+            } else {
+                // Fechar outros accordions no mesmo painel (opcional)
+                const parentPanel = header.closest('.procedure-panel');
+                if (parentPanel) {
+                    parentPanel.querySelectorAll('.task-accordion-content.show').forEach(openContent => {
+                        openContent.classList.remove('show');
+                    });
+                    parentPanel.querySelectorAll('.task-accordion-header.expanded').forEach(openHeader => {
+                        openHeader.classList.remove('expanded');
+                        const t = openHeader.querySelector('.task-toggle');
+                        if (t) t.textContent = 'expand_more';
+                    });
+                }
+
+                // Abrir o accordion clicado
+                content.classList.add('show');
+                header.classList.add('expanded');
+                if (toggle) toggle.textContent = 'expand_less';
+            }
+        });
+    });
+}
 
 const pathParts = window.location.pathname.split('/')
 const id = pathParts[pathParts.length - 1];
@@ -54,7 +118,7 @@ fetch(`/api/satisfaction/${id}`)
         }]
       },
       options: {
-          responsive: false,
+          responsive: true,
           maintainAspectRatio: false
       }
     });
@@ -142,30 +206,51 @@ fetch(`/api/grau-academico/${id}`)
     });
   })
 
+// Word cloud – responsive rendering
 async function gerarNuvem(){
+  const canvas = document.getElementById('word-cloud');
+  if (!canvas) return;
+  const container = canvas.parentElement;
+
+  // Size canvas to container for crisp rendering
+  const width = Math.max(300, container.clientWidth);
+  const height = Math.max(250, Math.round(width * 0.55));
+  canvas.width = width;
+  canvas.height = height;
 
   fetch(`/api/wordcloud/${id}`)
     .then(response => response.json())
     .then(data => {
+      const words = data || [];
+      const maxWeight = words.length ? Math.max(...words.map(w => w[1])) : 1;
 
-      words = data
+      // Scale font between min/max relative to canvas width
+      const minFont = 12;
+      const maxFont = Math.max(28, Math.min(72, Math.round(width / 8)));
 
-      WordCloud(document.getElementById('word-cloud'), {
+      WordCloud(canvas, {
         list: words,
-        gridSize: 10,
-        weightFactor: 5,
-        fontFamily: 'Montserrat',
+        gridSize: Math.max(8, Math.round(width / 64)),
+        weightFactor: (size) => minFont + (size / (maxWeight || 1)) * (maxFont - minFont),
+        fontFamily: 'Montserrat, sans-serif',
         color: 'random-dark',
         backgroundColor: '#ffffff',
         rotateRatio: 0,
         rotationSteps: 2,
-        shape: 'circle'
+        shape: 'circle',
+        shuffle: true,
+        drawOutOfBound: false,
+        shrinkToFit: true,
       });
     });
-
-  
-
 }
+
+// Re-render word cloud on resize (debounced)
+let wcResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(wcResizeTimer);
+  wcResizeTimer = setTimeout(() => gerarNuvem(), 200);
+});
 
 // Função para aplicar cores aos status baseado no texto
 function applyStatusColors() {
@@ -279,8 +364,54 @@ function enhanceTaskBadges() {
     }
 }
 
+// Funções do modal de métricas
+function openMetricsModal() {
+    const modal = document.getElementById('metricsModal');
+    if (modal) {
+        modal.style.display = 'block';
+        // Previne o fechamento do accordion ao clicar no botão info
+        event.stopPropagation();
+    }
+}
+
+function closeMetricsModal() {
+    const modal = document.getElementById('metricsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Fechar modal ao clicar fora dele
+window.onclick = function(event) {
+    const modal = document.getElementById('metricsModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Função para animar barras de progresso
+function animateProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-fill[data-pct]');
+
+    progressBars.forEach(bar => {
+        const percentage = parseFloat(bar.getAttribute('data-pct')) || 0;
+        const maxPercentage = Math.min(percentage, 100);
+
+        // Reset animation
+        bar.style.width = '0%';
+
+        // Animate with delay
+        setTimeout(() => {
+            bar.style.width = maxPercentage + '%';
+        }, 300);
+    });
+}
+
 window.onload = function() {
     gerarNuvem();
     applyStatusColors();
     enhanceTaskBadges();
+    initProceduresSidebar();
+    initTaskAccordions();
+    animateProgressBars();
 };
