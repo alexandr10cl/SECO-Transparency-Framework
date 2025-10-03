@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, session, url_for, jsonify
+from flask import render_template, request, redirect, session, url_for, jsonify, send_file
 from index import app, db
 from functions import isLogged, isAdmin
 from models import User, Guideline, SECO_process, SECO_dimension, Conditioning_factor_transp, Key_success_criterion, DX_factor
+import os
 
 @app.route('/doc')
 def doc():
@@ -29,6 +30,14 @@ def downloads():
         return render_template('downloads.html', is_admin = is_admin)
 
     return render_template('downloads.html')
+
+@app.route('/download-extension')
+def download_extension():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'downloads', 'tet-extension.zip')
+        return send_file(file_path, as_attachment=True, download_name='tet-extension.zip')
+    except Exception as e:
+        return f"Error downloading file: {str(e)}", 404
 
 @app.route('/guidelines')
 def guidelines():
