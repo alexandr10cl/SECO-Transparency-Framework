@@ -28,6 +28,10 @@ class CollectedData(db.Model):
     # Relationship with Answer table
     answers = db.relationship('Answer',
                             backref=db.backref('collected_data', lazy=True))
+    
+    # Relationship with HeatmapPoint table
+    heatmap_points = db.relationship('HeatmapPoint',
+                                   backref=db.backref('collected_data', lazy=True))
 
     # Foreign key to the evaluation table
     evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False) 
@@ -49,3 +53,34 @@ class Navigation(db.Model):
 
     # Foreign key to the collected data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
+
+class HeatmapPoint(db.Model):
+    __tablename__ = 'heatmap_points'
+
+    # Primary Key
+    point_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+
+    # Main Rows
+    task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
+    collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
+    url = db.Column(db.String(500), nullable=False)
+    x = db.Column(db.Float, nullable=False)
+    y = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    point_type = db.Column(db.String(20), nullable=False)  # 'mousemove', 'click', 'keyboard', etc.
+    scroll_position = db.Column(db.Integer, nullable=False, default=0)
+    page_width = db.Column(db.Integer, nullable=False, default=0)
+    page_height = db.Column(db.Integer, nullable=False, default=0)
+    page_title = db.Column(db.String(200), nullable=True)
+    page_description = db.Column(db.Text, nullable=True)
+    element_id = db.Column(db.String(100), nullable=True)
+    element_class = db.Column(db.String(200), nullable=True)
+    element_value = db.Column(db.Text, nullable=True)
+
+    # Indexes for better performance
+    __table_args__ = (
+        db.Index('idx_heatmap_task_id', 'task_id'),
+        db.Index('idx_heatmap_collected_data_id', 'collected_data_id'),
+        db.Index('idx_heatmap_url', 'url'),
+        db.Index('idx_heatmap_timestamp', 'timestamp'),
+    )

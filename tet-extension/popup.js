@@ -25,7 +25,8 @@ let data_collection = {
   "performed_tasks" : [],
   "profile_questionnaire" : {},
   "final_questionnaire" : {},
-  "navigation" : [] // Store all navigation events
+  "navigation" : [], // Store all navigation events
+  "heatmap_points" : [] // Store all heatmap data points
 }
 let tasks_data = [];   // Armazena as respostas para envio
 let todo_tasks = [];   // Armazena as tasks recebidas em formato de objeto para serem feitas
@@ -160,12 +161,165 @@ function captureCurrentTabNavigation({ source = "snapshot", taskIdOverride = nul
   }
 }
 
+// ===== HEATMAP FUNCTIONALITY =====
+// Based on UFPA UX-Tracking Extension approach
+
+function startTaskHeatmapCapture(taskId, processId) {
+  console.log("🔥 Starting heatmap capture for task:", taskId, "process:", processId);
+  
+  if (!taskId) {
+    console.error("❌ Cannot start heatmap capture: no task ID provided");
+    return false;
+  }
+
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (chrome.runtime.lastError) {
+        console.error("❌ Error querying active tab for heatmap capture:", chrome.runtime.lastError.message);
+        return;
+      }
+
+      if (tabs && tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'startHeatmapCapture',
+          taskId: taskId,
+          processId: processId
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error("❌ Error starting heatmap capture:", chrome.runtime.lastError.message);
+          } else if (response && response.success) {
+            console.log("✅ Heatmap capture started successfully:", response.message);
+          } else {
+            console.warn("⚠️ Heatmap capture start response:", response);
+          }
+        });
+      } else {
+        console.error("❌ No active tab found for heatmap capture");
+      }
+    });
+  } catch (error) {
+    console.error("❌ Exception starting heatmap capture:", error);
+  }
+}
+
+function stopTaskHeatmapCapture() {
+  console.log("🛑 Stopping heatmap capture");
+  
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (chrome.runtime.lastError) {
+        console.error("❌ Error querying active tab for heatmap stop:", chrome.runtime.lastError.message);
+        return;
+      }
+
+      if (tabs && tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'stopHeatmapCapture'
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error("❌ Error stopping heatmap capture:", chrome.runtime.lastError.message);
+          } else if (response && response.success) {
+            console.log("✅ Heatmap capture stopped successfully:", response.message);
+          } else {
+            console.warn("⚠️ Heatmap capture stop response:", response);
+          }
+        });
+      } else {
+        console.error("❌ No active tab found for heatmap stop");
+      }
+    });
+  } catch (error) {
+    console.error("❌ Exception stopping heatmap capture:", error);
+  }
+}
+
+function processHeatmapData(heatmapData) {
+  console.log("📊 Processing heatmap data:", {
+    taskId: heatmapData.taskId?.[0],
+    processId: heatmapData.processId?.[0],
+    url: heatmapData.url?.[0],
+    totalPoints: heatmapData.x?.length || 0,
+    pageHeight: heatmapData.pageHeight,
+    pageWidth: heatmapData.pageWidth
+  });
+
+  if (!heatmapData.x || heatmapData.x.length === 0) {
+    console.log("📊 No heatmap points to process");
+    return;
+  }
+
+  // Convert UFPA format to our format
+  const processedPoints = [];
+  for (let i = 0; i < heatmapData.x.length; i++) {
+    processedPoints.push({
+      taskId: heatmapData.taskId?.[i] || heatmapData.taskId?.[0],
+      processId: heatmapData.processId?.[i] || heatmapData.processId?.[0],
+      url: heatmapData.url?.[i] || heatmapData.url?.[0],
+      x: heatmapData.x[i],
+      y: heatmapData.y[i],
+      type: heatmapData.type[i],
+      timestamp: heatmapData.timestamp?.[i] || new Date().toISOString(),
+      scrollPos: heatmapData.scroll?.[i] || 0,
+      pageWidth: heatmapData.pageWidth,
+      pageHeight: heatmapData.pageHeight,
+      pageTitle: heatmapData.pageTitle,
+      pageDescription: heatmapData.pageDescription
+    });
+  }
+
+  // Add to data collection
+  data_collection.heatmap_points.push(...processedPoints);
+  
+  console.log("✅ Heatmap data processed and stored:", {
+    newPoints: processedPoints.length,
+    totalPoints: data_collection.heatmap_points.length
+  });
+}
+
+function getHeatmapStatus() {
+  console.log("📊 Getting heatmap status");
+  
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (chrome.runtime.lastError) {
+        console.error("❌ Error querying active tab for heatmap status:", chrome.runtime.lastError.message);
+        return;
+      }
+
+      if (tabs && tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'getHeatmapStatus'
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error("❌ Error getting heatmap status:", chrome.runtime.lastError.message);
+          } else {
+            console.log("📊 Heatmap status:", response);
+          }
+        });
+      }
+    });
+  } catch (error) {
+    console.error("❌ Exception getting heatmap status:", error);
+  }
+}
+
 
 // Enhanced Navigation tracking with precise task boundary detection
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
-    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
+    console.log("📨 Popup received message:", request.type || request.action);
 
+    // Handle heatmap data forwarding from background script
+    if (request.type === "forwardHeatmapData") {
+      console.log("🔥 Processing forwarded heatmap data");
+      processHeatmapData(request.data);
+      sendResponse({ status: "success", message: "Heatmap data processed" });
+      return;
+    }
+
+    // Handle navigation tracking
+    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
+    
     if (shouldTrackNavigation) {
       if (request.action === "pageNavigation" || request.action === "tabSwitch") {
         const currentTaskId = resolveCurrentTaskId();
@@ -180,14 +334,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
           processIndex: currentProcessIndex,
           source: "runtimeEvent"
         });
-
+        
         sendResponse(recorded ? { status: "success", navigationCount: data_collection.navigation.length } : { status: "skipped" });
       }
     } else {
       console.log("🚫 Navigation not tracked - Current phase:", currentPhase);
     }
   } catch (error) {
-    console.error("❌ Error processing navigation message:", error);
+    console.error("❌ Error processing message:", error);
     sendResponse({status: "error", error: error.message});
   }
 });
@@ -525,6 +679,9 @@ function attachListenersAll() {
           taskBoundaries: taskBoundaries
         });
 
+        // Start heatmap capture for this task
+        startTaskHeatmapCapture(task.task_id, proc.process_id);
+
         // Mostra título, descrição e instruções
         document.getElementById(`taskTitle${task.task_id}`).style.display = "block";
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
@@ -567,6 +724,9 @@ function attachListenersAll() {
               status: typeMap[type]
             });
           }
+
+          // Stop heatmap capture for this task
+          stopTaskHeatmapCapture();
 
           captureCurrentTabNavigation({ source: "finalSnapshot", taskIdOverride: task.task_id });
 
@@ -829,7 +989,9 @@ function sendData() {
     evaluation_code: data_collection.evaluation_code,
     navigation_count: data_collection.navigation.length,
     performed_tasks_count: data_collection.performed_tasks.length,
-    navigation_samples: data_collection.navigation.slice(0, 3) // Show first 3 navigation entries
+    heatmap_points_count: data_collection.heatmap_points.length,
+    navigation_samples: data_collection.navigation.slice(0, 3), // Show first 3 navigation entries
+    heatmap_samples: data_collection.heatmap_points.slice(0, 3) // Show first 3 heatmap points
   });
 
   return fetch(`${CONFIG.API_BASE_URL}/submit_tasks`, {

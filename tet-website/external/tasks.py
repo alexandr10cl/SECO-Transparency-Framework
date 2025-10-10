@@ -5,6 +5,7 @@ from models import (
     User, Task, Evaluation, CollectedData, Guideline, SECO_process,
     PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question
 )
+from models.collection_data import HeatmapPoint
 from models.task import task_seco_type
 from models.enums import (
     PerformedTaskStatus, NavigationType, AcademicLevel,
@@ -65,8 +66,11 @@ def submit_tasks():
     print("=== SUBMIT_TASKS DEBUG ===")
     print("Dados recebidos:", data)
     print(f"Navigation data count: {len(data.get('navigation', []))}")
+    print(f"Heatmap points count: {len(data.get('heatmap_points', []))}")
     if data.get('navigation'):
         print("Navigation samples:", data.get('navigation')[:2])  # Show first 2 navigation entries
+    if data.get('heatmap_points'):
+        print("Heatmap samples:", data.get('heatmap_points')[:2])  # Show first 2 heatmap points
 
     # Busca a avaliação pelo código
     evaluation = Evaluation.query.filter_by(evaluation_id=data.get("evaluation_code")).first()
@@ -230,6 +234,33 @@ def submit_tasks():
         )
         db.session.add(nav_entry)
         print(f"✅ Navigation entry added: {action_value} -> {action_enum.value}")
+
+    # Salva os pontos de heatmap (caso existam)
+    for point in data.get("heatmap_points", []):
+        try:
+            heatmap_point = HeatmapPoint(
+                task_id=point.get("taskId"),
+                collected_data_id=collected.collected_data_id,
+                url=point.get("url", ""),
+                x=float(point.get("x", 0)),
+                y=float(point.get("y", 0)),
+                timestamp=datetime.fromisoformat(point.get("timestamp", datetime.now().isoformat())),
+                point_type=point.get("type", "mousemove"),
+                scroll_position=int(point.get("scrollPos", 0)),
+                page_width=int(point.get("pageWidth", 0)),
+                page_height=int(point.get("pageHeight", 0)),
+                page_title=point.get("pageTitle"),
+                page_description=point.get("pageDescription"),
+                element_id=point.get("id"),
+                element_class=point.get("class"),
+                element_value=point.get("value")
+            )
+            db.session.add(heatmap_point)
+            print(f"✅ Heatmap point added: {point.get('type')} at ({point.get('x')}, {point.get('y')}) for task {point.get('taskId')}")
+        except Exception as e:
+            print(f"❌ Error adding heatmap point: {e}")
+            print(f"Point data: {point}")
+            continue
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200

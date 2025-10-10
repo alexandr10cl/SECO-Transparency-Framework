@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECO-TransP Heatmap Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .input-field {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 200px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔥 SECO-TransP Heatmap Test Page</h1>
+    <p>This page is designed to test the heatmap data capture functionality.</p>
+
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>Open the SECO-TransP extension</li>
+            <li>Start an evaluation and begin a task</li>
+            <li>Move your mouse around this page</li>
+            <li>Click on various elements</li>
+            <li>Type in the input fields</li>
+            <li>Scroll up and down</li>
+            <li>Check the browser console for heatmap data logs</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Interactive Elements</h2>
+        <button class="button" onclick="testClick()">Test Click</button>
+        <button class="button" onclick="testHover()">Test Hover</button>
+        <input type="text" class="input-field" placeholder="Type here to test keyboard tracking">
+        <textarea class="input-field" placeholder="Multi-line text area" rows="3"></textarea>
+    </div>
+
+    <div class="test-section">
+        <h2>Mouse Movement Test Area</h2>
+        <div id="mouseArea" style="width: 100%; height: 200px; background: linear-gradient(45deg, #f0f0f0, #e0e0e0); border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">
+            Move your mouse around this area
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Scroll Test Area</h2>
+        <div style="height: 500px; background: linear-gradient(to bottom, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57); display: flex; align-items: center; justify-content: center; font-size: 24px; color: white;">
+            Scroll up and down to test scroll tracking
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Logs</h2>
+        <div id="consoleLogs" style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+            <p>Check the browser console (F12) for detailed heatmap data logs.</p>
+            <p>Look for messages starting with 🔥, 📊, ✅, or ❌</p>
+        </div>
+    </div>
+
+    <script>
+        function testClick() {
+            console.log('🖱️ Test button clicked');
+            document.getElementById('consoleLogs').innerHTML += '<p>✅ Test button clicked at ' + new Date().toLocaleTimeString() + '</p>';
+        }
+
+        function testHover() {
+            console.log('🖱️ Test button hovered');
+            document.getElementById('consoleLogs').innerHTML += '<p>✅ Test button hovered at ' + new Date().toLocaleTimeString() + '</p>';
+        }
+
+        // Add some dynamic content to test with
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔥 Test page loaded - ready for heatmap testing');
+            
+            // Add mouse movement tracking to the test area
+            const mouseArea = document.getElementById('mouseArea');
+            let mouseCount = 0;
+            
+            mouseArea.addEventListener('mousemove', function(e) {
+                mouseCount++;
+                if (mouseCount % 10 === 0) { // Log every 10th movement to avoid spam
+                    console.log('🖱️ Mouse moved in test area:', e.clientX, e.clientY);
+                }
+            });
+
+            // Add click tracking
+            mouseArea.addEventListener('click', function(e) {
+                console.log('🖱️ Test area clicked:', e.clientX, e.clientY);
+                document.getElementById('consoleLogs').innerHTML += '<p>✅ Test area clicked at (' + e.clientX + ', ' + e.clientY + ')</p>';
+            });
+
+            // Add scroll tracking
+            let scrollCount = 0;
+            window.addEventListener('scroll', function() {
+                scrollCount++;
+                if (scrollCount % 5 === 0) { // Log every 5th scroll to avoid spam
+                    console.log('📜 Page scrolled:', window.pageYOffset);
+                }
+            });
+
+            // Add keyboard tracking
+            document.addEventListener('keydown', function(e) {
+                console.log('⌨️ Key pressed:', e.key);
+                document.getElementById('consoleLogs').innerHTML += '<p>✅ Key pressed: ' + e.key + '</p>';
+            });
+        });
+    </script>
+</body>
+</html>
+
+
