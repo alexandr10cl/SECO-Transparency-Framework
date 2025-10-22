@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     indicator.textContent = `${metadata.coverage_percentage}% mapped`;
-    indicator.title = `${metadata.points_with_tasks}/${metadata.total_points} points mapped to tasks`;
+    indicator.title = `${metadata.points_with_tasks}/${metadata.total_points} points mapped to scenarios`;
     
     return indicator;
   }
