@@ -49,3 +49,6 @@ class Navigation(db.Model):
 
     # Foreign key to the collected data table
     collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
+
+    # Relationship with Task (use passive_deletes to rely on database CASCADE)
+    task = db.relationship('Task', passive_deletes=True)
