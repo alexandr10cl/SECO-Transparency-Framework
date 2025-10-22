@@ -49,7 +49,7 @@ class PerformedTask(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
 
     # Relationship com Task
-    task = db.relationship('Task', backref='performed_tasks')
+    task = db.relationship('Task', backref=db.backref('performed_tasks', passive_deletes=True), passive_deletes=True)
 
 class Question(db.Model):
     __tablename__ = 'question'
