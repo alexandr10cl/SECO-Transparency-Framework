@@ -33,8 +33,8 @@
         <section id="introduction">
             <h1>Introduction</h1>
             <p>
-                The <strong>Evaluation Framework for Software Ecosystems Portals (SECO‑TransP)</strong> is an open framework designed to evaluate and improve transparency practices in 
-                software ecosystem (SECO) portals. It combines structured guidelines, hands-on tasks, and developer feedback to provide 
+                The <strong>Evaluation Framework for Software Ecosystems Portals (SECO‑TransP)</strong> is an open framework designed to evaluate and improve transparency practices in
+                software ecosystem (SECO) portals. It combines structured guidelines, hands-on scenarios, and developer feedback to provide
                 a holistic view of how transparency is perceived and operationalized in real-world SECOs.
             </p>
             <p>
@@ -46,9 +46,9 @@
             <h3>🔍 What does SECO‑TransP offer?</h3>
             <ul>
                 <li>✅ <strong>10 Transparency Guidelines</strong>, mapped to common SECO procedures, DX factors, and conditioning factors for transparency;</li>
-                <li>🧪 <strong>Evaluation Tasks</strong> that simulate real developer interactions with portals;</li>
+                <li>🧪 <strong>Evaluation Scenarios</strong> that simulate real developer interactions with portals;</li>
                 <li>📊 <strong>Perception Questionnaire</strong> using Visual Analogue Scales (VAS) to capture subjective experience;</li>
-                <li>🛠️ <strong>Browser Extension + Evaluation Portal</strong> for task tracking, feedback collection, and dashboard generation;</li>
+                <li>🛠️ <strong>Browser Extension + Evaluation Portal</strong> for scenario tracking, feedback collection, and dashboard generation;</li>
                 <li>🏅 <strong>Transparency Badges</strong> with levels: High Transparency • Moderate Transparency • Low Transparency.</li>
             </ul>
 
@@ -77,12 +77,12 @@
                 – Selects the common software ecosystem procedures to be the focus of the evaluation, such as documentation access, communication channels, governance, etc.<br>
                 – Then, the manager saves this initial configuration in the system.</p>
 
-                <h2>Step 2 – Generate Evaluation Code and Link Tasks</h2>
+                <h2>Step 2 – Generate Evaluation Code and Link Scenarios</h2>
                 <p>
                     <strong>After configuring the evaluation, a portal manager:</strong><br>
                     – Generates a unique evaluation code.<br>
                     – Shares this code with the participating developers.<br>
-                    – SECO-TransP automatically generates evaluation tasks based on the selected procedures and links them to the generated code.
+                    – SECO-TransP automatically generates evaluation scenarios based on the selected procedures and links them to the generated code.
                 </p>
 
                 <h2>Step 3 – Developer Access and Profile Questionnaire</h2>
@@ -92,16 +92,16 @@
                     – Completes a profile questionnaire with information such as education level, work sector, and development experience — data that help contextualize the evaluation results.
                 </p>
 
-                <h2>Step 4 – Task Execution and Quick Feedback</h2>
+                <h2>Step 4 – Scenario Execution and Quick Feedback</h2>
                 <p>
-                    <strong>For each assigned task:</strong><br>
-                    – A developer indicates whether they were able to complete the task.<br>
-                    – Optionally, the developer may add a short comment about the task.
+                    <strong>For each assigned scenario:</strong><br>
+                    – A developer indicates whether they were able to complete the scenario.<br>
+                    – Optionally, the developer may add a short comment about the scenario.
                 </p>
 
                 <h2>Step 5 – Detailed Evaluation by Success Criteria</h2>
                 <p>
-                    <strong>After all tasks of a procedure are completed:</strong><br>
+                    <strong>After all scenarios of a procedure are completed:</strong><br>
                     – A developer nswers detailed questions based on the Key Success Criteria (KSC) of each guideline linked to that procedure.<br>
                     – Each question is rated using a Visual Analogue Scale (VAS) ranging from 0 to 100, allowing the developer to express the extent to which the criterion was perceived as fulfilled.<br>
                     – An optional comment field is provided for qualitative observations.<br>
@@ -133,9 +133,9 @@
             <ul>
                 <li>Authenticate using a unique evaluation code</li>
                 <li>Synchronize with UX-tracking</li>
-                <li>Execute guided tasks for evaluation purposes</li>
+                <li>Execute guided scenarios for evaluation purposes</li>
                 <li>Log user navigation in real time</li>
-                <li>Provide feedback after each task and at the end</li>
+                <li>Provide feedback after each scenario and at the end</li>
                 <li>Submit collected data to a backend server</li>
             </ul>
 
@@ -174,11 +174,11 @@
             <h4>Step 1: Profile Questionnaire</h4>
             <p>You will be asked about your academic background, work sector, and experience in software development. These responses help contextualize your feedback.</p>
 
-            <h4>Step 2: Task Execution</h4>
-            <p>Tasks will be displayed one at a time. For each:</p>
+            <h4>Step 2: Scenario Execution</h4>
+            <p>Scenarios will be displayed one at a time. For each:</p>
             <ul>
-                <li>Read the task title and description</li>
-                <li>Click <strong>“Start Task”</strong></li>
+                <li>Read the scenario title and description</li>
+                <li>Click <strong>"Start Scenario"</strong></li>
                 <li>After completion, select one option:
                 <ul>
                     <li><strong>Solved it</strong></li>
@@ -188,11 +188,11 @@
                 </li>
             </ul>
 
-            <h4>Step 3: Task Review</h4>
-            <p>After each task, you’ll write a short comment about your experience and click <strong>“Next”</strong> to proceed.</p>
+            <h4>Step 3: Scenario Review</h4>
+            <p>After each scenario, you'll write a short comment about your experience and click <strong>"Next"</strong> to proceed.</p>
 
             <h4>Step 4: Process Review</h4>
-            <p>Once all tasks of a process are completed, a brief multiple-choice questionnaire will ask if specific objectives were achieved.</p>
+            <p>Once all scenarios of a process are completed, a brief multiple-choice questionnaire will ask if specific objectives were achieved.</p>
 
             <h4>Step 5: Final Questionnaire</h4>
             <p>Finally, you will provide overall feedback about your experience and rate how you felt using the portal using an emoji scale (from 😫 to 🤩).</p>
@@ -206,7 +206,7 @@
 
             <h2>What Data Is Collected?</h2>
             <ul>
-                <li><strong>Task Responses:</strong> title, status, timestamps</li>
+                <li><strong>Scenario Responses:</strong> title, status, timestamps</li>
                 <li><strong>Feedback:</strong> text comments, radio button selections</li>
                 <li><strong>Navigation:</strong> URL history and tab switches</li>
                 <li><strong>Profile Info:</strong> academic level, sector, experience years</li>
@@ -277,14 +277,14 @@
                 </div>
             </div>
 
-            <h3>2. Performed Tasks — Metrics & Badges</h3>
-                <p>This section explains how each task metric is computed and which badge is displayed based on the thresholds.</p>
+            <h3>2. Performed Scenarios — Metrics & Badges</h3>
+                <p>This section explains how each scenario metric is computed and which badge is displayed based on the thresholds.</p>
 
                 <!-- Time Performance -->
                 <div class="guideline-info-card">
                     <h4>Metric: Time Performance</h4>
-                    <p><strong>Definition.</strong> Average completion time for a task.</p>
-                    <p><strong>How it’s calculated.</strong> Mean duration among participants who completed the task (failed or abandoned attempts are excluded). If no participant completed the task, the time metric is reported as N/A.</p>
+                    <p><strong>Definition.</strong> Average completion time for a scenario.</p>
+                    <p><strong>How it's calculated.</strong> Mean duration among participants who completed the scenario (failed or abandoned attempts are excluded). If no participant completed the scenario, the time metric is reported as N/A.</p>
                     <p><strong>Badges.</strong> The following badge is shown based on the average time:</p>
                     
                     <div class="status-blocks">
@@ -316,7 +316,7 @@
                 <!-- Success Rate -->
                 <div class="guideline-info-card">
                     <h4>Metric: Success Rate</h4>
-                    <p><strong>Definition.</strong> Percentage of participants who completed the task.</p>
+                    <p><strong>Definition.</strong> Percentage of participants who completed the scenario.</p>
                     <p><strong>How it’s calculated.</strong> <code>success rate = (completed / attempted) × 100</code>.</p>
                     <p><strong>Badges.</strong> The following badge is shown based on the success rate:</p>
                     <div class="status-blocks">
@@ -352,7 +352,7 @@
                     <li>Average time &gt; 120s</li>
                     <li>Success rate &lt; 50%.</li>
                     </ul>
-                    <p>This combination indicates that the task is taking too long and many participants are failing.</p>
+                    <p>This combination indicates that the scenario is taking too long and many participants are failing.</p>
                     <p><strong>Badge.</strong> <span class="attention-badge-small">Needs Attention</span></p>
                     <details>
                     <summary><strong>Examples</strong></summary>
@@ -364,12 +364,12 @@
                     </details>
                 </div>
 
-                <!-- Example Task Card combining all -->
+                <!-- Example Scenario Card combining all -->
                 <div class="guideline-info-card">
-                    <h4>Example Task Card</h4>
-                    <p>Below is how a task appears with its computed metrics and corresponding badges.</p>
-                        <h5>Task T1 — Locate the API Documentation</h5>
-                        <div class="status-blocks" aria-label="Task badges">
+                    <h4>Example Scenario Card</h4>
+                    <p>Below is how a scenario appears with its computed metrics and corresponding badges.</p>
+                        <h5>Scenario S1 — Locate the API Documentation</h5>
+                        <div class="status-blocks" aria-label="Scenario badges">
                             <!-- Example badges (static for documentation) -->
                             <span class="badge badge-warning">Slow</span>
                             <span class="badge badge-critical">Poor Success</span>
@@ -391,10 +391,10 @@
                 </div>
 
             <h3>3. Hotspots (Heatmaps)</h3>
-            <p>When multimodal tracking via UX-Tracking is enabled, this section presents heatmaps per task:</p>
+            <p>When multimodal tracking via UX-Tracking is enabled, this section presents heatmaps per scenario:</p>
             <ul>
                 <li>Visualization of the most clicked or hovered areas</li>
-                <li>Helps identify zones of interest, confusion, or abandonment during task execution</li>
+                <li>Helps identify zones of interest, confusion, or abandonment during scenario execution</li>
             </ul>
             <p>This visual layer complements the quantitative data with behavioral insights.</p>
 
@@ -459,9 +459,9 @@
                     A specific circumstance, condition, or influence that affects how developers perceive and experience their interactions within a software ecosystem. These factors can be technical, cognitive, social, or emotional, and collectively shape the overall developer experience. A recent study identified 27 such factors, highlighting especially the influence of “financial costs for using the platform”, “desired technical resources for development”, “low barriers to entry into the application market”, and “more financial gains”, as key determinants for third‑party developers when deciding to adopt and continue contributing to a SECO (<a href="https://doi.org/10.1016/j.jss.2025.112549" target="_blank">Zacarias et al., 2025</a>).
                 </dd>
 
-                <dt><strong>Evaluation Task</strong></dt>
+                <dt><strong>Evaluation Scenario</strong></dt>
                 <dd>
-                    A practical task performed by developers in the portal to simulate real interactions and assess the level of transparency in a specific procedure.
+                    A practical scenario performed by developers in the portal to simulate real interactions and assess the level of transparency in a specific procedure.
                 </dd>
 
                 <dt><strong>Key Success Criterion</strong></dt>
