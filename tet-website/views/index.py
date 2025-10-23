@@ -33,6 +33,44 @@ def index():
 def evaluations():
     email = session['user_signed_in']
     user = SECO_MANAGER.query.filter_by(email=email).first()
+
+    # DEBUG: Check table columns in real-time
+    from sqlalchemy import inspect, text
+
+    print("\n" + "="*60)
+    print("DEBUG: CHECKING DATABASE TABLE STRUCTURE")
+    print("="*60)
+
+    # Method 1: Check via SQLAlchemy inspector
+    try:
+        inspector = inspect(db.engine)
+        columns = inspector.get_columns('evaluation')
+        column_names = [col['name'] for col in columns]
+        print(f"Columns in 'evaluation' table (via inspector): {column_names}")
+        print(f"Has 'manager_objective'? {'manager_objective' in column_names}")
+    except Exception as e:
+        print(f"Error inspecting table: {e}")
+
+    # Method 2: Direct SQL query
+    try:
+        result = db.session.execute(text("SHOW COLUMNS FROM evaluation"))
+        columns = [row[0] for row in result]
+        print(f"Columns via SHOW COLUMNS: {columns}")
+        print(f"Has 'manager_objective'? {'manager_objective' in columns}")
+    except Exception as e:
+        print(f"Error with SHOW COLUMNS: {e}")
+
+    # Method 3: Check the model mapping
+    try:
+        mapper = inspect(Evaluation)
+        model_columns = [column.key for column in mapper.columns]
+        print(f"Columns in Evaluation model: {model_columns}")
+        print(f"Model has 'manager_objective'? {'manager_objective' in model_columns}")
+    except Exception as e:
+        print(f"Error inspecting model: {e}")
+
+    print("="*60 + "\n")
+
     evaluations = user.evaluations
     return render_template('evaluations.html', evaluations=evaluations)
 
@@ -62,6 +100,24 @@ def add_evaluation():
     import random as rd
     import requests
 
+    # DEBUG: Check if Evaluation model has manager_objective attribute
+    print("\n" + "="*60)
+    print("DEBUG: CHECKING EVALUATION MODEL")
+    print("="*60)
+    print(f"Evaluation model attributes: {dir(Evaluation)}")
+    print(f"Has manager_objective? {'manager_objective' in dir(Evaluation)}")
+
+    # Try to check the column directly
+    try:
+        from sqlalchemy import inspect
+        mapper = inspect(Evaluation)
+        columns = [column.key for column in mapper.columns]
+        print(f"Database columns for Evaluation: {columns}")
+        print(f"manager_objective in columns? {'manager_objective' in columns}")
+    except Exception as e:
+        print(f"Could not inspect model: {e}")
+    print("="*60 + "\n")
+
     # one-time form token check
     token = request.form.get('form_token')
     saved = session.pop('eval_form_token', None)
@@ -74,6 +130,23 @@ def add_evaluation():
     seco_portal_url = request.form.get('seco_portal_url', '').strip()
     seco_process_ids = request.form.getlist('seco_process_ids')
     seco_type_str = request.form.get('seco_type')
+    manager_objective = request.form.get('manager_objective', '').strip()
+
+    # DEBUG: Print all form data received
+    print("\n" + "="*60)
+    print("DEBUG: FORM DATA RECEIVED")
+    print("="*60)
+    print(f"Name: '{name}'")
+    print(f"SECO Portal: '{seco_portal}'")
+    print(f"SECO Portal URL: '{seco_portal_url}'")
+    print(f"SECO Type: '{seco_type_str}'")
+    print(f"Manager Objective: '{manager_objective}'")
+    print(f"Manager Objective Length: {len(manager_objective)} characters")
+    print(f"Process IDs: {seco_process_ids}")
+    print("\nAll form fields:")
+    for key, value in request.form.items():
+        print(f"  {key}: {value}")
+    print("="*60 + "\n")
 
     seco_type = SECOType(seco_type_str)
 
@@ -83,7 +156,8 @@ def add_evaluation():
             "name": name,
             "seco_portal": seco_portal,
             "seco_portal_url": seco_portal_url,
-            "seco_type": seco_type_str
+            "seco_type": seco_type_str,
+            "manager_objective": manager_objective
         }
         error_msg = "Please select at least one process"
         seco_processes = SECO_process.query.all()
@@ -119,12 +193,12 @@ def add_evaluation():
     # generate evaluation_id via UXT API, fallback to unique 6-digit
     evaluation_id = None
     access_token = session.get('uxt_access_token')
-    
+
     print(f"=== LOG: Iniciando geração de código de avaliação ===")
     print(f"LOG: Access token disponível: {bool(access_token)}")
     if access_token:
         print(f"LOG: Access token: {access_token[:20]}...")  # Mostra só os primeiros caracteres por segurança
-    
+
     if access_token:
         try:
             print(f"LOG: Fazendo chamada para API UXT...")
@@ -135,7 +209,7 @@ def add_evaluation():
             )
             print(f"LOG: Resposta da API UXT - Status: {r.status_code}")
             print(f"LOG: Resposta da API UXT - Conteúdo: {r.text}")
-            
+
             if r.status_code == 201:
                 data = r.json() or {}
                 evaluation_id = data.get('cod')
@@ -164,6 +238,19 @@ def add_evaluation():
             ).all()
 
         # create and save
+        print("\n" + "="*60)
+        print("DEBUG: CREATING EVALUATION OBJECT")
+        print("="*60)
+        print(f"evaluation_id: {evaluation_id}")
+        print(f"name: {name}")
+        print(f"user_id: {user.user_id}")
+        print(f"seco_portal: {seco_portal}")
+        print(f"seco_portal_url: {seco_portal_url}")
+        print(f"seco_type: {seco_type}")
+        print(f"manager_objective: '{manager_objective}'")
+        print(f"manager_objective is empty? {not manager_objective}")
+        print(f"Number of processes: {len(seco_processes)}")
+
         new_evaluation = Evaluation(
             evaluation_id=evaluation_id,
             name=name,
@@ -171,51 +258,44 @@ def add_evaluation():
             seco_processes=seco_processes,
             seco_portal=seco_portal,
             seco_portal_url=seco_portal_url,
-            seco_type=seco_type
+            seco_type=seco_type,
+            manager_objective=manager_objective
         )
 
+        print("\nDEBUG: Evaluation object created")
+        print(f"Object manager_objective: '{new_evaluation.manager_objective}'")
+
         try:
+            print("\nDEBUG: Adding to session...")
             db.session.add(new_evaluation)
+
+            print("DEBUG: Committing to database...")
             db.session.commit()
-        except IntegrityError:
+
+            print("DEBUG: SUCCESS! Evaluation saved to database")
+            print(f"Saved evaluation ID: {new_evaluation.evaluation_id}")
+
+            # Verify it was saved correctly
+            saved_eval = Evaluation.query.filter_by(evaluation_id=evaluation_id).first()
+            if saved_eval:
+                print(f"\nDEBUG: VERIFICATION - Evaluation found in database")
+                print(f"  - ID: {saved_eval.evaluation_id}")
+                print(f"  - Name: {saved_eval.name}")
+                print(f"  - Manager Objective: '{saved_eval.manager_objective}'")
+                print(f"  - Manager Objective is None? {saved_eval.manager_objective is None}")
+                print(f"  - Manager Objective is empty string? {saved_eval.manager_objective == ''}")
+            else:
+                print("\nDEBUG: WARNING - Could not find evaluation in database after save!")
+
+        except IntegrityError as e:
+            print(f"\nDEBUG: ERROR - IntegrityError occurred: {str(e)}")
             db.session.rollback()
             return redirect(url_for('evaluations'))
-        
-        for key, value in request.form.items():
-            if key.startswith('ksc_points_'):
-                try:
-                    parts = key.split('_') # ['ksc', 'points', 'process_id', 'kcs_id']
-                    ksc_id = int(parts[-1]) # último elemento é o ksc_id
-                    weight = int(value) if value.strip() != '' else 0
-                    
-                    ids = EvaluationCriterionWheight.query.all() # obter todos os IDs existentes
-                    # gerar novo ID
-                    if ids: 
-                        id = ids[-1].id + 1 
-                    else:
-                        id = 1
-                    
-                    # adicionar apenas pesos maiores que 0
-                    if weight > 0:
-                        new_weigth = EvaluationCriterionWheight(
-                            id=id,
-                            ksc_id=ksc_id,
-                            evaluation_id=new_evaluation.evaluation_id,
-                            weight=weight
-                        )
-                        db.session.add(new_weigth)
-                        print(f"✅ KSC weight added for {key}: {weight}")
-                except Exception as e:
-                    print(f"⚠️ Error processing KSC weight for {key}: {str(e)}")
-    
-        # commit final dos pesos
-        try:
-            db.session.commit()
-            print("✅ KSC weights committed successfully")
-        except IntegrityError:
+        except Exception as e:
+            print(f"\nDEBUG: ERROR - Unexpected error: {type(e).__name__}: {str(e)}")
             db.session.rollback()
-            print("⚠️ Error committing KSC weights")
-        
+            return redirect(url_for('evaluations'))
+
     return redirect(url_for('evaluations'))
 
 
@@ -234,6 +314,7 @@ def update_evaluation(id):
     seco_portal = request.form.get('seco_portal')
     seco_portal_url = request.form.get('seco_portal_url')
     seco_type_str = request.form.get('seco_type')
+    manager_objective = request.form.get('manager_objective', '')
 
     try:
         seco_type = SECOType(seco_type_str)
@@ -253,7 +334,8 @@ def update_evaluation(id):
     evaluation.seco_portal = seco_portal
     evaluation.seco_portal_url = seco_portal_url
     evaluation.seco_processes = seco_processes
-    evaluation.seco_type = seco_type 
+    evaluation.seco_type = seco_type
+    evaluation.manager_objective = manager_objective 
     
     # committing the changes to the database
     db.session.commit()

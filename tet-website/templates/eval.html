@@ -80,6 +80,15 @@
                                 <span class="seco-type">{{ evaluation.seco_type.name.replace('_', ' ').title() if evaluation.seco_type else 'Not defined' }}</span>
                             </div>
                         </div>
+
+                        {% if evaluation.manager_objective %}
+                        <div class="info-item">
+                            <label class="info-label">Manager's Objective</label>
+                            <div class="info-value">
+                                <p style="margin: 0; white-space: pre-wrap;">{{ evaluation.manager_objective }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
