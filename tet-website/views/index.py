@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 from index import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor
+from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor, EvaluationCriterionWheight
 from functions import isLogged, isAdmin
 from datetime import datetime
 import random as rd
@@ -180,7 +180,42 @@ def add_evaluation():
         except IntegrityError:
             db.session.rollback()
             return redirect(url_for('evaluations'))
-
+        
+        for key, value in request.form.items():
+            if key.startswith('ksc_points_'):
+                try:
+                    parts = key.split('_') # ['ksc', 'points', 'process_id', 'kcs_id']
+                    ksc_id = int(parts[-1]) # último elemento é o ksc_id
+                    weight = int(value) if value.strip() != '' else 0
+                    
+                    ids = EvaluationCriterionWheight.query.all() # obter todos os IDs existentes
+                    # gerar novo ID
+                    if ids: 
+                        id = ids[-1].id + 1 
+                    else:
+                        id = 1
+                    
+                    # adicionar apenas pesos maiores que 0
+                    if weight > 0:
+                        new_weigth = EvaluationCriterionWheight(
+                            id=id,
+                            ksc_id=ksc_id,
+                            evaluation_id=new_evaluation.evaluation_id,
+                            weight=weight
+                        )
+                        db.session.add(new_weigth)
+                        print(f"✅ KSC weight added for {key}: {weight}")
+                except Exception as e:
+                    print(f"⚠️ Error processing KSC weight for {key}: {str(e)}")
+    
+        # commit final dos pesos
+        try:
+            db.session.commit()
+            print("✅ KSC weights committed successfully")
+        except IntegrityError:
+            db.session.rollback()
+            print("⚠️ Error committing KSC weights")
+        
     return redirect(url_for('evaluations'))
 
 
@@ -250,6 +285,11 @@ def delete_evaluation(id):
 
         # Finally, delete the collected data record itself
         db.session.delete(c)
+    
+    for w in evaluation.ksc_weights:
+        db.session.delete(w)
+    
+    # Now delete the evaluation itself
     
     db.session.delete(evaluation)
     db.session.commit()

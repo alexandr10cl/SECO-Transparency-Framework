@@ -79,7 +79,7 @@
 
                         <!-- SECO Processes Selection -->
                         <div class="form-group">
-                            <label class="form-label">SECO Processes to Evaluate</label>
+                            <label class="form-label">SECO Procedures to Evaluate</label>
                             <div class="processes-grid" id="process-group" aria-describedby="process-error">
                                 {% for process in seco_processes %}
                                 <div class="process-card">
@@ -100,7 +100,14 @@
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
+                        <!-- KSC points distribution -->
+                        <div class="form-group">
+                            <label for="form-label">KSC Points Distribution</label>
+                            <div id="ksc-container" class="ksc-container">
+                                <p class="form-help">Select procedures above to assign KSC importance points (total of 10 per procedure).</p>
+                            </div>
+                        </div>
+
                         <div class="form-actions">
                             <input type="hidden" name="form_token" value="{{ form_token }}">
                             <button id="create-btn" type="submit" class="dashboard-btn">
@@ -109,6 +116,8 @@
                                 <span class="spinner d-none">⏳</span>
                             </button>
                         </div>
+
+                        
                     </form>
                 </div>
             </section>
