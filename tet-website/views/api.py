@@ -1,5 +1,5 @@
 from index import app
-from flask import jsonify, session
+from flask import jsonify, session, request
 from models import *
 from functions import isLogged
 import os
@@ -1059,3 +1059,47 @@ def debug_evaluation_data(evaluation_id):
             "traceback": traceback.format_exc(),
             "evaluation_found": False
         }), 500
+        
+@app.route('/api/get_pksc')
+def get_pksc():
+    """
+    API endpoint to get the KSC based on selected SECO procedures
+    """
+    
+    ids_str = request.args.get('ids', '')
+    if not ids_str:
+        return jsonify({"error": "No procedure IDs provided"}), 400
+    
+    ids = [int(i) for i in ids_str.split(',') if i.isdigit()]
+    
+    # encontrando a guideline de cada processo e depois os ksc de cada guideline
+    pksc = []
+    for p in ids:
+        process = SECO_process.query.get(p)
+        if process:
+            guideline = process.guidelines[0] if process.guidelines else None
+            if guideline:
+                for ksc in guideline.key_success_criteria:
+                    pksc.append({
+                        "process_id": process.seco_process_id,
+                        "process_description": process.description,
+                        "ksc_id": ksc.key_success_criterion_id,
+                        "ksc_title": ksc.title,
+                        "ksc_description": ksc.description
+                    })
+    
+    grouped = {}
+    for item in pksc:
+        pid = str(item['process_id'])
+        if pid not in grouped:
+            grouped[pid] = {
+                "process_description": item["process_description"],
+                "ksc_list": []
+            }
+        grouped[pid]["ksc_list"].append({
+            "id": item["ksc_id"],
+            "title": item["ksc_title"],
+            "description": item["ksc_description"]
+        })
+        
+    return jsonify(grouped)

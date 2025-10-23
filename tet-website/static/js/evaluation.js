@@ -115,3 +115,110 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   })
 })
+
+// ===============================
+// 🎯 Dynamic KSC Distribution via JSON
+// ===============================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const kscContainer = document.getElementById('ksc-container')
+  if (!kscContainer) return;
+
+  const processCheckboxes = document.querySelectorAll('.process-checkbox')
+
+  // Atualiza a seção toda vez que mudar seleção de processos
+  processCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+      updateKSCSection();
+    });
+  });
+
+  async function updateKSCSection() {
+    kscContainer.innerHTML = '<p class=form-help>Loading KSC data...</p>';
+
+    // Coleta IDs selecionados
+    const selected = Array.from(processCheckboxes)
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+    if (selected.length === 0) {
+      kscContainer.innerHTML = '<p class="form-help">Select procedures above to assign KSC importance points (total of 10 per procedure).</p>';
+      return;
+    }
+
+    try {
+      // Faz a requisição para o Flask
+      const response = await fetch(`/api/get_pksc?ids=${selected.join(',')}`);
+      const kscData = await response.json();
+
+      kscContainer.innerHTML = ''; // limpa ants de recriar
+
+      Object.entries(kscData).forEach(([pid, info]) => {
+        const {process_description, ksc_list} = info;
+
+        // Cria container principal do processo
+        const group = document.createElement('div');
+        group.className = 'ksc-group';
+        group.dataset.pid = pid;
+
+        // Cabeçalho
+        const header = document.createElement('div');
+        header.className = 'ksc-header';
+        header.innerHTML = `
+          <strong>Procedure: P${pid}</strong> - ${process_description}<br>
+          <span class="form-help">Distribute a total of <strong>10 points</strong> among the KSCs below based on their importance.</span>
+        `;
+        group.appendChild(header);
+
+        // Container dos KSCs
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'ksc-items';
+
+        ksc_list.forEach((ksc, i) => {
+          const item = document.createElement('div');
+          item.className = 'ksc-item';
+          item.innerHTML = `
+            <div class="ksc-info">
+              <span class="ksc-title"><strong>${ksc.title}</strong></span>
+              <p class="ksc-description">${ksc.description}</p>
+            </div>
+            <input type="number" min="0" max="10" value="0"
+                    class="ksc-input"
+                    name="ksc_points_${pid}_${ksc.id}">
+          `;
+          itemsContainer.appendChild(item);
+        });
+
+        group.appendChild(itemsContainer);
+
+        // Aviso de validação
+        const warning = document.createElement('div');
+        warning.className = 'ksc-warning';
+        warning.textContent = '';
+        group.appendChild(warning);
+
+        // Validação de soma total por processo
+        group.addEventListener('input', () => {
+          const inputs = group.querySelectorAll('.ksc-input');
+          const sum = Array.from(inputs).reduce((a, b) => a + Number(b.value || 0), 0);
+          if (sum > 10) {
+            warning.textContent = `⚠️ You distributed ${sum} points. Maximum is 10.`;
+            warning.style.color = 'var(--danger)'
+          } else if (sum < 10) {
+            warning.textContent = `⚠️ You distributed only ${sum} points. Please allocate a total of 10 points.`;
+            warning.style.color = 'var(--warning)'
+          } else {
+            warning.textContent = '✅ Perfect distribution of 10 points!';
+            warning.style.color = 'var(--success)'
+          }
+        });
+
+        kscContainer.appendChild(group);
+      });
+
+    } catch (err) {
+      console.error('Error fetching KSC data:', err);
+      kscContainer.innerHTML = '<p class="form-help" style="color: var(--danger);">Error loading KSC data. Please try again later.</p>';
+    }
+  }
+});

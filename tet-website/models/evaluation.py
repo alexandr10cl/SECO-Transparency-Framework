@@ -38,3 +38,17 @@ class Evaluation(db.Model):
                                     secondary=evaluation_SECO_process,
                                     back_populates='evaluations',
                                     overlaps='evaluation_seco_processes')
+
+class EvaluationCriterionWheight(db.Model):
+    __tablename__ = 'evaluation_ksc_weight'
+
+    # Main Rows
+    id = db.Column(db.BigInteger, primary_key=True)
+    weight = db.Column(db.Integer, nullable=False)
+    
+    # Foregin key
+    ksc_id = db.Column(db.Integer, db.ForeignKey('key_success_criterion.key_success_criterion_id'), nullable=False)
+    evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False)
+
+    # Relationship
+    evaluation = db.relationship('Evaluation', backref=db.backref('ksc_weights', lazy=True))
