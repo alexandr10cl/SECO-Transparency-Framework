@@ -95,6 +95,14 @@
                             </select>
                         </div>
 
+                        <div class="form-group">
+                            <label for="manager_objective" class="form-label">Manager's Main Objective</label>
+                            <textarea name="manager_objective" id="manager_objective" class="form-input"
+                                    rows="4" placeholder="Describe the main objective of this evaluation"
+                                    {% if evaluation.collected_data %}disabled{% endif %}>{{ evaluation.manager_objective if evaluation.manager_objective else '' }}</textarea>
+                            <div class="form-help">What is the primary goal you want to achieve with this evaluation?</div>
+                        </div>
+
                         <!-- SECO Processes Selection -->
                         <div class="form-group">
                             <label class="form-label">SECO Processes to Evaluate</label>

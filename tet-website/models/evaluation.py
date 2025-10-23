@@ -25,6 +25,7 @@ class Evaluation(db.Model):
     seco_portal = db.Column(db.String(100), nullable=False)
     seco_portal_url = db.Column(db.String(500), nullable=False)
     seco_type = db.Column(db.Enum(SECOType, name="seco_type_enum"), nullable=False, index=True)
+    manager_objective = db.Column(db.Text, nullable=True)  # Manager's main objective for this evaluation
     
     # Foreign key to the user table
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
