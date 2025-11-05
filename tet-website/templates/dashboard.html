@@ -34,6 +34,14 @@
             <h3>Participants</h3>
             <h2>{{ count_collected_data }}</h2>
         </div>
+        <div class="evaluation-info-card objective-card">
+            <h3>Initial Objective</h3>
+            {% if eManagerObjective %}
+                <h2 class="objective-content">{{ eManagerObjective }}</h2>
+            {% else %}
+                <h2 class="objective-content no-objective">No objective defined</h2>
+            {% endif %}
+        </div>
         <!-- <div class="evaluation-info-card">
             <h3>Transparency Score</h3>
             <h2>82%</h2>
@@ -82,13 +90,36 @@
                     </div>
                 </div>
 
+                <!-- Evaluated Scenarios Section -->
+                <div class="evaluated-scenarios-section">
+                    <h3>Evaluated Scenarios</h3>
+                    <p class="scenarios-subtitle">Scenarios analyzed under the cognitive dimension of Developer Experience:</p>
+                    <div class="scenarios-grid">
+                        {% for task in tasks %}
+                        <div class="scenario-card" onclick="openScenarioModal('S{{ loop.index }}', '{{ task.title|e }}', '{{ task.description|e }}')">
+                            <span class="scenario-id">S{{ loop.index }}</span>
+                            <h4>{{ task.title }}</h4>
+                            <p>{{ task.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <!-- Software Ecosystems Dimensions Section -->
                 <div class="seco-dimensions-section">
                     <h3>Software Ecosystems Dimensions</h3>
+                    <p class="dimensions-subtitle">These scores indicate how clearly each ecosystem dimension communicates information essential to developers' understanding of platform structures and processes, as part of cognitive experience.</p>
                     <div class="dimensions-grid">
                         {% for d in dimension_scores %}
                         <div class="dimension-card">
                             <h4>{{ d.name }}</h4>
+                            {% if d.name == 'Technical' %}
+                                <p class="dimension-focus">Focus: Documentation, code structure, and tools clarity.</p>
+                            {% elif d.name == 'Social' %}
+                                <p class="dimension-focus">Focus: Communication, collaboration, and community exchange.</p>
+                            {% elif d.name == 'Business' %}
+                                <p class="dimension-focus">Focus: Policies, decision flows, and governance visibility.</p>
+                            {% endif %}
                             {% if d.average_score is not none %}
                                 <div class="dimension-score">
                                     <span class="score">Score: {{ d.average_score }}</span>
@@ -160,10 +191,13 @@
                     <p>Summary of academic background and experience of the evaluation participants.</p>
                     <div class="profilecharts">
                         <div class="academic">
-                            <canvas id="experienceChart" style="max-width: 600px; height: 300px;"></canvas>
+                            <canvas id="experienceChart" style="height: 300px;"></canvas>
                         </div>
                         <div class="experience">
-                            <canvas id="educationChart" style="max-width: 600px; height: 300px; margin-top: 40px;"></canvas>
+                            <canvas id="educationChart" style="height: 300px;"></canvas>
+                        </div>
+                        <div class="familiarity">
+                            <canvas id="familiarityChart" style="height: 300px;"></canvas>
                         </div>
                     </div>
                     <p>Based on Carver et al. (2016), participants with less than 3 years of professional experience were categorized in the low experience group, those with 3 to 5 years in the medium experience group, and those with more than 5 years in the high experience group.</p>
@@ -376,6 +410,20 @@
         </div>
     </div>
 
+    <!-- Modal for Scenario Details -->
+    <div id="scenarioModal" class="modal">
+        <div class="modal-content scenario-modal-content">
+            <div class="modal-header">
+                <h2><span id="scenario-modal-id"></span> - Scenario Details</h2>
+                <span class="close-modal" onclick="closeScenarioModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3 id="scenario-modal-title"></h3>
+                <p id="scenario-modal-description"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- elemento escondido com o id da avaliação (usado pelo JS) -->
     <p id="id-avaliacao" style="display:none">{{ evaluation.evaluation_id }}</p>
 
@@ -432,6 +480,26 @@
                     }
                 }
             });
+        });
+
+        // Scenario Modal Functions
+        function openScenarioModal(id, title, description) {
+            document.getElementById('scenario-modal-id').textContent = id;
+            document.getElementById('scenario-modal-title').textContent = title;
+            document.getElementById('scenario-modal-description').textContent = description;
+            document.getElementById('scenarioModal').style.display = 'block';
+        }
+
+        function closeScenarioModal() {
+            document.getElementById('scenarioModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            var modal = document.getElementById('scenarioModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
         });
     </script>
 {% endblock %}

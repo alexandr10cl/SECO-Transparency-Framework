@@ -423,12 +423,12 @@ def api_experience_data(id):
 def api_grau_academico(id):
     evaluation = Evaluation.query.get_or_404(id)
     col_data = evaluation.collected_data
-    
+
     hs = 0
     grad = 0
     mest = 0
     dout = 0
-    
+
     for d in col_data:
         v = d.developer_questionnaire.academic_level.value
         if v == 'high_school':
@@ -439,13 +439,42 @@ def api_grau_academico(id):
             mest += 1
         elif v == 'doctorate':
             dout += 1
-            
+
     values = [hs,grad,mest,dout]
-    
+
     data = {
         "values": values
     }
-    
+
+    return jsonify(data)
+
+@app.route('/api/portal-familiarity/<int:id>')
+def api_portal_familiarity(id):
+    evaluation = Evaluation.query.get_or_404(id)
+    col_data = evaluation.collected_data
+
+    never = 0
+    rarely = 0
+    often = 0
+    always = 0
+
+    for d in col_data:
+        v = d.developer_questionnaire.previus_xp.value
+        if v == 'never':
+            never += 1
+        elif v == 'rarely':
+            rarely += 1
+        elif v == 'often':
+            often += 1
+        elif v == 'aways':  # Note: typo in the enum 'aways' instead of 'always'
+            always += 1
+
+    values = [never, rarely, often, always]
+
+    data = {
+        "values": values
+    }
+
     return jsonify(data)
 
 @app.route('/api/satisfaction/<int:id>')
