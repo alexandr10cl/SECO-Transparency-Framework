@@ -910,6 +910,7 @@ def eval_dashboard(id):
                             eId=eId,
                             ePortal=ePortal,
                             ePortalUrl=ePortalUrl,
+                            eManagerObjective=evaluation.manager_objective,
                             dimensions=dimensions,
                             processed_tasks=processed_tasks,
                             tasks_by_process=tasks_by_process,

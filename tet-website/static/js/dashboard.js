@@ -206,6 +206,56 @@ fetch(`/api/grau-academico/${id}`)
     });
   })
 
+// Gráfico de barras - Familiaridade com o Portal
+fetch(`/api/portal-familiarity/${id}`)
+  .then(response => response.json())
+  .then(data => {
+    const familiarityCtx = document.getElementById('familiarityChart').getContext('2d');
+    new Chart(familiarityCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Never', 'Rarely', 'Often', 'Always'],
+          datasets: [{
+            label: 'Number of developers',
+            data: data.values,
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.7)',   // vermelho - Never
+              'rgba(245, 158, 11, 0.7)',  // laranja - Rarely
+              'rgba(59, 130, 246, 0.7)',  // azul - Often
+              'rgba(34, 197, 94, 0.7)'    // verde - Always
+            ],
+            borderColor: [
+              'rgba(239, 68, 68, 1)',
+              'rgba(245, 158, 11, 1)',
+              'rgba(59, 130, 246, 1)',
+              'rgba(34, 197, 94, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1 }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            title: {
+              display: true,
+              text: 'Familiarity with the Portal'
+            }
+          }
+        }
+    });
+  })
+
 // Word cloud – responsive rendering
 async function gerarNuvem(){
   const canvas = document.getElementById('word-cloud');
