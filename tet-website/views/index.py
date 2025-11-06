@@ -553,8 +553,18 @@ def eval_dashboard(id):
                 'porcentagem': None,
                 'score': None,
                 'status': None,
-                'examples': []
+                'examples': [],
+                'weight': 0,
+                'insight': None
             }
+
+            # Buscar weight do KSC para esta avaliação
+            weight_obj = next(
+                (w for w in evaluation.ksc_weights
+                 if w.ksc_id == ksc.key_success_criterion_id),
+                None
+            )
+            ksc_data['weight'] = weight_obj.weight if weight_obj else 0
 
             for question in ksc.questions:
                 question_data = {
@@ -590,13 +600,17 @@ def eval_dashboard(id):
 
                 if final_score >= 0.75:
                     ksc_data['status'] = "Fulfilled"
+                    ksc_data['insight'] = "Criterion fully meets expectations."
                 elif final_score >= 0.5:
                     ksc_data['status'] = "Partially Fulfilled"
+                    ksc_data['insight'] = "Criterion shows some gaps, needs attention."
                 else:
                     ksc_data['status'] = "Not Fulfilled"
+                    ksc_data['insight'] = "Criterion far below target, requires major review."
             else:
                 ksc_data['score'] = None
                 ksc_data['status'] = "No Answers"
+                ksc_data['insight'] = "No data available for this criterion."
 
             # Adicionar exemplos para KSC "Not Fulfilled" e "Partially Fulfilled"
             if ksc_data['status'] in ["Not Fulfilled", "Partially Fulfilled"]:
@@ -611,6 +625,24 @@ def eval_dashboard(id):
         if ksc_scores:
             avg = sum(ksc_scores) / len(ksc_scores)
             g_data['average_score'] = round(avg * 100, 2)
+
+            # Priority Logic - baseado no gap do target (75)
+            gap_from_target = 75 - g_data['average_score']
+
+            if gap_from_target <= 0:
+                g_data['priority'] = "Low Priority"
+                g_data['priority_insight'] = "Target reached or exceeded."
+            elif gap_from_target <= 10:
+                g_data['priority'] = "Medium Priority"
+                g_data['priority_insight'] = "Minor improvement needed."
+            elif gap_from_target <= 20:
+                g_data['priority'] = "High Priority"
+                g_data['priority_insight'] = "Significant improvement required."
+            else:
+                g_data['priority'] = "Critical Priority"
+                g_data['priority_insight'] = "Major transparency issue, immediate action recommended."
+
+            # Status logic
             if avg >= 0.75:
                 g_data['status'] = "Fulfilled"
             elif avg >= 0.5:
@@ -619,6 +651,8 @@ def eval_dashboard(id):
                 g_data['status'] = "Not Fulfilled"
         else:
             g_data['status'] = "No Answers"
+            g_data['priority'] = "No Priority"
+            g_data['priority_insight'] = "No data available to calculate priority."
 
         result.append(g_data)
 
@@ -682,6 +716,37 @@ def eval_dashboard(id):
             "avg_time": avg_time,
             "completion_rate": completion_rate
         })
+
+    # Para cada task processada, buscar guidelines relacionadas
+    for task_data in processed_tasks:
+        task_id_current = task_data['task_id']
+        print(f"\n=== DEBUG: Processing task '{task_data['title']}' (ID: {task_id_current}) ===")
+
+        # Encontrar o objeto Task correspondente
+        task_obj = next((t for t in tasks if t.task_id == task_id_current), None)
+        print(f"DEBUG: task_obj found: {task_obj is not None}")
+        if not task_obj:
+            task_data['guidelines'] = []
+            print(f"DEBUG: No task_obj, setting guidelines to empty list")
+            continue
+
+        # Buscar guidelines através dos SECO_processes
+        task_guidelines = []
+        print(f"DEBUG: Total seco_processes to check: {len(seco_processes)}")
+        for process in seco_processes:
+            print(f"DEBUG: Checking process '{process.description}' (ID: {process.seco_process_id})")
+            print(f"DEBUG:   - Tasks in this process: {[t.task_id for t in process.tasks]}")
+            print(f"DEBUG:   - task_obj in process.tasks: {task_obj in process.tasks}")
+            if task_obj in process.tasks:
+                print(f"DEBUG:   - YES! Task found in this process")
+                print(f"DEBUG:   - Guidelines in this process: {len(process.guidelines)}")
+                for guideline in process.guidelines:
+                    print(f"DEBUG:     - Guideline: '{guideline.title}' (ID: {guideline.guidelineID})")
+                    if guideline not in task_guidelines:
+                        task_guidelines.append(guideline)
+
+        task_data['guidelines'] = task_guidelines
+        print(f"DEBUG: Final guidelines count for task: {len(task_guidelines)}")
 
     # Agrupar tasks por SECO process (para desktop layout mais informativo)
     # Mapa de task_id -> lista de process_ids
