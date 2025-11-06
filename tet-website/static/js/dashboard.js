@@ -1,7 +1,7 @@
 const navItems = document.querySelectorAll(".dashboard-navbar ul li");
   const containers = {
     "Overview": document.querySelector(".overview-container"),
-    "Evaluated Procedures": document.querySelector(".evaluated-procedures-container"),
+    "Evaluated Scenarios": document.querySelector(".evaluated-scenarios-container"),
     "Hotspots": document.querySelector(".hotspots-container"),
 };
 
@@ -24,29 +24,51 @@ navItems.forEach(item => {
     });
 });
 
-// Funcionalidade do menu lateral de procedimentos
-function initProceduresSidebar() {
-    const procedureItems = document.querySelectorAll('.procedure-item');
-    const procedurePanels = document.querySelectorAll('.procedure-panel');
+// Funcionalidade do menu lateral de scenarios
+function initScenariosSidebar() {
+    const scenarioItems = document.querySelectorAll('.scenario-item');
+    const scenarioPanels = document.querySelectorAll('.scenario-panel');
 
-    if (!procedureItems.length || !procedurePanels.length) return;
+    if (!scenarioItems.length || !scenarioPanels.length) return;
 
-    procedureItems.forEach(item => {
+    scenarioItems.forEach(item => {
         item.addEventListener('click', () => {
-            const processId = item.dataset.processId;
+            const scenarioId = item.dataset.scenarioId;
 
             // Atualizar items ativos no menu
-            procedureItems.forEach(pi => pi.classList.remove('active'));
+            scenarioItems.forEach(si => si.classList.remove('active'));
             item.classList.add('active');
 
             // Mostrar panel correspondente
-            procedurePanels.forEach(panel => {
-                if (panel.dataset.processId === processId) {
+            scenarioPanels.forEach(panel => {
+                if (panel.dataset.scenarioId === scenarioId) {
                     panel.classList.add('active');
                 } else {
                     panel.classList.remove('active');
                 }
             });
+        });
+    });
+}
+
+// Funcionalidade accordion das guidelines
+function initGuidelinesAccordion() {
+    const accordionHeaders = document.querySelectorAll('.guideline-accordion-header');
+
+    accordionHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            const item = header.parentElement;
+            const isActive = item.classList.contains('active');
+
+            // Fechar todos
+            document.querySelectorAll('.guideline-accordion-item').forEach(i => {
+                i.classList.remove('active');
+            });
+
+            // Abrir o clicado (se não estava ativo)
+            if (!isActive) {
+                item.classList.add('active');
+            }
         });
     });
 }
@@ -414,6 +436,41 @@ function enhanceTaskBadges() {
     }
 }
 
+// Funções do modal de KSC
+function openKscModal(name, description, score, weight, insight) {
+    const modal = document.getElementById('kscModal');
+    if (!modal) return;
+
+    // Preencher os dados do modal
+    document.getElementById('kscModalName').textContent = name;
+    document.getElementById('kscModalDescription').textContent = description;
+    document.getElementById('kscModalScore').textContent = `${score} / 100`;
+    document.getElementById('kscModalWeight').textContent = `${weight} / 10`;
+    document.getElementById('kscModalInsight').textContent = insight;
+
+    // Determinar status baseado no score
+    const statusElement = document.getElementById('kscModalStatus');
+    let statusHTML = '';
+    if (score >= 75) {
+        statusHTML = '<span class="status-badge fulfilled"><span class="status-icon">●</span> Fulfilled</span>';
+    } else if (score >= 50) {
+        statusHTML = '<span class="status-badge partially-fulfilled"><span class="status-icon">●</span> Partially Fulfilled</span>';
+    } else {
+        statusHTML = '<span class="status-badge not-fulfilled"><span class="status-icon">●</span> Not Fulfilled</span>';
+    }
+    statusElement.innerHTML = statusHTML;
+
+    // Mostrar modal
+    modal.style.display = 'block';
+}
+
+function closeKscModal() {
+    const modal = document.getElementById('kscModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 // Funções do modal de métricas
 function openMetricsModal() {
     const modal = document.getElementById('metricsModal');
@@ -431,11 +488,17 @@ function closeMetricsModal() {
     }
 }
 
-// Fechar modal ao clicar fora dele
+// Fechar modais ao clicar fora deles
 window.onclick = function(event) {
-    const modal = document.getElementById('metricsModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
+    const metricsModal = document.getElementById('metricsModal');
+    const kscModal = document.getElementById('kscModal');
+
+    if (event.target === metricsModal) {
+        metricsModal.style.display = 'none';
+    }
+
+    if (event.target === kscModal) {
+        kscModal.style.display = 'none';
     }
 }
 
@@ -461,7 +524,8 @@ window.onload = function() {
     gerarNuvem();
     applyStatusColors();
     enhanceTaskBadges();
-    initProceduresSidebar();
+    initScenariosSidebar();
+    initGuidelinesAccordion();
     initTaskAccordions();
     animateProgressBars();
 };
