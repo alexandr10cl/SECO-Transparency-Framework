@@ -142,7 +142,17 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <p>Not related to the evaluation</p>
+                                {% if count_collected_data == 0 %}
+                                    <div class="awaiting-data-message">
+                                        <span class="material-symbols-outlined">pending</span>
+                                        <p>Awaiting participant data</p>
+                                        <small>Scores will appear once participants complete the evaluation</small>
+                                    </div>
+                                {% elif not d.has_guidelines %}
+                                    <p class="not-related-message">Not related to the evaluation</p>
+                                {% else %}
+                                    <p class="no-data-message">No data available</p>
+                                {% endif %}
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -156,7 +166,7 @@
                         {% for category_key, category in dx_categories.items() %}
                         <div class="dx-card">
                             <h4>{{ category.name }}</h4>
-                            {% if category.score is not none %}
+                            {% if category.score is not none and category.score > 0 %}
                                 <div class="dx-score">
                                     <span class="score">Score: {{ category.score }}</span>
                                     <span class="transparency-badge {{ category.transparency_badge|lower|replace(' ', '-') }}">
@@ -178,7 +188,15 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <p>No data</p>
+                                {% if count_collected_data == 0 %}
+                                    <div class="awaiting-data-message">
+                                        <span class="material-symbols-outlined">pending</span>
+                                        <p>Awaiting participant data</p>
+                                        <small>Scores will appear once participants complete the evaluation</small>
+                                    </div>
+                                {% else %}
+                                    <p class="no-data-message">No data available for this category</p>
+                                {% endif %}
                             {% endif %}
                         </div>
                         {% endfor %}

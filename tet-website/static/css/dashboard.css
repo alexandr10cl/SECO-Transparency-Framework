@@ -2576,3 +2576,87 @@ body {
     font-size: 0.9rem;
     margin-right: 0.5rem;
 }
+
+/* Mensagem de aguardando dados */
+.awaiting-data-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(99, 102, 241, 0.05));
+    border: 2px dashed rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    text-align: center;
+    min-height: 150px;
+}
+
+.awaiting-data-message .material-symbols-outlined {
+    font-size: 48px !important;
+    color: #3b82f6;
+    margin-bottom: 0.75rem;
+    animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.awaiting-data-message p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.5rem 0;
+}
+
+.awaiting-data-message small {
+    font-size: 0.85rem;
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+    max-width: 300px;
+}
+
+@keyframes pulse-soft {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.05);
+    }
+}
+
+/* Mensagem de não relacionado */
+.not-related-message {
+    padding: 1.5rem;
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Mensagem de sem dados */
+.no-data-message {
+    padding: 1.5rem;
+    background-color: rgba(245, 158, 11, 0.05);
+    border: 2px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    color: #d97706;
+    text-align: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Badge "Awaiting Data" */
+.transparency-badge.awaiting-data {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Badge "No Data" */
+.transparency-badge.no-data {
+    background-color: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
