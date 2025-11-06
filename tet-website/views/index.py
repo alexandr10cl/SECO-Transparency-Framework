@@ -720,33 +720,22 @@ def eval_dashboard(id):
     # Para cada task processada, buscar guidelines relacionadas
     for task_data in processed_tasks:
         task_id_current = task_data['task_id']
-        print(f"\n=== DEBUG: Processing task '{task_data['title']}' (ID: {task_id_current}) ===")
 
         # Encontrar o objeto Task correspondente
         task_obj = next((t for t in tasks if t.task_id == task_id_current), None)
-        print(f"DEBUG: task_obj found: {task_obj is not None}")
         if not task_obj:
             task_data['guidelines'] = []
-            print(f"DEBUG: No task_obj, setting guidelines to empty list")
             continue
 
         # Buscar guidelines através dos SECO_processes
         task_guidelines = []
-        print(f"DEBUG: Total seco_processes to check: {len(seco_processes)}")
         for process in seco_processes:
-            print(f"DEBUG: Checking process '{process.description}' (ID: {process.seco_process_id})")
-            print(f"DEBUG:   - Tasks in this process: {[t.task_id for t in process.tasks]}")
-            print(f"DEBUG:   - task_obj in process.tasks: {task_obj in process.tasks}")
             if task_obj in process.tasks:
-                print(f"DEBUG:   - YES! Task found in this process")
-                print(f"DEBUG:   - Guidelines in this process: {len(process.guidelines)}")
                 for guideline in process.guidelines:
-                    print(f"DEBUG:     - Guideline: '{guideline.title}' (ID: {guideline.guidelineID})")
                     if guideline not in task_guidelines:
                         task_guidelines.append(guideline)
 
         task_data['guidelines'] = task_guidelines
-        print(f"DEBUG: Final guidelines count for task: {len(task_guidelines)}")
 
     # Agrupar tasks por SECO process (para desktop layout mais informativo)
     # Mapa de task_id -> lista de process_ids

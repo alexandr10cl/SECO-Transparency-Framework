@@ -268,6 +268,12 @@
                     <!-- Título do Scenario -->
                     <div class="scenario-header">
                         <h2>{{ task.title }}</h2>
+                        {% if task.guidelines and task.guidelines|length > 0 and task.guidelines[0].notes %}
+                            <p class="scenario-guideline-note">
+                                <span class="note-icon material-symbols-outlined">info</span>
+                                {{ task.guidelines[0].notes }}
+                            </p>
+                        {% endif %}
                     </div>
 
                     <!-- Mini-seção: Scenario Performance -->
@@ -382,23 +388,9 @@
 
                         <!-- Guidelines Accordion -->
                         <div class="guidelines-accordion">
-                            <!-- DEBUG: Total guidelines in task.guidelines: {{ task.guidelines|length }} -->
-                            <!-- DEBUG: Task title: {{ task.title }} -->
-                            <!-- DEBUG: Task ID: {{ task.task_id }} -->
-
                             {% set has_guidelines_with_data = namespace(value=False) %}
                             {% for guideline in task.guidelines %}
-                                <!-- DEBUG: Processing guideline: {{ guideline.title }} (ID: {{ guideline.guidelineID }}) -->
                                 {% set g_result = result|selectattr('title', 'equalto', guideline.title)|first|default(None) %}
-                                <!-- DEBUG: g_result found: {{ 'YES' if g_result else 'NO' }} -->
-                                <!-- DEBUG: Total items in result: {{ result|length }} -->
-                                {% if loop.first %}
-                                    <!-- DEBUG: First guideline - result titles:
-                                    {% for r in result %}
-                                        - "{{ r.title }}"
-                                    {% endfor %}
-                                    -->
-                                {% endif %}
                                 {% if g_result %}
                                 {% set has_guidelines_with_data.value = True %}
                                 <div class="guideline-accordion-item">
@@ -486,11 +478,50 @@
                             {% if not has_guidelines_with_data.value %}
                             <div class="no-guidelines-message">
                                 <p>No guidelines associated with this scenario.</p>
-                                <!-- DEBUG: has_guidelines_with_data.value = {{ has_guidelines_with_data.value }} -->
-                                <!-- DEBUG: task.guidelines|length = {{ task.guidelines|length }} -->
                             </div>
                             {% endif %}
                         </div>
+                    </div>
+
+                    <!-- Mini-seção: Developers Reflections -->
+                    <div class="developers-reflections-section">
+                        <h3>Developers Reflections</h3>
+                        <p class="section-subtitle">Word cloud showing the most frequently used terms in developer comments for this scenario.</p>
+                        <div class="scenario-wordcloud-container">
+                            <canvas id="scenario-wordcloud-{{ task.task_id }}" class="scenario-wordcloud"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Mini-seção: Developers Comments -->
+                    <div class="developers-comments-section">
+                        <h3>Developers Comments</h3>
+                        <p class="section-subtitle">Direct feedback from developers who completed this scenario.</p>
+
+                        {% if task.comments %}
+                            <div class="comments-list" id="comments-list-{{ task.task_id }}">
+                                {% for comment in task.comments %}
+                                <div class="comment-card {% if loop.index > 3 %}hidden-comment{% endif %}">
+                                    <div class="comment-header">
+                                        <span class="comment-author">Developer {{ loop.index }}</span>
+                                        <span class="comment-badge">Feedback</span>
+                                    </div>
+                                    <p class="comment-text">{{ comment }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if task.comments|length > 3 %}
+                            <button class="show-more-comments-btn" onclick="toggleComments({{ task.task_id }})">
+                                <span class="btn-text-more">Show More Comments ({{ task.comments|length - 3 }} hidden)</span>
+                                <span class="btn-text-less" style="display: none;">Show Less Comments</span>
+                                <span class="material-symbols-outlined">expand_more</span>
+                            </button>
+                            {% endif %}
+                        {% else %}
+                            <div class="no-comments-message">
+                                <p>No comments provided by developers for this scenario.</p>
+                            </div>
+                        {% endif %}
                     </div>
 
                 </div>

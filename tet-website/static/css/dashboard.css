@@ -1733,6 +1733,27 @@ body {
     font-weight: 600;
 }
 
+.scenario-guideline-note {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    background-color: rgba(59, 130, 246, 0.05);
+    border-left: 3px solid #2563eb;
+    border-radius: 6px;
+    color: hsl(var(--foreground));
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.scenario-guideline-note .note-icon {
+    color: #2563eb;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
 /* Seção Scenario Performance */
 .scenario-performance-section {
     margin-bottom: 2rem;
@@ -2343,6 +2364,138 @@ body {
     border-radius: 8px;
 }
 
+/* Developers Reflections Section */
+.developers-reflections-section {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.developers-reflections-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.5rem;
+}
+
+.scenario-wordcloud-container {
+    min-height: 180px;
+    max-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid hsl(var(--border));
+    padding: 0.75rem;
+    margin-top: 1rem;
+}
+
+.scenario-wordcloud {
+    height: auto;
+    display: block;
+}
+
+/* Developers Comments Section */
+.developers-comments-section {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.developers-comments-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.5rem;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.comment-card {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.comment-card.hidden-comment {
+    display: none;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.comment-author {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    font-size: 0.9rem;
+}
+
+.comment-badge {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.comment-text {
+    color: hsl(var(--foreground));
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.show-more-comments-btn {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: hsl(var(--primary));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.show-more-comments-btn:hover {
+    background-color: hsl(var(--primary) / 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.show-more-comments-btn .material-symbols-outlined {
+    transition: transform 0.3s ease;
+}
+
+.show-more-comments-btn.expanded .material-symbols-outlined {
+    transform: rotate(180deg);
+}
+
 /* Guidelines associadas */
 .procedure-guidelines {
     margin-bottom: 32px;
@@ -2470,7 +2623,6 @@ body {
 
 /* Métricas das tasks */
 .metric-row {
-    display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px;

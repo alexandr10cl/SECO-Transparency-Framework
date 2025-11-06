@@ -537,10 +537,33 @@ def api_wordcloud(id):
     frequencia = Counter(p for p in palavras_filtradas)
     
     lista = [[pa, con] for pa, con in frequencia.items()]
-    
-    
+
+
     return jsonify(lista)
-    
+
+@app.route('/api/wordcloud/task/<int:evaluation_id>/<int:task_id>')
+def api_wordcloud_task(evaluation_id, task_id):
+    evaluation = Evaluation.query.get_or_404(evaluation_id)
+    comments = []
+
+    # Buscar apenas comentários da task específica
+    for d in evaluation.collected_data:
+        for pt in d.performed_tasks:
+            if pt.task_id == task_id and pt.comments:
+                comments.append(pt.comments)
+
+    texto_total = " ".join(comments)
+
+    import re
+    palavras = re.findall(r'\b\w+\b', texto_total.lower())
+    palavras_filtradas = [p for p in palavras if len(p) > 2]
+
+    from collections import Counter
+    frequencia = Counter(p for p in palavras_filtradas)
+    lista = [[pa, con] for pa, con in frequencia.items()]
+
+    return jsonify(lista)
+
 @app.route('/api/view_heatmap/<int:id>')
 def api_view_heatmap(id):
     print(f"\n=== INICIO DEBUG BACKEND HEATMAPS ===")
