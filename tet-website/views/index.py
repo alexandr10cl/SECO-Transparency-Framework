@@ -718,27 +718,30 @@ def eval_dashboard(id):
         })
         
     dimension_scores = []
-        
+
     for d in g_dimensions_flat:
-        
+
         dim_data = {
             'id': d.seco_dimension_id,
             'name': d.name,
             'guidelines': [],
             'average_score': None,
+            'has_guidelines': len(d.guidelines) > 0,
+            'has_data': False
         }
-        
+
         scores = []
-        
+
         for g in d.guidelines:
             g_result = next((item for item in result if item['title'] == g.title), None)
             if g_result and g_result['average_score'] is not None:
                 dim_data['guidelines'].append(g_result)
                 scores.append(g_result['average_score'])
-                
+
         if scores:
             dim_data['average_score'] = round(sum(scores) / len(scores))
-            
+            dim_data['has_data'] = True
+
         dimension_scores.append(dim_data)
     
     # DX_factor ID to category mapping (same as evaluation details)
@@ -783,22 +786,26 @@ def eval_dashboard(id):
         'common_technological_platform': {
             'name': 'Common Technological Platform',
             'guidelines': [],
-            'score': None
+            'score': None,
+            'has_data': False
         },
         'projects_and_applications': {
-            'name': 'Projects and Applications', 
+            'name': 'Projects and Applications',
             'guidelines': [],
-            'score': None
+            'score': None,
+            'has_data': False
         },
         'community_interaction': {
             'name': 'Community Interaction',
             'guidelines': [],
-            'score': None
+            'score': None,
+            'has_data': False
         },
         'expectations_and_value': {
             'name': 'Expectations and Value of Contribution',
             'guidelines': [],
-            'score': None
+            'score': None,
+            'has_data': False
         }
     }
     
@@ -829,13 +836,17 @@ def eval_dashboard(id):
     for category in dx_categories.values():
         if category['guidelines']:
             category['score'] = round(sum(category['guidelines']) / len(category['guidelines']))
+            category['has_data'] = True
         else:
             category['score'] = 0
+            category['has_data'] = False
 
     # Função helper para determinar badge de transparência
-    def get_transparency_badge(score):
+    def get_transparency_badge(score, has_data=False):
         if score is None or score == 0:
-            return "No Procedures"
+            if not has_data:
+                return "Awaiting Data"
+            return "No Data"
         elif score >= 75:
             return "Good Transparency"
         elif score >= 50:
@@ -844,13 +855,13 @@ def eval_dashboard(id):
             return "Bad Transparency"
 
     # Adicionar badges de transparência
-    transparency_badge_overall = get_transparency_badge(score_geral)
+    transparency_badge_overall = get_transparency_badge(score_geral, count_collected_data > 0)
 
     for dim in dimension_scores:
-        dim['transparency_badge'] = get_transparency_badge(dim['average_score'])
+        dim['transparency_badge'] = get_transparency_badge(dim['average_score'], dim['has_data'])
 
     for category in dx_categories.values():
-        category['transparency_badge'] = get_transparency_badge(category['score'])
+        category['transparency_badge'] = get_transparency_badge(category['score'], category['has_data'])
 
     # Calcular scores por procedure para cada dimensão
     for dim in dimension_scores:
