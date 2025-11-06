@@ -28,6 +28,8 @@ navItems.forEach(item => {
 function initScenariosSidebar() {
     const scenarioItems = document.querySelectorAll('.scenario-item');
     const scenarioPanels = document.querySelectorAll('.scenario-panel');
+    const pathParts = window.location.pathname.split('/');
+    const evaluationId = pathParts[pathParts.length - 1];
 
     if (!scenarioItems.length || !scenarioPanels.length) return;
 
@@ -43,6 +45,8 @@ function initScenariosSidebar() {
             scenarioPanels.forEach(panel => {
                 if (panel.dataset.scenarioId === scenarioId) {
                     panel.classList.add('active');
+                    // Gerar word cloud ao trocar de scenario
+                    gerarNuvemScenario(scenarioId, evaluationId);
                 } else {
                     panel.classList.remove('active');
                 }
@@ -324,6 +328,99 @@ window.addEventListener('resize', () => {
   wcResizeTimer = setTimeout(() => gerarNuvem(), 200);
 });
 
+// Word cloud por scenario específico
+function gerarNuvemScenario(taskId, evaluationId) {
+    const canvas = document.getElementById(`scenario-wordcloud-${taskId}`);
+    if (!canvas) return;
+    const container = canvas.parentElement;
+
+    const width = Math.max(250, container.clientWidth);
+    const height = 160;
+    canvas.width = width;
+    canvas.height = height;
+
+    fetch(`/api/wordcloud/task/${evaluationId}/${taskId}`)
+        .then(response => response.json())
+        .then(data => {
+            const words = data || [];
+
+            if (words.length === 0) {
+                // Mostrar mensagem se não houver palavras
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#999';
+                ctx.font = '14px Montserrat';
+                ctx.textAlign = 'center';
+                ctx.fillText('No comments available', width / 2, height / 2);
+                return;
+            }
+
+            const maxWeight = words.length ? Math.max(...words.map(w => w[1])) : 1;
+            const minFont = 12;
+            const maxFont = Math.max(28, Math.min(72, Math.round(width / 8)));
+
+            WordCloud(canvas, {
+                list: words,
+                gridSize: Math.max(8, Math.round(width / 64)),
+                weightFactor: (size) => minFont + (size / (maxWeight || 1)) * (maxFont - minFont),
+                fontFamily: 'Montserrat, sans-serif',
+                color: 'random-dark',
+                backgroundColor: '#ffffff',
+                rotateRatio: 0,
+                rotationSteps: 2,
+                shape: 'circle',
+                shuffle: true,
+                drawOutOfBound: false,
+                shrinkToFit: true,
+            });
+        })
+        .catch(error => {
+            console.error('Error loading word cloud for task:', taskId, error);
+        });
+}
+
+// Toggle para mostrar/esconder comentários
+function toggleComments(taskId) {
+    const commentsList = document.getElementById(`comments-list-${taskId}`);
+    const hiddenComments = commentsList.querySelectorAll('.hidden-comment');
+    const button = event.currentTarget;
+    const textMore = button.querySelector('.btn-text-more');
+    const textLess = button.querySelector('.btn-text-less');
+    const icon = button.querySelector('.material-symbols-outlined');
+
+    if (hiddenComments[0].style.display === 'none' || hiddenComments[0].classList.contains('hidden-comment')) {
+        // Mostrar todos
+        hiddenComments.forEach(comment => {
+            comment.classList.remove('hidden-comment');
+            comment.style.display = 'block';
+        });
+        textMore.style.display = 'none';
+        textLess.style.display = 'inline';
+        button.classList.add('expanded');
+    } else {
+        // Esconder extras
+        hiddenComments.forEach(comment => {
+            comment.classList.add('hidden-comment');
+            comment.style.display = 'none';
+        });
+        textMore.style.display = 'inline';
+        textLess.style.display = 'none';
+        button.classList.remove('expanded');
+    }
+}
+
+// Inicializar word clouds dos scenarios
+function initScenarioWordClouds() {
+    const pathParts = window.location.pathname.split('/');
+    const evaluationId = pathParts[pathParts.length - 1];
+
+    // Gerar word cloud do scenario ativo
+    const activePanel = document.querySelector('.scenario-panel.active');
+    if (activePanel) {
+        const taskId = activePanel.dataset.scenarioId;
+        gerarNuvemScenario(taskId, evaluationId);
+    }
+}
+
 // Função para aplicar cores aos status baseado no texto
 function applyStatusColors() {
     const statusElements = document.querySelectorAll('.guideline-status');
@@ -528,4 +625,5 @@ window.onload = function() {
     initGuidelinesAccordion();
     initTaskAccordions();
     animateProgressBars();
+    initScenarioWordClouds();
 };
