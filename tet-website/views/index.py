@@ -148,37 +148,97 @@ def add_evaluation():
         print(f"  {key}: {value}")
     print("="*60 + "\n")
 
-    seco_type = SECOType(seco_type_str)
-
-    # must select at least one process
-    if not seco_process_ids:
-        values = {
-            "name": name,
-            "seco_portal": seco_portal,
-            "seco_portal_url": seco_portal_url,
-            "seco_type": seco_type_str,
-            "manager_objective": manager_objective
-        }
-        error_msg = "Please select at least one process"
-        seco_processes = SECO_process.query.all()
-        return render_template(
-            "create_evaluation.html",
-            user=user,
-            seco_processes=seco_processes,
-            values=values,
-            error_msg=error_msg,
-            form_token=token,  # pass the token again
-            seco_types=SECOType
-        )
-
-
-    # resolve user
+    # Resolve user early (needed for re-render)
     email = session.get('user_signed_in')
     if not email:
         return redirect(url_for('signin'))
     user = User.query.filter_by(email=email).first()
     if not user:
         return redirect(url_for('signin'))
+
+    # Parse posted KSC weights (ksc_points_<process>_<ksc>)
+    ksc_weights_raw = {
+        key[len('ksc_points_'):]: value
+        for key, value in request.form.items()
+        if key.startswith('ksc_points_')
+    }
+
+    ksc_weights = {}
+    ksc_weights_map = {}
+    for suffix, raw_value in ksc_weights_raw.items():
+        try:
+            process_str, ksc_str = suffix.split('_', 1)
+            process_id = int(process_str)
+            ksc_id = int(ksc_str)
+        except ValueError:
+            continue
+
+        try:
+            weight = int(raw_value)
+        except (ValueError, TypeError):
+            weight = 0
+
+        ksc_weights.setdefault(process_id, []).append((ksc_id, weight))
+        ksc_weights_map[f"{process_id}_{ksc_id}"] = weight
+
+    form_values = {
+        "name": name,
+        "seco_portal": seco_portal,
+        "seco_portal_url": seco_portal_url,
+        "seco_type": seco_type_str,
+        "manager_objective": manager_objective,
+        "selected_process_ids": seco_process_ids,
+        "ksc_weights": ksc_weights_map
+    }
+
+    seco_type = SECOType(seco_type_str)
+
+    # must select at least one process
+    if not seco_process_ids:
+        error_msg = "Please select at least one process"
+        seco_processes = SECO_process.query.all()
+        return render_template(
+            "create_evaluation.html",
+            user=user,
+            seco_processes=seco_processes,
+            values=form_values,
+            error_msg=error_msg,
+            form_token=token,  # pass the token again
+            seco_types=SECOType
+        )
+
+    # Validate KSC weights for each selected process
+    validation_errors = []
+    try:
+        selected_process_ids_int = [int(pid) for pid in seco_process_ids]
+    except ValueError:
+        selected_process_ids_int = []
+
+    for pid in selected_process_ids_int:
+        weights = ksc_weights.get(pid, [])
+        total = sum(weight for _, weight in weights)
+        if total != 10:
+            validation_errors.append(f"Procedure P{pid}: total must equal 10 (got {total}).")
+        for ksc_id, weight in weights:
+            if weight < 0 or weight > 10:
+                validation_errors.append(f"Procedure P{pid}, KSC {ksc_id}: weight must be between 0 and 10.")
+
+    missing_processes = [pid for pid in selected_process_ids_int if pid not in ksc_weights]
+    for pid in missing_processes:
+        validation_errors.append(f"Procedure P{pid}: distribute the 10 points before continuing.")
+
+    if validation_errors:
+        error_msg = " ".join(validation_errors)
+        seco_processes = SECO_process.query.all()
+        return render_template(
+            "create_evaluation.html",
+            user=user,
+            seco_processes=seco_processes,
+            values=form_values,
+            error_msg=error_msg,
+            form_token=token,
+            seco_types=SECOType
+        )
 
     # prevent duplicate by content
     existing = Evaluation.query.filter_by(
@@ -193,6 +253,7 @@ def add_evaluation():
     # generate evaluation_id via UXT API, fallback to unique 6-digit
     evaluation_id = None
     access_token = session.get('uxt_access_token')
+    r = None
 
     print(f"=== LOG: Iniciando geração de código de avaliação ===")
     print(f"LOG: Access token disponível: {bool(access_token)}")
@@ -324,6 +385,14 @@ def add_evaluation():
         try:
             print("\nDEBUG: Adding to session...")
             db.session.add(new_evaluation)
+
+            for process_id, items in ksc_weights.items():
+                for ksc_id, weight in items:
+                    db.session.add(EvaluationCriterionWheight(
+                        weight=weight,
+                        ksc_id=ksc_id,
+                        evaluation_id=evaluation_id
+                    ))
 
             print("DEBUG: Committing to database...")
             db.session.commit()
@@ -514,6 +583,32 @@ def eval_dashboard(id):
                 
     count_collected_data = len(collected_data)
     
+    # Scenario summaries sourced from Rodrigo's spreadsheet (Scenario Context column)
+    scenario_context_lookup = {
+        "Exploring Resources to Start Development": "Represents developers’ first interaction with the ecosystem portal. Clear and accessible documentation here directly impacts onboarding speed and confidence.",
+        "Exploring Repository History and Code Evolution": "Represents how developers explore repositories to understand the platform’s evolution. Traceable and well-documented code changes increase trust and ease of contribution.",
+        "Exploring Communication Channels with the Keystone": "Represents how developers connect with ecosystem actors to clarify doubts or propose changes. Transparent and responsive communication fosters collaboration and knowledge flow.",
+        "Exploring Participation Rules and Contribution Guidelines": "Represents how developers learn the rules, processes, and compliance requirements for contributing. Clear guidance reduces cognitive effort and prevents frustration or missteps.",
+        "Exploring the Flow of Requirements and Roadmap Decisions": "Represents how developers track how new ideas, feature requests, and improvements are evaluated and prioritized. Visible decision flows increase predictability and engagement.",
+        "Exploring Data Collection and Sharing Practices": "Represents how developers seek clarity about what data is collected, processed, and shared within the platform. Transparent practices build reliability and ethical trust.",
+        "Exploring the Architecture and Structure of the Ecosystem": "Represents how developers understand the overall architecture of the ecosystem. Clear technical maps and dependencies reduce mental load and improve comprehension of how components interact."
+    }
+
+    scenario_cards = []
+    for index, task in enumerate(tasks, start=1):
+        summary = getattr(task, 'summary', None) or scenario_context_lookup.get(task.title)
+        if not summary:
+            # Fallback: use first sentence or truncated description
+            description = (task.description or '').strip()
+            summary = description.split('. ')[0] + ('...' if len(description) > 120 else '')
+        scenario_cards.append({
+            'index': index,
+            'title': task.title,
+            'summary': summary,
+            'description': task.description,
+            'task_id': task.task_id
+        })
+                
     # CORREÇÃO: construir lista de dimensões corretamente (adiciona cada dimensão, não a lista inteira)
     g_dimensions = []
     for g in guidelines:
@@ -796,6 +891,39 @@ def eval_dashboard(id):
 
         task_data['guidelines'] = task_guidelines
 
+    # Prepare improvement actions for each task
+    # Improvement actions show KSCs with status "Partially Fulfilled" or "Not Fulfilled", ordered by weight
+    for task_data in processed_tasks:
+        improvement_actions = []
+        
+        # Get all KSCs from this task's guidelines
+        for guideline in task_data.get('guidelines', []):
+            # Find the guideline result data
+            g_result = next((item for item in result if item['title'] == guideline.title), None)
+            if not g_result:
+                continue
+            
+            # Get all KSCs for this guideline that need improvement
+            for ksc in g_result['key_success_criteria']:
+                # Only include KSCs with status "Partially Fulfilled" or "Not Fulfilled"
+                if ksc['status'] in ["Partially Fulfilled", "Not Fulfilled"]:
+                    # Only include if there are examples
+                    if ksc.get('examples') and len(ksc['examples']) > 0:
+                        # Get the first example (there should typically be one per KSC)
+                        example_description = ksc['examples'][0]['description']
+                        
+                        improvement_actions.append({
+                            'title': ksc['title'],
+                            'weight': ksc['weight'],
+                            'description': example_description,
+                            'status': ksc['status']
+                        })
+        
+        # Sort by weight (descending) - higher weights first
+        improvement_actions.sort(key=lambda x: x['weight'], reverse=True)
+        
+        task_data['improvement_actions'] = improvement_actions
+
     # Agrupar tasks por SECO process (para desktop layout mais informativo)
     # Mapa de task_id -> lista de process_ids
     task_to_process = {}
@@ -1028,6 +1156,7 @@ def eval_dashboard(id):
                             count_collected_data=count_collected_data,
                             guidelines=guidelines,
                             tasks=tasks,
+                            scenario_cards=scenario_cards,
                             collected_data=collected_data,
                             questions=questions,
                             eName=eName,
