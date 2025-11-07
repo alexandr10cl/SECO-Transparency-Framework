@@ -89,6 +89,7 @@
                         <div class="form-group">
                             <label class="form-label">SECO Procedures to Evaluate</label>
                             <div class="processes-grid" id="process-group" aria-describedby="process-error">
+                                {% set selected_process_ids = values.selected_process_ids if values is defined and values.selected_process_ids is defined else [] %}
                                 {% for process in seco_processes %}
                                 <div class="process-card">
                                     <label for="seco_{{ process.seco_process_id }}" class="process-label">
@@ -96,14 +97,15 @@
                                             <span class="process-id">P{{ process.seco_process_id }}</span>
                                             <input type="checkbox" id="seco_{{ process.seco_process_id }}" 
                                                     name="seco_process_ids" value="{{ process.seco_process_id }}"
-                                                    class="process-checkbox">
+                                                    class="process-checkbox"
+                                                    {% if (process.seco_process_id | string) in selected_process_ids %}checked{% endif %}>
                                         </div>
                                         <div class="process-description">{{ process.description }}</div>
                                     </label>
                                 </div>
                                 {% endfor %}
                             </div>
-                            <div id="process-error" class="form-error d-none" role="alert">
+                            <div id="process-error" class="form-error {% if error_msg %}{% else %}d-none{% endif %}" role="alert">
                                 {{ error_msg if error_msg else 'Please select at least one process' }}
                             </div>
                         </div>
@@ -135,5 +137,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  window.prefilledKscWeights = {{ (values.ksc_weights if values is defined and values.ksc_weights is defined else {}) | tojson }};
+</script>
 <script src="/static/js/evaluation.js"></script>
 {% endblock %}
