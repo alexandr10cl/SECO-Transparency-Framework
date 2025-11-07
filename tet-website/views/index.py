@@ -264,14 +264,71 @@ def add_evaluation():
 
         print("\nDEBUG: Evaluation object created")
         print(f"Object manager_objective: '{new_evaluation.manager_objective}'")
+        
+        ksc_weights = {}
+        for key, value in request.form.items():
+            if not key.startswith('ksc_points_'):
+                continue
+            parts = key.split('_')
+            if len(parts) < 4:
+                continue
+            try:
+                pid = parts[2]
+                ksc_id = int(parts[3])
+                weight = int(value) if value.strip() != '' else 0
+            except ValueError:
+                print(f"⚠️ Invalid KSC weight value for {key}: {value}")
+                return redirect(url_for('create_evaluation'))
 
+            ksc_weights.setdefault(pid, []).append((ksc_id, weight))
+
+        # Validate distribution totals (must sum to 10 per process group)
+        for pid, items in ksc_weights.items():
+            total = sum(weight for _, weight in items)
+            if total != 10:
+                print(f"⚠️ Process {pid} has invalid KSC distribution total: {total}")
+                error_msg = f"KSC weights for procedure P{pid} must sum to 10."
+                values = {
+                    "name": name,
+                    "seco_portal": seco_portal,
+                    "seco_portal_url": seco_portal_url,
+                    "seco_type": seco_type_str,
+                    "manager_objective": manager_objective
+                }
+                seco_processes = SECO_process.query.all()
+                return render_template(
+                    "create_evaluation.html",
+                    user=user,
+                    seco_processes=seco_processes,
+                    values=values,
+                    error_msg=error_msg,
+                    form_token=token,
+                    seco_types=SECOType
+                )
+
+        # Persist KSC weights
+        last_weight = EvaluationCriterionWheight.query.order_by(EvaluationCriterionWheight.id.desc()).first()
+        next_id = (last_weight.id + 1) if last_weight else 1
+        for pid, items in ksc_weights.items():
+            for ksc_id, weight in items:
+                new_weight = EvaluationCriterionWheight(
+                    id=next_id,
+                    ksc_id=ksc_id,
+                    evaluation_id=new_evaluation.evaluation_id,
+                    weight=weight
+                )
+                next_id += 1
+                db.session.add(new_weight)
+                print(f"✅ KSC weight added for process {pid}, ksc {ksc_id}: {weight}")
+                
         try:
             print("\nDEBUG: Adding to session...")
             db.session.add(new_evaluation)
 
             print("DEBUG: Committing to database...")
             db.session.commit()
-
+            
+            print("✅ KSC weights committed successfully")
             print("DEBUG: SUCCESS! Evaluation saved to database")
             print(f"Saved evaluation ID: {new_evaluation.evaluation_id}")
 
@@ -289,10 +346,12 @@ def add_evaluation():
 
         except IntegrityError as e:
             print(f"\nDEBUG: ERROR - IntegrityError occurred: {str(e)}")
+            print("⚠️ Error committing KSC weights")
             db.session.rollback()
             return redirect(url_for('evaluations'))
         except Exception as e:
             print(f"\nDEBUG: ERROR - Unexpected error: {type(e).__name__}: {str(e)}")
+            print("⚠️ Error committing KSC weights")
             db.session.rollback()
             return redirect(url_for('evaluations'))
 

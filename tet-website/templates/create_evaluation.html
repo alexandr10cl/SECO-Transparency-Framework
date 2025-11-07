@@ -45,8 +45,33 @@
             <section class="create-form-section">
                 <div class="info-card">
                     <h2 class="section-title">Evaluation Details</h2>
+                    <div class="multi-step-header">
+                        <span class="step-chip">New Flow</span>
+                        <h3 class="multi-step-title">Craft a high-impact transparency evaluation</h3>
+                        <p class="multi-step-subtitle">
+                            Provide the core information first, then distribute Key Success Criteria points with a guided, modern experience.
+                        </p>
+                        <div class="form-progress" id="form-progress">
+                            <div class="form-progress-step active" data-step="1">
+                                <span class="step-number">1</span>
+                                <div class="step-info">
+                                    <strong>Details</strong>
+                                    <span>Basics &amp; procedures</span>
+                                </div>
+                            </div>
+                            <div class="form-progress-divider"></div>
+                            <div class="form-progress-step" data-step="2">
+                                <span class="step-number">2</span>
+                                <div class="step-info">
+                                    <strong>KSC Distribution</strong>
+                                    <span id="progress-counter">Awaiting setup</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <form action="{{ url_for('add_evaluation') }}" method="post" class="create-form" novalidate>
+                        <div id="step-details">
                         <!-- Basic Information -->
                         <div class="form-group">
                             <label for="name" class="form-label">Evaluation Name</label>
@@ -108,8 +133,10 @@
                             </div>
                         </div>
 
-                        <!-- KSC points distribution -->
-                        <div class="form-group">
+                        </div> <!-- /#step-details -->
+
+                        <!-- KSC points distribution (step 2) -->
+                        <div class="form-group" id="ksc-step" style="display:none;">
                             <label for="form-label">KSC Points Distribution</label>
                             <div id="ksc-container" class="ksc-container">
                                 <p class="form-help">Select procedures above to assign KSC importance points (total of 10 per procedure).</p>
@@ -118,9 +145,23 @@
 
                         <div class="form-actions">
                             <input type="hidden" name="form_token" value="{{ form_token }}">
-                            <button id="create-btn" type="submit" class="dashboard-btn">
+
+                            <!-- Next advances to KSC distribution step; final submit is separate -->
+                            <button id="next-btn" type="button" class="dashboard-btn btn-primary">
+                                <span class="btn-icon">➡️</span>
+                                <span class="btn-label">Next</span>
+                                <span class="spinner d-none">⏳</span>
+                            </button>
+
+                            <button id="prev-btn" type="button" class="dashboard-btn btn-ghost d-none" style="margin-left:8px;">
+                                <span class="btn-icon">◀️</span>
+                                <span class="btn-label">Back</span>
+                            </button>
+
+                            <!-- Hidden until last KSC step -->
+                            <button id="submit-btn" type="submit" class="dashboard-btn btn-primary d-none">
                                 <span class="btn-icon">✨</span>
-                                <span>Create Evaluation</span>
+                                <span class="btn-label">Create Evaluation</span>
                                 <span class="spinner d-none">⏳</span>
                             </button>
                         </div>

@@ -25,6 +25,7 @@ class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
+    summary = db.Column(db.String(500), nullable=False)
     
     # Relationship with seco_process
     seco_processes = db.relationship('SECO_process',
