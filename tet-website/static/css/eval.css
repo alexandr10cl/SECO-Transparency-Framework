@@ -1451,9 +1451,32 @@ html {
     border-radius: var(--radius-md);
 }
 
+.ksc-input[data-invalid="true"] {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.15);
+}
+
+.ksc-total {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
 .ksc-warning {
-    color: var(--danger);
     font-size: var(--text-sm);
     font-weight: 500;
     margin-top: var(--space-2);
+}
+
+.ksc-warning[data-state="warning"] {
+    color: var(--warning);
+}
+
+.ksc-warning[data-state="danger"] {
+    color: var(--danger);
+}
+
+.ksc-warning[data-state="success"] {
+    color: var(--success);
 }

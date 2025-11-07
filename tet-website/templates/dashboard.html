@@ -95,11 +95,14 @@
                     <h3>Evaluated Scenarios</h3>
                     <p class="scenarios-subtitle">Scenarios analyzed under the cognitive dimension of Developer Experience:</p>
                     <div class="scenarios-grid">
-                        {% for task in tasks %}
-                        <div class="scenario-card" onclick="openScenarioModal('S{{ loop.index }}', '{{ task.title|e }}', '{{ task.description|e }}')">
-                            <span class="scenario-id">S{{ loop.index }}</span>
-                            <h4>{{ task.title }}</h4>
-                            <p>{{ task.description }}</p>
+                        {% for card in scenario_cards %}
+                        <div class="scenario-card" 
+                             data-scenario-id="S{{ card.index }}"
+                             data-scenario-title="{{ card.title }}"
+                             data-scenario-description="{{ card.description }}">
+                            <span class="scenario-id">S{{ card.index }}</span>
+                            <h4>{{ card.title }}</h4>
+                            <p>{{ card.summary }}</p>
                         </div>
                         {% endfor %}
                     </div>
@@ -524,6 +527,29 @@
                         {% endif %}
                     </div>
 
+                    <!-- Mini-seção: Improvement Actions -->
+                    <div class="improvement-actions-section">
+                        <h3>Improvement Actions</h3>
+                        <p class="section-subtitle">Improvement Actions list only the Key Success Criteria (KSCs) that were Partially Fulfilled or Not Fulfilled. Actions are ordered by their assigned weights: higher-weighted items appear first, indicating greater impact on overall transparency.</p>
+
+                        {% if task.improvement_actions and task.improvement_actions|length > 0 %}
+                            <div class="improvement-actions-list">
+                                {% for action in task.improvement_actions %}
+                                <div class="improvement-action-item">
+                                    <h4 class="improvement-action-title">{{ action.title }}</h4>
+                                    <p class="improvement-action-description">
+                                        <strong>Action:</strong> {{ action.description }}
+                                    </p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-improvement-actions-message">
+                                <p>All Key Success Criteria for this scenario are fully fulfilled. No improvement actions needed.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
                 </div>
                 {% endfor %}
             </div>
@@ -712,11 +738,31 @@
             document.getElementById('scenarioModal').style.display = 'none';
         }
 
+        // Add click handlers to scenario cards
+        document.querySelectorAll('.scenario-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                const id = this.getAttribute('data-scenario-id');
+                const title = this.getAttribute('data-scenario-title');
+                const description = this.getAttribute('data-scenario-description');
+                openScenarioModal(id, title, description);
+            });
+        });
+
         // Close modal when clicking outside of it
         window.addEventListener('click', function(event) {
             var modal = document.getElementById('scenarioModal');
             if (event.target == modal) {
                 modal.style.display = 'none';
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                var modal = document.getElementById('scenarioModal');
+                if (modal.style.display === 'block') {
+                    closeScenarioModal();
+                }
             }
         });
     </script>

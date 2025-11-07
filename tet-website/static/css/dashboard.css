@@ -2496,6 +2496,80 @@ body {
     transform: rotate(180deg);
 }
 
+/* Improvement Actions Section */
+.improvement-actions-section {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.improvement-actions-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.5rem;
+}
+
+.improvement-actions-section .section-subtitle {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.improvement-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.improvement-action-item {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.improvement-action-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    border-color: hsl(var(--primary) / 0.3);
+}
+
+.improvement-action-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.75rem 0;
+    line-height: 1.4;
+}
+
+.improvement-action-description {
+    color: hsl(var(--foreground));
+    line-height: 1.7;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.improvement-action-description strong {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+}
+
+.no-improvement-actions-message {
+    background-color: hsl(var(--muted));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+    font-style: italic;
+}
+
 /* Guidelines associadas */
 .procedure-guidelines {
     margin-bottom: 32px;
@@ -3088,14 +3162,16 @@ body {
     border: 1px solid hsl(var(--border));
     border-radius: 8px;
     padding: 0.6rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     position: relative;
     cursor: pointer;
+    min-height: 120px;
 }
 
 .scenario-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border-color: hsl(var(--primary) / 0.5);
 }
 
 .scenario-id {
@@ -3326,20 +3402,21 @@ body {
 
 /* Scenario Modal Styles */
 .scenario-modal-content {
-    max-width: 600px;
+    max-width: 700px;
     width: 90%;
 }
 
 #scenarioModal .modal-body h3 {
     color: hsl(var(--foreground));
     margin-bottom: 1rem;
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+    font-weight: 600;
 }
 
 #scenarioModal .modal-body p {
     color: hsl(var(--muted-foreground));
-    line-height: 1.6;
-    font-size: 1rem;
+    line-height: 1.8;
+    font-size: 0.95rem;
     white-space: pre-wrap;
     word-wrap: break-word;
 }
