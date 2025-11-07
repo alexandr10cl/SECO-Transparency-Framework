@@ -1124,34 +1124,42 @@ def get_pksc():
     
     ids = [int(i) for i in ids_str.split(',') if i.isdigit()]
     
-    # encontrando a guideline de cada processo e depois os ksc de cada guideline
-    pksc = []
+    grouped = {}
     for p in ids:
         process = SECO_process.query.get(p)
-        if process:
-            guideline = process.guidelines[0] if process.guidelines else None
-            if guideline:
-                for ksc in guideline.key_success_criteria:
-                    pksc.append({
-                        "process_id": process.seco_process_id,
-                        "process_description": process.description,
-                        "ksc_id": ksc.key_success_criterion_id,
-                        "ksc_title": ksc.title,
-                        "ksc_description": ksc.description
-                    })
-    
-    grouped = {}
-    for item in pksc:
-        pid = str(item['process_id'])
-        if pid not in grouped:
-            grouped[pid] = {
-                "process_description": item["process_description"],
-                "ksc_list": []
-            }
-        grouped[pid]["ksc_list"].append({
-            "id": item["ksc_id"],
-            "title": item["ksc_title"],
-            "description": item["ksc_description"]
+        if not process:
+            continue
+
+        guideline = process.guidelines[0] if process.guidelines else None
+        task = process.tasks[0] if process.tasks else None
+
+        pid = str(process.seco_process_id)
+        process_label = f"P{process.seco_process_id} — {process.description}"
+
+        grouped.setdefault(pid, {
+            "process_id": process.seco_process_id,
+            "process_description": process_label,
+            "raw_process_description": process.description,
+            "task_id": task.task_id if task else None,
+            "task_title": task.title if task else None,
+            "task_summary": task.summary if task else None,
+            "ksc_list": []
         })
-        
+
+        if not guideline:
+            continue
+
+        for ksc in guideline.key_success_criteria:
+            grouped[pid]["ksc_list"].append({
+                "id": ksc.key_success_criterion_id,
+                "title": ksc.title,
+                "description": ksc.description
+            })
+
+    # Remove groups without KSC entries to avoid empty UI sections
+    grouped = {
+        pid: data for pid, data in grouped.items()
+        if data["ksc_list"]
+    }
+
     return jsonify(grouped)
