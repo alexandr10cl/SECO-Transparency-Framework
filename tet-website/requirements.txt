@@ -23,6 +23,7 @@ python-dotenv==1.1.0
 python-memcached==1.62
 pytz==2024.2
 requests==2.32.3
+spacy==3.7.4
 SQLAlchemy==2.0.38
 typing_extensions==4.12.2
 urllib3==2.4.0
