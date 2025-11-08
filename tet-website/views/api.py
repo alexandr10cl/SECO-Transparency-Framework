@@ -9,6 +9,25 @@ from datetime import datetime, timedelta
 import pytz
 from typing import List, Dict, Any, Optional
 import traceback
+from collections import Counter
+
+# spaCy lazy loading - carrega apenas quando necessário
+_nlp_model = None
+
+def get_nlp_model():
+    """Lazy load spaCy model para economizar memória"""
+    global _nlp_model
+    if _nlp_model is None:
+        try:
+            import spacy
+            # Tenta carregar modelo em inglês (mais comum)
+            # Para instalar: python -m spacy download en_core_web_sm
+            _nlp_model = spacy.load("en_core_web_sm", disable=["parser", "ner"])  # Desabilita features não usadas
+        except:
+            # Fallback se spaCy não estiver instalado
+            print("⚠️  spaCy não está instalado. Usando fallback stopwords.")
+            _nlp_model = "fallback"
+    return _nlp_model
 
 def normalize_timestamp(timestamp_str: str) -> Optional[datetime]:
     """
@@ -510,8 +529,72 @@ def api_satisfaction(id):
     
     return jsonify(data)
 
+def process_text_for_wordcloud(text: str, max_words: int = 100) -> list:
+    """
+    Processa texto para word cloud usando spaCy ou fallback
+    
+    Args:
+        text: Texto para processar
+        max_words: Número máximo de palavras para retornar
+        
+    Returns:
+        Lista de [palavra, frequência] ordenada por frequência
+    """
+    if not text or text.strip() == "":
+        return []
+    
+    nlp = get_nlp_model()
+    
+    if nlp != "fallback":
+        # Usa spaCy - Rápido e inteligente
+        doc = nlp(text.lower())
+        
+        # Filtra stopwords, pontuação, espaços, números
+        palavras_filtradas = [
+            token.text for token in doc
+            if not token.is_stop          # Remove stopwords (the, de, o, etc)
+            and not token.is_punct        # Remove pontuação
+            and not token.is_space        # Remove espaços
+            and token.is_alpha            # Apenas letras (sem números)
+            and len(token.text) > 2       # Mínimo 3 caracteres
+        ]
+    else:
+        # Fallback sem spaCy - usa lista básica de stopwords
+        import re
+        
+        # Stopwords básicas multi-idioma
+        STOPWORDS = {
+            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with',
+            'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her',
+            'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up',
+            'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time',
+            'no', 'just', 'him', 'know', 'take', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
+            'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'also', 'back',
+            'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want',
+            'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is', 'was', 'are', 'were', 'been',
+            'has', 'had', 'did', 'does', 'de', 'het', 'een', 'van', 'en', 'op', 'dat', 'die', 'voor',
+            'met', 'te', 'zijn', 'er', 'aan', 'wordt', 'als', 'ook', 'maar', 'door', 'bij', 'naar', 'om',
+            'tot', 'uit', 'werd', 'dan', 'kan', 'heeft', 'niet', 'meer', 'dit', 'deze', 'ze', 'al', 'nog',
+            'wel', 'hij', 'over', 'moet', 'twee', 'geen', 'zoals', 'worden', 'alle', 'veel', 'o', 'a', 'e',
+            'que', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por',
+            'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou',
+            'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela',
+            'até', 'isso', 'ela', 'entre', 'era'
+        }
+        
+        palavras = re.findall(r'\b[a-zA-Z]+\b', text.lower())
+        palavras_filtradas = [p for p in palavras if len(p) > 2 and p not in STOPWORDS]
+    
+    # Conta frequências e retorna top N
+    frequencia = Counter(palavras_filtradas)
+    lista = [[palavra, freq] for palavra, freq in frequencia.most_common(max_words)]
+    
+    return lista
+
+
 @app.route('/api/wordcloud/<int:id>')
 def api_wordcloud(id):
+    """Word cloud com todos os comentários da avaliação"""
     evaluation = Evaluation.query.get_or_404(id)
     col_data = evaluation.collected_data
     
@@ -519,30 +602,20 @@ def api_wordcloud(id):
     
     for d in col_data:
         for pt in d.performed_tasks:
-            comments.append(pt.comments)
-            
+            if pt.comments:
+                comments.append(pt.comments)
         
-        comments.append(d.developer_questionnaire.comments)
-        
-        
+        if d.developer_questionnaire and d.developer_questionnaire.comments:
+            comments.append(d.developer_questionnaire.comments)
+    
     texto_total = " ".join(comments)
+    lista = process_text_for_wordcloud(texto_total, max_words=100)
     
-    import re
-    palavras = re.findall(r'\b\w+\b', texto_total.lower())
-    
-    palavras_filtradas = [p for p in palavras if len(p) > 2]
-    
-    from collections import Counter
-    
-    frequencia = Counter(p for p in palavras_filtradas)
-    
-    lista = [[pa, con] for pa, con in frequencia.items()]
-
-
     return jsonify(lista)
 
 @app.route('/api/wordcloud/task/<int:evaluation_id>/<int:task_id>')
 def api_wordcloud_task(evaluation_id, task_id):
+    """Word cloud para comentários de uma task específica"""
     evaluation = Evaluation.query.get_or_404(evaluation_id)
     comments = []
 
@@ -553,14 +626,7 @@ def api_wordcloud_task(evaluation_id, task_id):
                 comments.append(pt.comments)
 
     texto_total = " ".join(comments)
-
-    import re
-    palavras = re.findall(r'\b\w+\b', texto_total.lower())
-    palavras_filtradas = [p for p in palavras if len(p) > 2]
-
-    from collections import Counter
-    frequencia = Counter(p for p in palavras_filtradas)
-    lista = [[pa, con] for pa, con in frequencia.items()]
+    lista = process_text_for_wordcloud(texto_total, max_words=75)  # Menos palavras para tasks específicas
 
     return jsonify(lista)
 
