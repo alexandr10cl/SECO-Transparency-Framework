@@ -39,6 +39,14 @@ def download_extension():
     except Exception as e:
         return f"Error downloading file: {str(e)}", 404
 
+@app.route('/download-uxtracking')
+def download_uxtracking():
+    try:
+        file_path = os.path.join(app.root_path, 'static', 'downloads', 'UX-Tracking-Extension-v2-main.zip')
+        return send_file(file_path, as_attachment=True, download_name='UX-Tracking-Extension-v2.zip')
+    except Exception as e:
+        return f"Error downloading file: {str(e)}", 404
+
 @app.route('/guidelines')
 def guidelines():
     guidelines = Guideline.query.all()
