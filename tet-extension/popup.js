@@ -229,7 +229,7 @@ document.getElementById("questionnaireButton").addEventListener("click", functio
   });
 
   const yearsInput = document.getElementById("question-experience");
-  if (!yearsInput.value || yearsInput.value < 0) {
+  if (!yearsInput.value || yearsInput.value < 0 || yearsInput.value > 100) {
     valid = false;
     yearsInput.classList.add("input-error");
   } else {
@@ -448,8 +448,8 @@ function renderAll() {
             </label>
             <div class="slider-container">
               <div class="slider-labels">
-                <span class="slider-label-left">Not at all</span>
-                <span class="slider-label-right">Totally agree</span>
+                <span class="slider-label-left">Not perceived</span>
+                <span class="slider-label-right">Fully perceived</span>
               </div>
               <input type="range" 
                      id="process-question-${proc.process_id}-${i}" 
