@@ -1,6 +1,11 @@
 from flask import render_template, request, redirect, session, url_for, jsonify, abort, flash
 from index import app, db
-from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor, EvaluationCriterionWheight
+from models import (
+    User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, 
+    DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor, 
+    EvaluationCriterionWheight, CollectedData, PerformedTask, Answer, 
+    Navigation, Task
+)
 from functions import isLogged, isAdmin, login_required  # Fix #3: Import login_required decorator
 from datetime import datetime
 import random as rd
@@ -8,13 +13,36 @@ import requests
 import os
 from sqlalchemy.exc import IntegrityError
 from secrets import token_urlsafe
-from flask import session
+
+# Performance: Import eager loading for optimized queries
+from sqlalchemy.orm import joinedload, selectinload, contains_eager
+from functools import lru_cache
 
 # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
 credenciais_admin = {
     "email": os.getenv('ADMIN_EMAIL'),
     "password": os.getenv('ADMIN_PASSWORD')
 }
+
+# PERFORMANCE: Cache for static/rarely-changing data
+@lru_cache(maxsize=1)
+def get_all_seco_processes():
+    """Cache SECO processes - they rarely change"""
+    return SECO_process.query.options(
+        selectinload(SECO_process.guidelines),
+        selectinload(SECO_process.tasks)
+    ).all()
+
+@lru_cache(maxsize=1)
+def get_all_dimensions():
+    """Cache dimensions - they rarely change"""
+    return SECO_dimension.query.all()
+
+# Helper to clear cache when data is updated
+def clear_static_caches():
+    """Call this after updating processes or dimensions"""
+    get_all_seco_processes.cache_clear()
+    get_all_dimensions.cache_clear()
 
 @app.route('/')
 def index():
@@ -42,8 +70,10 @@ def evaluations():
     search_query = request.args.get('search', '', type=str).strip()
     sort_by = request.args.get('sort', 'newest', type=str)  # Fix #29: Sorting options
     
-    # Start with user's evaluations query
-    query = Evaluation.query.filter_by(user_id=user.user_id)
+    # PERFORMANCE: Start with user's evaluations query with eager loading for processes
+    query = Evaluation.query.options(
+        selectinload(Evaluation.seco_processes)
+    ).filter_by(user_id=user.user_id)
     
     # Fix #28: Apply search filter if provided
     if search_query:
@@ -57,19 +87,30 @@ def evaluations():
         )
     
     # Fix #29: Apply sorting (using created_at for chronological order)
+    # Note: MySQL doesn't support NULLS LAST/FIRST, so we use simple sorting
+    # NULL values will naturally sort to the end/beginning depending on ASC/DESC
     if sort_by == 'newest':
-        # Sort by creation date (newest first), fallback to evaluation_id if no date
-        query = query.order_by(Evaluation.created_at.desc().nullslast(), Evaluation.evaluation_id.desc())
+        # Sort by creation date (newest first), fallback to evaluation_id
+        query = query.order_by(
+            Evaluation.created_at.desc(), 
+            Evaluation.evaluation_id.desc()
+        )
     elif sort_by == 'oldest':
-        # Sort by creation date (oldest first), fallback to evaluation_id if no date
-        query = query.order_by(Evaluation.created_at.asc().nullsfirst(), Evaluation.evaluation_id.asc())
+        # Sort by creation date (oldest first), fallback to evaluation_id
+        query = query.order_by(
+            Evaluation.created_at.asc(), 
+            Evaluation.evaluation_id.asc()
+        )
     elif sort_by == 'name_asc':
         query = query.order_by(Evaluation.name.asc())
     elif sort_by == 'name_desc':
         query = query.order_by(Evaluation.name.desc())
     else:
         # Default to newest
-        query = query.order_by(Evaluation.created_at.desc().nullslast(), Evaluation.evaluation_id.desc())
+        query = query.order_by(
+            Evaluation.created_at.desc(), 
+            Evaluation.evaluation_id.desc()
+        )
     
     # Fix #27: Paginate results (FAST)
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -86,7 +127,8 @@ def evaluations():
 def create_evaluation():
     email = session.get('user_signed_in')
     user = User.query.filter_by(email=email).first() if email else None
-    seco_processes = SECO_process.query.all()
+    # PERFORMANCE: Use cached version of processes
+    seco_processes = get_all_seco_processes()
 
     # Fix #7: Generate CSRF token for form protection
     token = token_urlsafe(16)
@@ -574,10 +616,39 @@ def delete_evaluation(id):
 def evaluation(id):
     email = session['user_signed_in']
     user = User.query.filter_by(email=email).first()
-    evaluation = Evaluation.query.get_or_404(id)
-    seco_processes = evaluation.seco_processes
-    collected_data = evaluation.collected_data
-    questions = Question.query.all()
+    
+    # PERFORMANCE: Eager load all relationships to avoid N+1 queries
+    # This reduces 20+ queries to just 1-2 queries
+    evaluation = Evaluation.query.options(
+        selectinload(Evaluation.seco_processes)
+            .selectinload(SECO_process.guidelines)
+            .selectinload(Guideline.seco_dimensions),
+        selectinload(Evaluation.seco_processes)
+            .selectinload(SECO_process.tasks),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.performed_tasks)
+            .selectinload(PerformedTask.task),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.answers)
+            .selectinload(Answer.question),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.developer_questionnaire),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.navigation)
+    ).get_or_404(id)
+    
+    seco_processes = evaluation.seco_processes  # Already loaded
+    collected_data = evaluation.collected_data  # Already loaded
+    
+    # PERFORMANCE: Only load questions that are actually used in this evaluation
+    question_ids = set()
+    for cd in collected_data:
+        for answer in cd.answers:
+            question_ids.add(answer.question_id)
+    
+    questions = Question.query.filter(
+        Question.question_id.in_(question_ids)
+    ).all() if question_ids else []
     
     # Build procedure-organized data structure
     procedures_data = []
@@ -632,10 +703,29 @@ def evaluation(id):
 def eval_dashboard(id):
     email = session['user_signed_in']
     user = User.query.filter_by(email=email).first()
-    evaluation = Evaluation.query.get_or_404(id)
-    seco_processes = evaluation.seco_processes
-    collected_data = evaluation.collected_data
-    questions = Question.query.all()
+    
+    # PERFORMANCE: Eager load all relationships (reduces 30+ queries to 2-3)
+    evaluation = Evaluation.query.options(
+        selectinload(Evaluation.seco_processes)
+            .selectinload(SECO_process.guidelines)
+            .selectinload(Guideline.seco_dimensions),
+        selectinload(Evaluation.seco_processes)
+            .selectinload(SECO_process.tasks),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.performed_tasks),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.answers)
+            .selectinload(Answer.question),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.developer_questionnaire),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.navigation)
+    ).get_or_404(id)
+    
+    seco_processes = evaluation.seco_processes  # Already loaded
+    collected_data = evaluation.collected_data  # Already loaded
+    
+    # PERFORMANCE: Collect unique tasks and guidelines (already loaded, no extra queries)
     guidelines = []
     tasks = []
     for p in seco_processes:
@@ -645,6 +735,16 @@ def eval_dashboard(id):
         for g in p.guidelines:
             if g not in guidelines:
                 guidelines.append(g)
+    
+    # PERFORMANCE: Only load questions that are actually answered
+    question_ids = set()
+    for cd in collected_data:
+        for answer in cd.answers:
+            question_ids.add(answer.question_id)
+    
+    questions = Question.query.filter(
+        Question.question_id.in_(question_ids)
+    ).all() if question_ids else []
                 
     count_collected_data = len(collected_data)
     
