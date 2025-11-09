@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const button = form.querySelector('button[type="submit"], input[type="submit"]')
 
   let submitted = false
-  
+
   // Fix #23: Save and restore form state from sessionStorage
   const STORAGE_KEY = 'evaluation_form_data'
   
