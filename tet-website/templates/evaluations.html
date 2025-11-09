@@ -22,6 +22,23 @@
     </div>
 
     <div class="eval-container">
+        <!-- Fix #26: Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages-container">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <span class="flash-icon">
+                                {% if category == 'success' %}✓{% elif category == 'error' %}✕{% else %}ℹ{% endif %}
+                            </span>
+                            <span class="flash-text">{{ message }}</span>
+                            <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
         <!-- Action Header -->
         <header class="eval-header">
             <div class="eval-title-section">
@@ -34,10 +51,56 @@
             </div>
         </header>
 
+        <!-- Fix #28, #29: Search and Sort Controls -->
+        <div class="evaluations-controls">
+            <form class="search-form" method="get" action="{{ url_for('evaluations') }}">
+                <div class="search-box">
+                    <input type="text" 
+                           name="search" 
+                           class="search-input" 
+                           placeholder="Search by name, portal, or code..." 
+                           value="{{ search_query if search_query else '' }}">
+                    <button type="submit" class="search-btn">
+                        <span>🔍</span>
+                    </button>
+                </div>
+                <input type="hidden" name="sort" value="{{ sort_by }}">
+            </form>
+            
+            <div class="sort-controls">
+                <label for="sort-select" class="sort-label">Sort by:</label>
+                <select id="sort-select" class="sort-select" onchange="this.form.submit()">
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                </select>
+                <form id="sort-form" method="get" action="{{ url_for('evaluations') }}" style="display: none;">
+                    <input type="hidden" name="sort" id="sort-value" value="{{ sort_by }}">
+                    <input type="hidden" name="search" value="{{ search_query if search_query else '' }}">
+                </form>
+            </div>
+        </div>
+        
+        <script>
+            // Fix #29: Handle sort change
+            document.getElementById('sort-select').onchange = function() {
+                document.getElementById('sort-value').value = this.value;
+                document.getElementById('sort-form').submit();
+            };
+        </script>
+
         <!-- Main Content -->
         <main class="eval-main">
             <section class="evaluations-section">
                 <h2 class="section-title">Your Evaluations</h2>
+                
+                {% if search_query %}
+                <div class="search-info">
+                    Showing results for: <strong>{{ search_query }}</strong>
+                    <a href="{{ url_for('evaluations', sort=sort_by) }}" class="clear-search">Clear search</a>
+                </div>
+                {% endif %}
                 
                 <div class="evaluations-grid">
                     {% if evaluations %}
@@ -89,7 +152,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="empty-state">
-                            <p>You don't have any evaluations. Create one now!</p>
+                            <p>{% if search_query %}No evaluations found matching "{{ search_query }}"{% else %}You don't have any evaluations. Create one now!{% endif %}</p>
                             <a href="{{ url_for('create_evaluation') }}" class="dashboard-btn">
                                 <span class="btn-icon">+</span>
                                 <span>Create Evaluation</span>
@@ -97,6 +160,44 @@
                         </div>
                     {% endif %}
                 </div>
+                
+                <!-- Fix #27: Pagination Controls -->
+                {% if pagination and pagination.pages > 1 %}
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} - {{ min(pagination.page * pagination.per_page, pagination.total) }} of {{ pagination.total }} evaluations
+                    </div>
+                    <div class="pagination-controls">
+                        {% if pagination.has_prev %}
+                            <a href="{{ url_for('evaluations', page=1, search=search_query, sort=sort_by) }}" class="page-btn" title="First Page">⏮</a>
+                            <a href="{{ url_for('evaluations', page=pagination.prev_num, search=search_query, sort=sort_by) }}" class="page-btn" title="Previous Page">←</a>
+                        {% else %}
+                            <span class="page-btn disabled">⏮</span>
+                            <span class="page-btn disabled">←</span>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num == pagination.page %}
+                                    <span class="page-btn active">{{ page_num }}</span>
+                                {% else %}
+                                    <a href="{{ url_for('evaluations', page=page_num, search=search_query, sort=sort_by) }}" class="page-btn">{{ page_num }}</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="page-btn disabled">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                            <a href="{{ url_for('evaluations', page=pagination.next_num, search=search_query, sort=sort_by) }}" class="page-btn" title="Next Page">→</a>
+                            <a href="{{ url_for('evaluations', page=pagination.pages, search=search_query, sort=sort_by) }}" class="page-btn" title="Last Page">⏭</a>
+                        {% else %}
+                            <span class="page-btn disabled">→</span>
+                            <span class="page-btn disabled">⏭</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
             </section>
         </main>
     </div>

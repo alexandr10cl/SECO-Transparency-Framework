@@ -1,5 +1,6 @@
 from index import db
 from models import SECOType
+from datetime import datetime
 
 # Association Tables
 evaluation_SECO_process = db.Table('evaluation_SECO_process',
@@ -26,6 +27,7 @@ class Evaluation(db.Model):
     seco_portal_url = db.Column(db.String(500), nullable=False)
     seco_type = db.Column(db.Enum(SECOType, name="seco_type_enum"), nullable=False, index=True)
     manager_objective = db.Column(db.Text, nullable=True)  # Manager's main objective for this evaluation
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True, index=True)  # Timestamp for sorting
     
     # Foreign key to the user table
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)

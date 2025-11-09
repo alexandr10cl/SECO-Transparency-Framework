@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, session, url_for, jsonify, abort
+from flask import render_template, request, redirect, session, url_for, jsonify, abort, flash
 from index import app, db
 from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor, EvaluationCriterionWheight
 from functions import isLogged, isAdmin, login_required  # Fix #3: Import login_required decorator
@@ -36,45 +36,50 @@ def evaluations():
     email = session.get('user_signed_in')
     user = SECO_MANAGER.query.filter_by(email=email).first()
 
-    # DEBUG: Check table columns in real-time
-    from sqlalchemy import inspect, text
-
-    print("\n" + "="*60)
-    print("DEBUG: CHECKING DATABASE TABLE STRUCTURE")
-    print("="*60)
-
-    # Method 1: Check via SQLAlchemy inspector
-    try:
-        inspector = inspect(db.engine)
-        columns = inspector.get_columns('evaluation')
-        column_names = [col['name'] for col in columns]
-        print(f"Columns in 'evaluation' table (via inspector): {column_names}")
-        print(f"Has 'manager_objective'? {'manager_objective' in column_names}")
-    except Exception as e:
-        print(f"Error inspecting table: {e}")
-
-    # Method 2: Direct SQL query
-    try:
-        result = db.session.execute(text("SHOW COLUMNS FROM evaluation"))
-        columns = [row[0] for row in result]
-        print(f"Columns via SHOW COLUMNS: {columns}")
-        print(f"Has 'manager_objective'? {'manager_objective' in columns}")
-    except Exception as e:
-        print(f"Error with SHOW COLUMNS: {e}")
-
-    # Method 3: Check the model mapping
-    try:
-        mapper = inspect(Evaluation)
-        model_columns = [column.key for column in mapper.columns]
-        print(f"Columns in Evaluation model: {model_columns}")
-        print(f"Model has 'manager_objective'? {'manager_objective' in model_columns}")
-    except Exception as e:
-        print(f"Error inspecting model: {e}")
-
-    print("="*60 + "\n")
-
-    evaluations = user.evaluations
-    return render_template('evaluations.html', evaluations=evaluations)
+    # Fix #27, #28, #29: Pagination, Search, and Sorting
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Fix #27: 10 evaluations per page
+    search_query = request.args.get('search', '', type=str).strip()
+    sort_by = request.args.get('sort', 'newest', type=str)  # Fix #29: Sorting options
+    
+    # Start with user's evaluations query
+    query = Evaluation.query.filter_by(user_id=user.user_id)
+    
+    # Fix #28: Apply search filter if provided
+    if search_query:
+        search_pattern = f'%{search_query}%'
+        query = query.filter(
+            db.or_(
+                Evaluation.name.ilike(search_pattern),
+                Evaluation.seco_portal.ilike(search_pattern),
+                Evaluation.evaluation_id.cast(db.String).like(search_pattern)
+            )
+        )
+    
+    # Fix #29: Apply sorting (using created_at for chronological order)
+    if sort_by == 'newest':
+        # Sort by creation date (newest first), fallback to evaluation_id if no date
+        query = query.order_by(Evaluation.created_at.desc().nullslast(), Evaluation.evaluation_id.desc())
+    elif sort_by == 'oldest':
+        # Sort by creation date (oldest first), fallback to evaluation_id if no date
+        query = query.order_by(Evaluation.created_at.asc().nullsfirst(), Evaluation.evaluation_id.asc())
+    elif sort_by == 'name_asc':
+        query = query.order_by(Evaluation.name.asc())
+    elif sort_by == 'name_desc':
+        query = query.order_by(Evaluation.name.desc())
+    else:
+        # Default to newest
+        query = query.order_by(Evaluation.created_at.desc().nullslast(), Evaluation.evaluation_id.desc())
+    
+    # Fix #27: Paginate results (FAST)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    evaluations = pagination.items
+    
+    return render_template('evaluations.html', 
+                         evaluations=evaluations,
+                         pagination=pagination,
+                         search_query=search_query,
+                         sort_by=sort_by)
 
 @app.route('/evaluations/create_evaluation', methods=['GET'])
 @login_required  # Fix #3: Protect evaluation creation from unauthenticated access
@@ -480,6 +485,8 @@ def add_evaluation():
             db.session.rollback()
             abort(500, description="Failed to save evaluation. Please try again.")
 
+    # Fix #26: Add success flash message
+    flash('Evaluation created successfully! Share the evaluation code with participants.', 'success')
     return redirect(url_for('evaluations'))
 
 
