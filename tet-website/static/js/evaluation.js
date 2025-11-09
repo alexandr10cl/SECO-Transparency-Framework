@@ -4,6 +4,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const button = form.querySelector('button[type="submit"], input[type="submit"]')
 
   let submitted = false
+  
+  // Fix #6: Character counter for manager objective textarea
+  const managerObjective = document.getElementById('manager_objective')
+  const managerCounter = document.getElementById('manager-objective-counter')
+  if (managerObjective && managerCounter) {
+    // Update counter on page load
+    managerCounter.textContent = `${managerObjective.value.length} / 2000`
+    
+    // Update counter on input
+    managerObjective.addEventListener('input', () => {
+      const length = managerObjective.value.length
+      managerCounter.textContent = `${length} / 2000`
+      
+      // Change color when approaching limit
+      if (length > 1800) {
+        managerCounter.style.color = '#e74c3c'  // Red warning
+      } else if (length > 1500) {
+        managerCounter.style.color = '#f39c12'  // Orange warning
+      } else {
+        managerCounter.style.color = '#7f8c8d'  // Default gray
+      }
+    })
+  }
 
   // Apple-level Process Card Interactions
   const processCards = document.querySelectorAll('.process-card')
@@ -610,13 +633,159 @@ document.addEventListener('DOMContentLoaded', () => {
   nextBtn?.addEventListener('click', async () => {
     // If we are on details step, validate and build groups
     if (currentStepIndex === -1) {
+      // Validate all required fields before proceeding
+      let hasErrors = false
+      
+      // Validate Evaluation Name (required, max 255 chars)
+      const nameInput = document.getElementById('name')
+      if (nameInput) {
+        const nameValue = nameInput.value.trim()
+        let errorEl = nameInput.parentElement.querySelector('.field-error')
+        
+        if (!nameValue) {
+          nameInput.classList.add('input-error')
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            nameInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'Evaluation name is required'
+          hasErrors = true
+        } else if (nameValue.length > 255) {
+          nameInput.classList.add('input-error')
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            nameInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'Evaluation name must be less than 255 characters'
+          hasErrors = true
+        } else if (nameInput.classList.contains('input-error')) {
+          // Field is marked as invalid - block progression
+          hasErrors = true
+        } else {
+          nameInput.classList.remove('input-error')
+          if (errorEl) errorEl.remove()
+        }
+      }
+      
+      // Validate SECO Portal (required, max 255 chars)
+      const portalInput = document.getElementById('seco_portal')
+      if (portalInput) {
+        const portalValue = portalInput.value.trim()
+        let errorEl = portalInput.parentElement.querySelector('.field-error')
+        
+        if (!portalValue) {
+          portalInput.classList.add('input-error')
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            portalInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'SECO portal name is required'
+          hasErrors = true
+        } else if (portalValue.length > 255) {
+          portalInput.classList.add('input-error')
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            portalInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'Portal name must be less than 255 characters'
+          hasErrors = true
+        } else if (portalInput.classList.contains('input-error')) {
+          // Field is marked as invalid - block progression
+          hasErrors = true
+        } else {
+          portalInput.classList.remove('input-error')
+          if (errorEl) errorEl.remove()
+        }
+      }
+      
+      // Validate Portal URL (required + check if already marked as invalid)
+      const urlInput = document.getElementById('seco_portal_url')
+      if (urlInput) {
+        const urlValue = urlInput.value.trim()
+        let errorEl = urlInput.parentElement.querySelector('.field-error')
+        
+        if (!urlValue) {
+          // URL is empty
+          urlInput.classList.add('input-error')
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            urlInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'Portal URL is required'
+          hasErrors = true
+        } else if (urlInput.classList.contains('input-error') || urlInput.hasAttribute('data-invalid')) {
+          // URL field is already marked as invalid (red border from blur validation)
+          // Don't allow progression until user fixes it
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            urlInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'Please enter a valid URL'
+          hasErrors = true
+        } else {
+          // URL is provided and valid
+          urlInput.removeAttribute('data-invalid')
+          urlInput.classList.remove('input-error')
+          if (errorEl) errorEl.remove()
+        }
+      }
+      
+      // Validate Manager Objective (required)
+      const objectiveInput = document.getElementById('manager_objective')
+      if (objectiveInput) {
+        const objectiveValue = objectiveInput.value.trim()
+        let errorEl = objectiveInput.parentElement.querySelector('.field-error')
+        
+        if (!objectiveValue) {
+          objectiveInput.classList.add('input-error')
+          if (!errorEl) {
+            errorEl = document.createElement('div')
+            errorEl.className = 'field-error'
+            errorEl.style.color = '#e74c3c'
+            errorEl.style.fontSize = '0.875rem'
+            errorEl.style.marginTop = '0.5rem'
+            objectiveInput.parentElement.appendChild(errorEl)
+          }
+          errorEl.textContent = 'Manager objective is required'
+          hasErrors = true
+        } else if (objectiveInput.classList.contains('input-error')) {
+          // Field is marked as invalid - block progression
+          hasErrors = true
+        } else {
+          objectiveInput.classList.remove('input-error')
+          if (errorEl) errorEl.remove()
+        }
+      }
+      
       // Validate SECO Type is selected
       const secoTypeSelect = document.getElementById('seco_type')
       if (secoTypeSelect && !secoTypeSelect.value) {
         secoTypeSelect.classList.add('input-error')
-        secoTypeSelect.focus()
         
-        // Show error message
         let errorEl = secoTypeSelect.parentElement.querySelector('.field-error')
         if (!errorEl) {
           errorEl = document.createElement('div')
@@ -627,22 +796,18 @@ document.addEventListener('DOMContentLoaded', () => {
           secoTypeSelect.parentElement.appendChild(errorEl)
         }
         errorEl.textContent = 'Please select a SECO Type before continuing'
-        return
+        hasErrors = true
+      } else if (secoTypeSelect) {
+        secoTypeSelect.classList.remove('input-error')
+        const existingError = secoTypeSelect.parentElement.querySelector('.field-error')
+        if (existingError) existingError.remove()
       }
-      secoTypeSelect.classList.remove('input-error')
       
-      // Remove error message if exists
-      const existingError = secoTypeSelect.parentElement.querySelector('.field-error')
-      if (existingError) existingError.remove()
-      
-      // Validate URL
-      const urlInput = document.getElementById('seco_portal_url')
-      if (urlInput && urlInput.value.trim()) {
-        if (!isValidURL(urlInput.value.trim())) {
-          urlInput.setAttribute('data-invalid', 'true')
-          urlInput.focus()
-          return
-        }
+      // If any validation failed, focus first error and stop
+      if (hasErrors) {
+        const firstError = document.querySelector('.input-error')
+        if (firstError) firstError.focus()
+        return
       }
 
       // require at least one process

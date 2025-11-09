@@ -85,8 +85,8 @@
 
                         <div class="form-group">
                             <label for="seco_portal_url" class="form-label">Portal URL</label>
-                            <input type="text" name="seco_portal_url" id="seco_portal_url" class="form-input" placeholder="https://example.com" value="{{ values.seco_portal_url if values else '' }}" required>
-                            <div class="form-help">Enter a valid URL (e.g., https://example.com)</div>
+                            <input type="text" name="seco_portal_url" id="seco_portal_url" class="form-input" placeholder="example.com" value="{{ values.seco_portal_url if values else '' }}" required>
+                            <div class="form-help">Enter the portal URL (e.g., example.com or https://example.com)</div>
                         </div>
 
                         <div class="form-group">
@@ -105,9 +105,13 @@
                         <div class="form-group">
                             <label for="manager_objective" class="form-label">Manager's Main Objective</label>
                             <textarea name="manager_objective" id="manager_objective" class="form-input"
-                                    rows="4" placeholder="Describe the main objective of this evaluation (e.g., identify transparency gaps, prepare for certification, improve user experience, etc.)"
+                                    rows="4" maxlength="2000" 
+                                    placeholder="Describe the main objective of this evaluation (e.g., identify transparency gaps, prepare for certification, improve user experience, etc.)"
                                     required>{{ values.manager_objective if values else '' }}</textarea>
-                            <div class="form-help">What is the primary goal you want to achieve with this evaluation?</div>
+                            <div class="form-help">
+                                What is the primary goal you want to achieve with this evaluation?
+                                <span id="manager-objective-counter" style="float: right; color: #7f8c8d;">0 / 2000</span>
+                            </div>
                         </div>
 
                         <!-- SECO Processes Selection -->

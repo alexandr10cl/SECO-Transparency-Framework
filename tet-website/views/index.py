@@ -1,7 +1,7 @@
-from flask import render_template, request, redirect, session, url_for, jsonify
+from flask import render_template, request, redirect, session, url_for, jsonify, abort
 from index import app, db
 from models import User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor, EvaluationCriterionWheight
-from functions import isLogged, isAdmin
+from functions import isLogged, isAdmin, login_required  # Fix #3: Import login_required decorator
 from datetime import datetime
 import random as rd
 import requests
@@ -30,8 +30,10 @@ def index():
     return render_template('index.html', admins=admins)
 
 @app.route('/evaluations')
+@login_required  # Fix #3: Protect route from unauthenticated access
 def evaluations():
-    email = session['user_signed_in']
+    # Fix #3: Safe access to session variable (decorator ensures user is logged in)
+    email = session.get('user_signed_in')
     user = SECO_MANAGER.query.filter_by(email=email).first()
 
     # DEBUG: Check table columns in real-time
@@ -75,11 +77,13 @@ def evaluations():
     return render_template('evaluations.html', evaluations=evaluations)
 
 @app.route('/evaluations/create_evaluation', methods=['GET'])
+@login_required  # Fix #3: Protect evaluation creation from unauthenticated access
 def create_evaluation():
     email = session.get('user_signed_in')
     user = User.query.filter_by(email=email).first() if email else None
     seco_processes = SECO_process.query.all()
 
+    # Fix #7: Generate CSRF token for form protection
     token = token_urlsafe(16)
     session['eval_form_token'] = token
 
@@ -94,11 +98,13 @@ def create_evaluation():
 
 
 @app.route('/evaluations/create_evaluation/add_evaluation', methods=['POST'])
+@login_required  # Fix #3: Protect POST endpoint
 def add_evaluation():
     # local imports for this handler
     from sqlalchemy.exc import IntegrityError
     import random as rd
     import requests
+    import re
 
     # DEBUG: Check if Evaluation model has manager_objective attribute
     print("\n" + "="*60)
@@ -118,11 +124,11 @@ def add_evaluation():
         print(f"Could not inspect model: {e}")
     print("="*60 + "\n")
 
-    # one-time form token check
+    # Fix #7: CSRF token validation - Validate form token to prevent CSRF attacks
     token = request.form.get('form_token')
     saved = session.pop('eval_form_token', None)
     if not token or token != saved:
-        return redirect(url_for('evaluations'))
+        abort(403, description="Invalid or expired form token. Please try again.")
 
     # read form data
     name = request.form.get('name', '').strip()
@@ -131,6 +137,47 @@ def add_evaluation():
     seco_process_ids = request.form.getlist('seco_process_ids')
     seco_type_str = request.form.get('seco_type')
     manager_objective = request.form.get('manager_objective', '').strip()
+    
+    # Fix #6: Validate manager objective length (max 2000 characters)
+    # Prevents database overflow and SQL errors
+    MAX_MANAGER_OBJECTIVE_LENGTH = 2000
+    if len(manager_objective) > MAX_MANAGER_OBJECTIVE_LENGTH:
+        abort(400, description=f"Manager objective too long. Maximum {MAX_MANAGER_OBJECTIVE_LENGTH} characters allowed.")
+    
+    # Fix #8: Input validation and sanitization for all required fields
+    # Prevents empty/invalid data from entering database
+    if not name or len(name) > 255:
+        abort(400, description="Evaluation name is required and must be less than 255 characters.")
+    
+    if not seco_portal or len(seco_portal) > 255:
+        abort(400, description="SECO portal name is required and must be less than 255 characters.")
+    
+    # Fix #8: Validate URL format (lenient - accepts with or without protocol)
+    # Just check it's not empty and not too long - frontend handles format validation
+    if not seco_portal_url:
+        abort(400, description="Portal URL is required.")
+    
+    if len(seco_portal_url) > 500:
+        abort(400, description="Portal URL is too long. Maximum 500 characters allowed.")
+    
+    # Optional: Auto-add http:// if no protocol specified (makes it more user-friendly)
+    if not re.match(r'^https?://', seco_portal_url):
+        seco_portal_url = 'https://' + seco_portal_url
+    
+    # Fix #8: Validate SECO type is valid enum value
+    try:
+        seco_type = SECOType(seco_type_str)
+    except (ValueError, AttributeError):
+        abort(400, description="Invalid SECO type selected.")
+    
+    # Fix #8: Validate process IDs are integers (prevents SQL injection via form manipulation)
+    # SQLAlchemy uses parameterized queries but we validate early for safety
+    try:
+        seco_process_ids_int = [int(pid) for pid in seco_process_ids]
+        if not seco_process_ids_int:
+            abort(400, description="At least one process must be selected.")
+    except (ValueError, TypeError):
+        abort(400, description="Invalid process IDs provided.")
 
     # DEBUG: Print all form data received
     print("\n" + "="*60)
@@ -191,28 +238,13 @@ def add_evaluation():
         "ksc_weights": ksc_weights_map
     }
 
-    seco_type = SECOType(seco_type_str)
+    # Note: seco_type and seco_process_ids_int already validated above
+    # No need to re-validate here
 
-    # must select at least one process
-    if not seco_process_ids:
-        error_msg = "Please select at least one process"
-        seco_processes = SECO_process.query.all()
-        return render_template(
-            "create_evaluation.html",
-            user=user,
-            seco_processes=seco_processes,
-            values=form_values,
-            error_msg=error_msg,
-            form_token=token,  # pass the token again
-            seco_types=SECOType
-        )
-
-    # Validate KSC weights for each selected process
+    # Fix #8: Validate KSC weights for each selected process
+    # Ensure all weights are integers between 0-10 (prevents injection/manipulation)
     validation_errors = []
-    try:
-        selected_process_ids_int = [int(pid) for pid in seco_process_ids]
-    except ValueError:
-        selected_process_ids_int = []
+    selected_process_ids_int = seco_process_ids_int  # Already validated above
 
     for pid in selected_process_ids_int:
         weights = ksc_weights.get(pid, [])
@@ -283,11 +315,26 @@ def add_evaluation():
     else:
         print(f"LOG: Sem access token disponível, usando fallback")
 
+    # Fix #5: Generate unique evaluation_id with race condition protection
     if not evaluation_id:
         print(f"LOG: Usando geração aleatória de código (fallback)")
-        while True:
+        # Generate random 7-digit code, checking for collisions
+        import random
+        max_attempts = 10
+        for attempt in range(max_attempts):
+            # Generate random 7-digit number
+            evaluation_id = random.randint(1000000, 9999999)
+            # Check if already exists
             if Evaluation.query.filter_by(evaluation_id=evaluation_id).first() is None:
+                print(f"LOG: Código gerado com sucesso: {evaluation_id}")
                 break
+            else:
+                print(f"LOG: Código {evaluation_id} já existe, tentando novamente...")
+                evaluation_id = None
+        
+        if not evaluation_id:
+            # Extremely unlikely, but handle it
+            abort(500, description="Failed to generate unique evaluation code. Please try again.")
 
     if r and r.status_code == 201 and evaluation_id:
 
@@ -414,28 +461,39 @@ def add_evaluation():
                 print("\nDEBUG: WARNING - Could not find evaluation in database after save!")
 
         except IntegrityError as e:
+            # Fix #5: Handle race condition/duplicate evaluation gracefully
             print(f"\nDEBUG: ERROR - IntegrityError occurred: {str(e)}")
-            print("⚠️ Error committing KSC weights")
+            print("⚠️ Error committing evaluation - likely duplicate or constraint violation")
             db.session.rollback()
-            return redirect(url_for('evaluations'))
+            
+            # Check if it's a duplicate evaluation_id (race condition)
+            if 'PRIMARY' in str(e) or 'evaluation_id' in str(e):
+                abort(409, description="Evaluation code already exists. Please try creating the evaluation again.")
+            else:
+                # Other integrity errors (e.g., duplicate name+portal combo)
+                abort(400, description="An evaluation with these details already exists.")
+                
         except Exception as e:
+            # Fix #4: Catch any other database errors
             print(f"\nDEBUG: ERROR - Unexpected error: {type(e).__name__}: {str(e)}")
-            print("⚠️ Error committing KSC weights")
+            print("⚠️ Error committing evaluation")
             db.session.rollback()
-            return redirect(url_for('evaluations'))
+            abort(500, description="Failed to save evaluation. Please try again.")
 
     return redirect(url_for('evaluations'))
 
 
 @app.route('/evaluations/<int:id>/edit')
+@login_required  # Fix #3: Protect edit route
 def edit_evaluation(id):
-    email = session['user_signed_in']
+    email = session.get('user_signed_in')
     user = User.query.filter_by(email=email).first()
     evaluation = Evaluation.query.get_or_404(id)
     seco_processes = SECO_process.query.all()
     return render_template('edit_evaluation.html', evaluation=evaluation, user=user, seco_processes=seco_processes, seco_types=SECOType)
 
 @app.route('/evaluations/<int:id>/update', methods=['POST'])
+@login_required  # Fix #3: Protect update route
 def update_evaluation(id):
     # getting the form data
     name = request.form.get('name')
