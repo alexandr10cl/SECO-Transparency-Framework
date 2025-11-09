@@ -5,6 +5,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let submitted = false
   
+  // Fix #23: Save and restore form state from sessionStorage
+  const STORAGE_KEY = 'evaluation_form_data'
+  
+  // Restore form data on page load
+  function restoreFormData() {
+    try {
+      const savedData = sessionStorage.getItem(STORAGE_KEY)
+      if (savedData) {
+        const data = JSON.parse(savedData)
+        
+        // Restore text inputs and textareas
+        Object.keys(data).forEach(key => {
+          const field = form.querySelector(`[name="${key}"]`)
+          if (field && !field.disabled) {
+            if (field.type === 'checkbox') {
+              field.checked = data[key]
+            } else if (field.type === 'radio') {
+              if (field.value === data[key]) {
+                field.checked = true
+              }
+            } else {
+              field.value = data[key]
+            }
+          }
+        })
+        
+        console.log('✅ Form data restored from sessionStorage')
+      }
+    } catch (e) {
+      console.warn('⚠️ Error restoring form data:', e)
+    }
+  }
+  
+  // Save form data to sessionStorage
+  function saveFormData() {
+    try {
+      const formData = new FormData(form)
+      const data = {}
+      
+      formData.forEach((value, key) => {
+        data[key] = value
+      })
+      
+      // Save checkboxes separately (they won't appear in FormData if unchecked)
+      form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        data[cb.name] = cb.checked
+      })
+      
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch (e) {
+      console.warn('⚠️ Error saving form data:', e)
+    }
+  }
+  
+  // Clear saved data on successful submission
+  function clearFormData() {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY)
+      console.log('🗑️ Form data cleared from sessionStorage')
+    } catch (e) {
+      console.warn('⚠️ Error clearing form data:', e)
+    }
+  }
+  
+  // Restore data on page load
+  restoreFormData()
+  
+  // Save data whenever form changes
+  form.addEventListener('input', saveFormData)
+  form.addEventListener('change', saveFormData)
+  
+  // Clear data on successful submission
+  form.addEventListener('submit', () => {
+    // Wait a bit before clearing to ensure submission succeeded
+    setTimeout(clearFormData, 1000)
+  })
+  
   // Fix #6: Character counter for manager objective textarea
   const managerObjective = document.getElementById('manager_objective')
   const managerCounter = document.getElementById('manager-objective-counter')
