@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .error-code {
+        font-size: 6rem;
+        font-weight: bold;
+        color: #e74c3c;
+        margin: 0;
+    }
+    
+    .error-title {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin: 1rem 0;
+    }
+    
+    .error-message {
+        font-size: 1.2rem;
+        color: #7f8c8d;
+        max-width: 600px;
+        margin: 1rem auto 2rem;
+    }
+    
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .error-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .error-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .error-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .error-btn-secondary {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+    
+    .error-btn-secondary:hover {
+        background: #d5dbdb;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Error {{ error_code }}{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <h1 class="error-code">{{ error_code }}</h1>
+    <h2 class="error-title">
+        {% if error_code == 404 %}
+            Page Not Found
+        {% elif error_code == 500 %}
+            Internal Server Error
+        {% elif error_code == 503 %}
+            Service Unavailable
+        {% else %}
+            Something Went Wrong
+        {% endif %}
+    </h2>
+    <p class="error-message">
+        {{ error_message }}
+    </p>
+    <div class="error-actions">
+        <a href="{{ url_for('index') }}" class="error-btn error-btn-primary">
+            Go Home
+        </a>
+        <a href="javascript:history.back()" class="error-btn error-btn-secondary">
+            Go Back
+        </a>
+    </div>
+</div>
+{% endblock %}
+
