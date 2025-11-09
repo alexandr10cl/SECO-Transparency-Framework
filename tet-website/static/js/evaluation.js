@@ -442,11 +442,43 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="ksc-title"><strong>${ksc.title}</strong></span>
               <p class="ksc-description">${ksc.description}</p>
             </div>
-            <input type="number" min="0" max="10" value="0"
+            <input type="number" min="0" max="10" value="" placeholder="0-10" step="1"
                     class="ksc-input"
                     name="ksc_points_${pid}_${ksc.id}">
           `;
+          
           itemsContainer.appendChild(item);
+          
+          const kscInput = item.querySelector('.ksc-input');
+          
+          // Real-time validation: prevent values < 0 or > 10
+          kscInput.addEventListener('input', (e) => {
+            let value = parseInt(e.target.value);
+            
+            // Clamp value between 0 and 10
+            if (e.target.value !== '' && !isNaN(value)) {
+              if (value < 0) {
+                e.target.value = 0;
+              } else if (value > 10) {
+                e.target.value = 10;
+              }
+            }
+            
+            // Visual feedback for invalid input
+            const currentValue = parseInt(e.target.value) || 0;
+            if (currentValue < 0 || currentValue > 10) {
+              e.target.classList.add('input-error');
+            } else {
+              e.target.classList.remove('input-error');
+            }
+          });
+          
+          // Prevent typing negative sign or decimals
+          kscInput.addEventListener('keydown', (e) => {
+            if (e.key === '-' || e.key === '.' || e.key === ',') {
+              e.preventDefault();
+            }
+          });
         });
 
         group.appendChild(itemsContainer);
@@ -535,8 +567,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const group = groupElements[index]
     if (!group) return true
     const inputs = group.querySelectorAll('.ksc-input')
-    const sum = Array.from(inputs).reduce((a, b) => a + Number(b.value || 0), 0)
     const warning = group.querySelector('.ksc-warning')
+    
+    // Check for empty inputs
+    const hasEmptyInputs = Array.from(inputs).some(input => input.value === '')
+    if (hasEmptyInputs) {
+      warning.textContent = '⚠️ Please fill in all KSC weight fields (use 0 if not applicable)'
+      warning.classList.remove('ok','warn')
+      warning.classList.add('err')
+      
+      // Highlight empty inputs
+      inputs.forEach(input => {
+        if (input.value === '') {
+          input.classList.add('input-error')
+        } else {
+          input.classList.remove('input-error')
+        }
+      })
+      return false
+    }
+    
+    // Remove error highlighting if all filled
+    inputs.forEach(input => input.classList.remove('input-error'))
+    
+    const sum = Array.from(inputs).reduce((a, b) => a + Number(b.value || 0), 0)
     if (sum !== 10) {
       warning.textContent = `⚠️ You distributed ${sum} points. Please allocate exactly 10 points.`
       warning.classList.remove('ok','warn')
@@ -556,6 +610,31 @@ document.addEventListener('DOMContentLoaded', () => {
   nextBtn?.addEventListener('click', async () => {
     // If we are on details step, validate and build groups
     if (currentStepIndex === -1) {
+      // Validate SECO Type is selected
+      const secoTypeSelect = document.getElementById('seco_type')
+      if (secoTypeSelect && !secoTypeSelect.value) {
+        secoTypeSelect.classList.add('input-error')
+        secoTypeSelect.focus()
+        
+        // Show error message
+        let errorEl = secoTypeSelect.parentElement.querySelector('.field-error')
+        if (!errorEl) {
+          errorEl = document.createElement('div')
+          errorEl.className = 'field-error'
+          errorEl.style.color = '#e74c3c'
+          errorEl.style.fontSize = '0.875rem'
+          errorEl.style.marginTop = '0.5rem'
+          secoTypeSelect.parentElement.appendChild(errorEl)
+        }
+        errorEl.textContent = 'Please select a SECO Type before continuing'
+        return
+      }
+      secoTypeSelect.classList.remove('input-error')
+      
+      // Remove error message if exists
+      const existingError = secoTypeSelect.parentElement.querySelector('.field-error')
+      if (existingError) existingError.remove()
+      
       // Validate URL
       const urlInput = document.getElementById('seco_portal_url')
       if (urlInput && urlInput.value.trim()) {
