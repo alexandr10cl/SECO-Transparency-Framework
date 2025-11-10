@@ -366,28 +366,28 @@ fetch(`/api/experience-data/${id}`)
   .then(data => {
     const experienceCtx = document.getElementById('experienceChart').getContext('2d');
     const experienceChart = new Chart(experienceCtx, {
-      type: 'bar',
-      data: {
-        labels: ['0-1 year', '2-3 years', '4-5 years', '6-10 years', '10+ years'],
-        datasets: [{
-          label: 'Number of developers',
+        type: 'bar',
+        data: {
+          labels: ['0-1 year', '2-3 years', '4-5 years', '6-10 years', '10+ years'],
+          datasets: [{
+            label: 'Number of developers',
           data: data.values,
           backgroundColor: 'rgba(37, 99, 235, 0.85)', // Modern blue
           borderColor: 'rgba(37, 99, 235, 1)',
           borderWidth: 0,
           borderRadius: 8,
           borderSkipped: false
-        }]
-      },
-      options: {
+          }]
+        },
+        options: {
         ...modernChartConfig,
-        plugins: {
+          plugins: {
           ...modernChartConfig.plugins,
-          title: {
+            title: {
             display: false // Remove default title, use HTML heading instead
+            }
           }
         }
-      }
     });
     chartInstances.experience = experienceChart;
   })
@@ -400,28 +400,28 @@ fetch(`/api/grau-academico/${id}`)
   .then(data => {
     const educationCtx = document.getElementById('educationChart').getContext('2d');
     const educationChart = new Chart(educationCtx, {
-      type: 'bar',
-      data: {
-        labels: ['High School', 'Graduation', 'Master', 'PhD'],
-        datasets: [{
-          label: 'Number of developers',
-          data: data.values,
+        type: 'bar',
+        data: {
+          labels: ['High School', 'Graduation', 'Master', 'PhD'],
+          datasets: [{
+            label: 'Number of developers',
+            data: data.values,
           backgroundColor: 'rgba(139, 92, 246, 0.85)', // Modern purple
           borderColor: 'rgba(139, 92, 246, 1)',
           borderWidth: 0,
           borderRadius: 8,
           borderSkipped: false
-        }]
-      },
-      options: {
+          }]
+        },
+        options: {
         ...modernChartConfig,
-        plugins: {
+          plugins: {
           ...modernChartConfig.plugins,
-          title: {
+            title: {
             display: false
+            }
           }
         }
-      }
     });
     chartInstances.education = educationChart;
   })
@@ -432,38 +432,38 @@ fetch(`/api/portal-familiarity/${id}`)
   .then(data => {
     const familiarityCtx = document.getElementById('familiarityChart').getContext('2d');
     const familiarityChart = new Chart(familiarityCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Never', 'Rarely', 'Often', 'Always'],
-        datasets: [{
-          label: 'Number of developers',
-          data: data.values,
-          backgroundColor: [
+        type: 'bar',
+        data: {
+          labels: ['Never', 'Rarely', 'Often', 'Always'],
+          datasets: [{
+            label: 'Number of developers',
+            data: data.values,
+            backgroundColor: [
             'rgba(239, 68, 68, 0.85)',   // Red - Never
             'rgba(245, 158, 11, 0.85)',  // Orange - Rarely
             'rgba(59, 130, 246, 0.85)',  // Blue - Often
             'rgba(34, 197, 94, 0.85)'    // Green - Always
-          ],
-          borderColor: [
-            'rgba(239, 68, 68, 1)',
-            'rgba(245, 158, 11, 1)',
-            'rgba(59, 130, 246, 1)',
-            'rgba(34, 197, 94, 1)'
-          ],
+            ],
+            borderColor: [
+              'rgba(239, 68, 68, 1)',
+              'rgba(245, 158, 11, 1)',
+              'rgba(59, 130, 246, 1)',
+              'rgba(34, 197, 94, 1)'
+            ],
           borderWidth: 0,
           borderRadius: 8,
           borderSkipped: false
-        }]
-      },
-      options: {
+          }]
+        },
+        options: {
         ...modernChartConfig,
-        plugins: {
+          plugins: {
           ...modernChartConfig.plugins,
-          title: {
+            title: {
             display: false
+            }
           }
         }
-      }
     });
     chartInstances.familiarity = familiarityChart;
   })
