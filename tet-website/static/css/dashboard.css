@@ -318,9 +318,91 @@ body {
         0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
+/* Enhanced Developer Emotions Card */
+.dev-emotion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 28px 24px;
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.1), 
+        0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.dev-emotion:hover {
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dev-emotion h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #171717;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.02em;
+    width: 100%;
+    text-align: center;
+}
+
+.dev-emotion p {
+    color: #737373;
+    margin: 0 0 20px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    width: 100%;
+    text-align: center;
+}
+
+/* Chart container with proper spacing */
+.dev-emotion .chart-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 8px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Ensure legend appears below chart with proper spacing */
+.dev-emotion canvas {
+    margin-bottom: 16px;
+}
+
+/* Style Chart.js legend container for horizontal layout */
+.dev-emotion .chartjs-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+    padding: 0;
+    list-style: none;
+}
+
+.dev-emotion .chartjs-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #404040;
+}
+
+.dev-emotion .chartjs-legend li span {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
 .overview-content h3,
 .word-cloud h3,
-.dev-emotion h3,
 .developer-comments h3,
 .scores h3,
 .procedures h3 {
@@ -331,7 +413,6 @@ body {
 
 .overview-content p,
 .word-cloud p,
-.dev-emotion p,
 .developer-comments p,
 .procedures p {
     color: hsl(var(--muted-foreground));
@@ -354,18 +435,230 @@ body {
     font-size: 0.95rem;
 }
 
+/* Modern Participants Profile Section */
+.overview-profile {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.overview-profile h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #171717;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.overview-profile > p {
+    font-size: 14px;
+    color: #737373;
+    margin-bottom: 32px;
+    line-height: 1.6;
+}
+
+.overview-profile > p:last-of-type {
+    font-size: 13px;
+    color: #737373;
+    margin-top: 24px;
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
 .profilecharts {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 32px;
     margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.profilecharts > div {
+    background: #fafafa;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.profilecharts > div:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .profilecharts .familiarity {
     grid-column: 1 / -1;
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     width: 100%;
+}
+
+/* Chart containers */
+.profilecharts canvas {
+    max-height: 300px !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Empty state styling */
+.profilecharts .chart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: #a3a3a3;
+    font-size: 14px;
+    text-align: center;
+}
+
+.profilecharts .chart-empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Responsive breakpoints for profile charts */
+/* Tablet (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .profilecharts {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+    
+    .profilecharts .familiarity {
+        grid-column: 1;
+        max-width: 100%;
+    }
+    
+    .overview-profile {
+        padding: 28px;
+    }
+    
+    .profilecharts > div {
+        padding: 20px;
+    }
+    
+    .profilecharts canvas {
+        max-height: 280px !important;
+    }
+}
+
+/* Mobile Landscape (480px - 768px) */
+@media (min-width: 480px) and (max-width: 767px) {
+    .profilecharts {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .overview-profile {
+        padding: 20px;
+    }
+    
+    .overview-profile h3 {
+        font-size: 20px;
+    }
+    
+    .overview-profile > p {
+        font-size: 13px;
+    }
+    
+    .profilecharts > div {
+        padding: 16px;
+    }
+    
+    .profilecharts canvas {
+        max-height: 250px !important;
+    }
+}
+
+/* Small Mobile (320px - 480px) */
+@media (max-width: 479px) {
+    .overview-profile {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .overview-profile h3 {
+        font-size: 18px;
+        margin-bottom: 6px;
+    }
+    
+    .overview-profile > p {
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .overview-profile > p:last-of-type {
+        font-size: 11px;
+        margin-top: 16px;
+    }
+    
+    .profilecharts {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .profilecharts > div {
+        padding: 12px;
+        border-radius: 10px;
+    }
+    
+    .profilecharts canvas {
+        max-height: 220px !important;
+    }
+    
+    .profilecharts .familiarity {
+        grid-column: 1;
+        max-width: 100%;
+    }
+}
+
+/* Extra Small Mobile (< 320px) */
+@media (max-width: 319px) {
+    .overview-profile {
+        padding: 12px;
+    }
+    
+    .overview-profile h3 {
+        font-size: 16px;
+    }
+    
+    .overview-profile > p {
+        font-size: 11px;
+    }
+    
+    .profilecharts {
+        gap: 12px;
+    }
+    
+    .profilecharts > div {
+        padding: 10px;
+    }
+    
+    .profilecharts canvas {
+        max-height: 200px !important;
+    }
+}
+
+/* Landscape orientation for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .profilecharts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .profilecharts .familiarity {
+        grid-column: 1 / -1;
+    }
+    
+    .profilecharts canvas {
+        max-height: 200px !important;
+    }
 }
 
 .material-symbols-outlined {
@@ -486,8 +779,106 @@ body {
     min-width: 0;
 }
 
-/* Make the pie chart canvas fill its card on desktop */
-.dev-emotion canvas { width: 100% !important; height: 360px !important; display: block; }
+/* Pie chart canvas - responsive sizing with proper spacing */
+.dev-emotion canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 280px;
+    max-height: 400px;
+    display: block;
+    margin: 0 auto;
+    aspect-ratio: 1;
+}
+
+/* Large screens - make chart bigger */
+@media (min-width: 1400px) {
+    .dev-emotion canvas {
+        max-width: 380px !important;
+        min-height: 380px;
+        max-height: 380px !important;
+    }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .dev-emotion canvas {
+        max-width: 340px !important;
+        min-height: 340px;
+        max-height: 340px !important;
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1199px) {
+    .dev-emotion canvas {
+        max-width: 320px !important;
+        min-height: 320px;
+        max-height: 320px !important;
+    }
+}
+
+/* Responsive adjustments for Developer Emotions chart */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .dev-emotion {
+        padding: 24px 20px;
+    }
+    
+    .dev-emotion h3 {
+        font-size: 22px;
+    }
+    
+    .dev-emotion p {
+        font-size: 13px;
+    }
+    
+    .dev-emotion canvas {
+        max-width: 280px !important;
+        min-height: 280px;
+        max-height: 280px !important;
+    }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+    .dev-emotion {
+        padding: 20px 16px;
+    }
+    
+    .dev-emotion h3 {
+        font-size: 20px;
+    }
+    
+    .dev-emotion p {
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+    
+    .dev-emotion canvas {
+        max-width: 240px !important;
+        height: 240px !important;
+        max-height: 240px !important;
+    }
+}
+
+@media (max-width: 479px) {
+    .dev-emotion {
+        padding: 16px 12px;
+    }
+    
+    .dev-emotion h3 {
+        font-size: 18px;
+        margin-bottom: 6px;
+    }
+    
+    .dev-emotion p {
+        font-size: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .dev-emotion canvas {
+        max-width: 220px !important;
+        height: 220px !important;
+        max-height: 220px !important;
+    }
+}
 
 .d1 .percentage-bar div{
     background-color: rgb(117, 0, 0);
@@ -988,8 +1379,37 @@ body {
   .dimensions, .dx_categorys { flex-direction: column; gap: 12px; }
   .score { width: 100%; }
   .overall { transform: none; max-width: 100%; }
-  .profilecharts { flex-direction: column; align-items: stretch; }
-  #pieChart, #experienceChart, #educationChart { width: 100% !important; height: 320px !important; }
+  .profilecharts { 
+    grid-template-columns: 1fr; 
+    gap: 20px; 
+  }
+  
+  .profilecharts .familiarity {
+    grid-column: 1;
+    max-width: 100%;
+  }
+  
+  .overview-profile {
+    padding: 20px;
+  }
+  
+  .overview-profile h3 {
+    font-size: 20px;
+  }
+  
+  .overview-profile > p {
+    font-size: 13px;
+  }
+  
+  .profilecharts > div {
+    padding: 16px;
+  }
+  
+  #pieChart, #experienceChart, #educationChart, #familiarityChart { 
+    width: 100% !important; 
+    height: 280px !important; 
+    max-height: 280px !important;
+  }
   .dashboard-navbar { max-width: 100%; }
   .dashboard-navbar ul { flex-wrap: wrap; }
 
@@ -1002,6 +1422,27 @@ body {
 @media (max-width: 480px) {
   .dashboard-title h2 { font-size: 1.25rem; }
   .overview-header h2, .tasks-card h2, .guidelines-card h2 { font-size: 1.5rem; }
+  
+  .overview-profile h3 {
+    font-size: 18px;
+  }
+  
+  .overview-profile > p {
+    font-size: 12px;
+  }
+  
+  .profilecharts {
+    gap: 16px;
+  }
+  
+  .profilecharts > div {
+    padding: 12px;
+  }
+  
+  #pieChart, #experienceChart, #educationChart, #familiarityChart {
+    height: 240px !important;
+    max-height: 240px !important;
+  }
 }
 
 /* Badge Legend Styles */

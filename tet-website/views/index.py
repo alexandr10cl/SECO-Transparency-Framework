@@ -1326,7 +1326,7 @@ def eval_dashboard(id):
     if token:
         # Priority prefetch - load THIS evaluation's heatmap immediately (parallel)
         schedule_heatmap_prefetch([id], token, priority=True)
-    
+
     return render_template('dashboard.html',
                             evaluation=evaluation,
                             user=user,

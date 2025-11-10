@@ -149,12 +149,78 @@ function initTaskAccordions() {
 const pathParts = window.location.pathname.split('/')
 const id = pathParts[pathParts.length - 1];
 
-// Gráfico de Pizza
+// Modern Pie Chart Configuration for Developer Emotions
+const pieChartConfig = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: {
+    duration: 1000,
+    easing: 'easeOutQuart'
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'bottom',
+      align: 'center',
+      labels: {
+        usePointStyle: true,
+        padding: window.innerWidth < 480 ? 8 : 12,
+        boxWidth: 12,
+        boxHeight: 12,
+        font: {
+          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          size: window.innerWidth < 480 ? 10 : window.innerWidth < 768 ? 11 : 12,
+          weight: '500'
+        },
+        color: '#404040',
+        generateLabels: function(chart) {
+          const data = chart.data;
+          if (data.labels.length && data.datasets.length) {
+            return data.labels.map((label, i) => {
+              const value = data.datasets[0].data[i];
+              return {
+                text: `${label} (${value})`,
+                fillStyle: data.datasets[0].backgroundColor[i],
+                hidden: false,
+                index: i
+              };
+            });
+          }
+          return [];
+        }
+      }
+    },
+    tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      padding: window.innerWidth < 480 ? 8 : 12,
+      titleFont: {
+        size: window.innerWidth < 480 ? 12 : 14,
+        weight: '600'
+      },
+      bodyFont: {
+        size: window.innerWidth < 480 ? 11 : 13
+      },
+      cornerRadius: 8,
+      displayColors: true,
+      callbacks: {
+        label: function(context) {
+          const label = context.label || '';
+          const value = context.parsed || 0;
+          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+          return `${label}: ${value} developer${value !== 1 ? 's' : ''} (${percentage}%)`;
+        }
+      }
+    }
+  }
+};
+
+// Gráfico de Pizza - Developer Emotions (Modern Professional Design)
 fetch(`/api/satisfaction/${id}`)
   .then(response => response.json())
   .then(data => {
     const pieCtx = document.getElementById('pieChart').getContext('2d');
-    new Chart(pieCtx, {
+    const pieChart = new Chart(pieCtx, {
       type: 'pie',
       data: {
         labels: [
@@ -168,151 +234,238 @@ fetch(`/api/satisfaction/${id}`)
           label: 'Quantity of developers',
           data: data.values,
           backgroundColor: [
-            '#e74c3c',   // vermelho escuro
-            '#f39c12',   // laranja
-            '#95a5a6',   // cinza
-            '#3498db',   // azul
-            '#2ecc71'    // verde
-          ]
+            'rgba(239, 68, 68, 0.85)',   // Red - Very dissatisfied
+            'rgba(245, 158, 11, 0.85)',  // Orange - Dissatisfied
+            'rgba(148, 163, 184, 0.85)', // Gray - Neither
+            'rgba(59, 130, 246, 0.85)',  // Blue - Satisfied
+            'rgba(34, 197, 94, 0.85)'    // Green - Very satisfied
+          ],
+          borderColor: [
+            'rgba(239, 68, 68, 1)',
+            'rgba(245, 158, 11, 1)',
+            'rgba(148, 163, 184, 1)',
+            'rgba(59, 130, 246, 1)',
+            'rgba(34, 197, 94, 1)'
+          ],
+          borderWidth: 2,
+          hoverOffset: 4
         }]
       },
-      options: {
-          responsive: true,
-          maintainAspectRatio: false
-      }
+      options: pieChartConfig
     });
+    
+    // Store instance for responsive updates
+    chartInstances.pie = pieChart;
   })
+  .catch(error => {
+    console.error('Error loading satisfaction data:', error);
+  });
 
 
-// Gráfico de barras - Anos de experiência
+// Helper function to get responsive chart height based on screen size
+function getChartHeight() {
+  const width = window.innerWidth;
+  if (width < 480) return 220;
+  if (width < 768) return 250;
+  if (width < 1024) return 280;
+  return 300;
+}
+
+// Modern Chart.js configuration shared by all charts
+const modernChartConfig = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: {
+    duration: 1000,
+    easing: 'easeOutQuart'
+  },
+  onResize: function(chart, size) {
+    // Adjust chart height on resize
+    if (size.width < 480) {
+      chart.canvas.parentElement.style.height = '220px';
+    } else if (size.width < 768) {
+      chart.canvas.parentElement.style.height = '250px';
+    } else if (size.width < 1024) {
+      chart.canvas.parentElement.style.height = '280px';
+    } else {
+      chart.canvas.parentElement.style.height = '300px';
+    }
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top',
+      labels: {
+        usePointStyle: true,
+        padding: window.innerWidth < 480 ? 10 : 15,
+        font: {
+          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          size: window.innerWidth < 480 ? 11 : window.innerWidth < 768 ? 12 : 13,
+          weight: '500'
+        },
+        color: '#404040'
+      }
+    },
+    tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      padding: window.innerWidth < 480 ? 8 : 12,
+      titleFont: {
+        size: window.innerWidth < 480 ? 12 : 14,
+        weight: '600'
+      },
+      bodyFont: {
+        size: window.innerWidth < 480 ? 11 : 13
+      },
+      cornerRadius: 8,
+      displayColors: true,
+      callbacks: {
+        label: function(context) {
+          return `${context.dataset.label}: ${context.parsed.y} developer${context.parsed.y !== 1 ? 's' : ''}`;
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      grid: {
+        display: false
+      },
+      ticks: {
+        font: {
+          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          size: window.innerWidth < 480 ? 10 : window.innerWidth < 768 ? 11 : 12
+        },
+        color: '#737373',
+        padding: window.innerWidth < 480 ? 6 : 10,
+        maxRotation: window.innerWidth < 480 ? 45 : 0,
+        minRotation: window.innerWidth < 480 ? 45 : 0
+      }
+    },
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: 'rgba(0, 0, 0, 0.05)',
+        drawBorder: false
+      },
+      ticks: {
+        font: {
+          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          size: window.innerWidth < 480 ? 10 : window.innerWidth < 768 ? 11 : 12
+        },
+        color: '#737373',
+        padding: window.innerWidth < 480 ? 6 : 10,
+        stepSize: 1
+      }
+    }
+  }
+};
+
+// Gráfico de barras - Anos de experiência (Modern Professional Design)
 fetch(`/api/experience-data/${id}`)
   .then(response => response.json())
   .then(data => {
-    
     const experienceCtx = document.getElementById('experienceChart').getContext('2d');
-    new Chart(experienceCtx, {
-        type: 'bar',
-        data: {
-          labels: ['0-1 year', '2-3 years', '4-5 years', '6-10 years', '10+ years'],
-          datasets: [{
-            label: 'Number of developers',
-            data: data.values,  // dados aleatórios
-            backgroundColor: 'rgba(75, 192, 192, 0.7)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 5 }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            },
-            title: {
-              display: true,
-              text: 'Years of Experience in Software Development'
-            }
+    const experienceChart = new Chart(experienceCtx, {
+      type: 'bar',
+      data: {
+        labels: ['0-1 year', '2-3 years', '4-5 years', '6-10 years', '10+ years'],
+        datasets: [{
+          label: 'Number of developers',
+          data: data.values,
+          backgroundColor: 'rgba(37, 99, 235, 0.85)', // Modern blue
+          borderColor: 'rgba(37, 99, 235, 1)',
+          borderWidth: 0,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        ...modernChartConfig,
+        plugins: {
+          ...modernChartConfig.plugins,
+          title: {
+            display: false // Remove default title, use HTML heading instead
           }
         }
+      }
     });
+    chartInstances.experience = experienceChart;
   })
 
 
 
-// Gráfico de barras - Grau acadêmico
+// Gráfico de barras - Grau acadêmico (Modern Professional Design)
 fetch(`/api/grau-academico/${id}`)
   .then(response => response.json())
   .then(data => {
     const educationCtx = document.getElementById('educationChart').getContext('2d');
-    new Chart(educationCtx, {
-        type: 'bar',
-        data: {
-          labels: ['High School', 'Graduation', 'Master', 'PhD'],
-          datasets: [{
-            label: 'Number of developers',
-            data: data.values,
-            backgroundColor: 'rgba(153, 102, 255, 0.7)',
-            borderColor: 'rgba(153, 102, 255, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 5 }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            },
-            title: {
-              display: true,
-              text: 'Academic Degree of Developers'
-            }
+    const educationChart = new Chart(educationCtx, {
+      type: 'bar',
+      data: {
+        labels: ['High School', 'Graduation', 'Master', 'PhD'],
+        datasets: [{
+          label: 'Number of developers',
+          data: data.values,
+          backgroundColor: 'rgba(139, 92, 246, 0.85)', // Modern purple
+          borderColor: 'rgba(139, 92, 246, 1)',
+          borderWidth: 0,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        ...modernChartConfig,
+        plugins: {
+          ...modernChartConfig.plugins,
+          title: {
+            display: false
           }
         }
+      }
     });
+    chartInstances.education = educationChart;
   })
 
-// Gráfico de barras - Familiaridade com o Portal
+// Gráfico de barras - Familiaridade com o Portal (Modern Professional Design with Semantic Colors)
 fetch(`/api/portal-familiarity/${id}`)
   .then(response => response.json())
   .then(data => {
     const familiarityCtx = document.getElementById('familiarityChart').getContext('2d');
-    new Chart(familiarityCtx, {
-        type: 'bar',
-        data: {
-          labels: ['Never', 'Rarely', 'Often', 'Always'],
-          datasets: [{
-            label: 'Number of developers',
-            data: data.values,
-            backgroundColor: [
-              'rgba(239, 68, 68, 0.7)',   // vermelho - Never
-              'rgba(245, 158, 11, 0.7)',  // laranja - Rarely
-              'rgba(59, 130, 246, 0.7)',  // azul - Often
-              'rgba(34, 197, 94, 0.7)'    // verde - Always
-            ],
-            borderColor: [
-              'rgba(239, 68, 68, 1)',
-              'rgba(245, 158, 11, 1)',
-              'rgba(59, 130, 246, 1)',
-              'rgba(34, 197, 94, 1)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 1 }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            },
-            title: {
-              display: true,
-              text: 'Familiarity with the Portal'
-            }
+    const familiarityChart = new Chart(familiarityCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Never', 'Rarely', 'Often', 'Always'],
+        datasets: [{
+          label: 'Number of developers',
+          data: data.values,
+          backgroundColor: [
+            'rgba(239, 68, 68, 0.85)',   // Red - Never
+            'rgba(245, 158, 11, 0.85)',  // Orange - Rarely
+            'rgba(59, 130, 246, 0.85)',  // Blue - Often
+            'rgba(34, 197, 94, 0.85)'    // Green - Always
+          ],
+          borderColor: [
+            'rgba(239, 68, 68, 1)',
+            'rgba(245, 158, 11, 1)',
+            'rgba(59, 130, 246, 1)',
+            'rgba(34, 197, 94, 1)'
+          ],
+          borderWidth: 0,
+          borderRadius: 8,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        ...modernChartConfig,
+        plugins: {
+          ...modernChartConfig.plugins,
+          title: {
+            display: false
           }
         }
+      }
     });
+    chartInstances.familiarity = familiarityChart;
   })
 
 // Word cloud – responsive rendering
@@ -356,9 +509,59 @@ async function gerarNuvem(){
 
 // Re-render word cloud on resize (debounced)
 let wcResizeTimer;
+let chartResizeTimer;
+
+// Store chart instances for responsive updates
+const chartInstances = {
+  experience: null,
+  education: null,
+  familiarity: null,
+  pie: null
+};
+
 window.addEventListener('resize', () => {
   clearTimeout(wcResizeTimer);
   wcResizeTimer = setTimeout(() => gerarNuvem(), 200);
+  
+  // Update chart containers height on resize
+  clearTimeout(chartResizeTimer);
+  chartResizeTimer = setTimeout(() => {
+    const width = window.innerWidth;
+    let height = 300;
+    if (width < 480) height = 220;
+    else if (width < 768) height = 250;
+    else if (width < 1024) height = 280;
+    
+    document.querySelectorAll('#experienceChart, #educationChart, #familiarityChart').forEach(canvas => {
+      if (canvas && canvas.parentElement) {
+        canvas.parentElement.style.height = height + 'px';
+      }
+    });
+    
+    // Update pie chart size responsively
+    const pieCanvas = document.getElementById('pieChart');
+    if (pieCanvas) {
+      let pieHeight = 320;
+      if (width < 480) pieHeight = 220;
+      else if (width < 768) pieHeight = 240;
+      else if (width < 1024) pieHeight = 280;
+      else if (width >= 1400) pieHeight = 380;
+      else if (width >= 1200) pieHeight = 340;
+      else if (width >= 1025) pieHeight = 320;
+      
+      pieCanvas.style.height = pieHeight + 'px';
+      pieCanvas.style.maxHeight = pieHeight + 'px';
+      pieCanvas.style.width = pieHeight + 'px';
+      pieCanvas.style.maxWidth = pieHeight + 'px';
+    }
+    
+    // Resize all chart instances
+    Object.values(chartInstances).forEach(chart => {
+      if (chart) {
+        chart.resize();
+      }
+    });
+  }, 150);
 });
 
 // Word cloud por scenario específico
