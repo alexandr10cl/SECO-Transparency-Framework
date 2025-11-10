@@ -7,6 +7,15 @@
 {% block title %}Evaluations{% endblock %}
 
 {% block content %}
+<!-- Full-page loading overlay (shown immediately on dashboard link click) -->
+<div id="page-loader" class="page-loader" style="display: none;">
+    <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <h3>Loading Dashboard...</h3>
+        <p>Preparing evaluation data and analytics</p>
+    </div>
+</div>
+
 <div class="eval-page">
     <!-- Page Header with Breadcrumbs -->
     <div class="page-header">
@@ -202,4 +211,23 @@
         </main>
     </div>
 </div>
+
+<script>
+// Show loading overlay immediately when clicking dashboard links
+document.addEventListener('DOMContentLoaded', function() {
+    const dashboardLinks = document.querySelectorAll('.dashboard-link');
+    const loader = document.getElementById('page-loader');
+    
+    if (loader && dashboardLinks.length > 0) {
+        dashboardLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                // Show loader immediately (before navigation)
+                loader.style.display = 'flex';
+                // Allow navigation to proceed normally
+                // The loader will stay visible until the new page loads
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

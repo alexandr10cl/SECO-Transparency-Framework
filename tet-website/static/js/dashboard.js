@@ -1,3 +1,36 @@
+// ==========================================
+// PAGE LOADER - Hide when everything is ready
+// ==========================================
+window.addEventListener('load', function() {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+        // Small delay to ensure all content is rendered
+        setTimeout(() => {
+            loader.classList.add('hidden');
+            // Remove from DOM after fade animation completes
+            setTimeout(() => {
+                if (loader.parentNode) {
+                    loader.remove();
+                }
+            }, 400);
+        }, 300);
+    }
+});
+
+// Also hide loader if it takes too long (fallback after 10 seconds)
+setTimeout(function() {
+    const loader = document.getElementById('page-loader');
+    if (loader && !loader.classList.contains('hidden')) {
+        console.warn('Page loader timeout - forcing hide');
+        loader.classList.add('hidden');
+        setTimeout(() => {
+            if (loader.parentNode) {
+                loader.remove();
+            }
+        }, 400);
+    }
+}, 10000);
+
 const navItems = document.querySelectorAll(".dashboard-navbar ul li");
   const containers = {
     "Overview": document.querySelector(".overview-container"),

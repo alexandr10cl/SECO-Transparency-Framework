@@ -1,10 +1,11 @@
 from flask import render_template, request, redirect, session, url_for, flash
 import requests
 from index import app, db
-from models import User, UserType
+from models import User, UserType, Evaluation
 from functions import isLogged, isAdmin, send_verification_email, send_password_reset_email
 import secrets
 import os
+from services.heatmap_prefetch import schedule_heatmap_prefetch
 
 DEV_MODE = os.getenv('DEV_MODE', 'False') == 'True'
 admin_credentials = {
@@ -59,8 +60,8 @@ def auth():
             }
 
             try:
-                # Set timeout to prevent hanging
-                resposta = requests.post(uxt_url, json=uxt_dados, timeout=5)
+                # Set timeout to prevent hanging (increased to 15s for slower UXT API responses)
+                resposta = requests.post(uxt_url, json=uxt_dados, timeout=60)
                 
                 if resposta.status_code == 200:
                     access_token = resposta.json().get('access_token')
@@ -97,6 +98,18 @@ def auth():
             messageReg = ''
             messageEA = ''
             messageType = ''
+
+            # Prefetch heatmaps in the background for faster dashboard loading
+            token_for_prefetch = session.get('uxt_access_token')
+            evaluation_ids = [
+                evaluation.evaluation_id
+                for evaluation in Evaluation.query
+                    .filter_by(user_id=user.user_id)
+                    .order_by(Evaluation.created_at.desc(), Evaluation.evaluation_id.desc())
+                    .limit(5)
+            ]
+            schedule_heatmap_prefetch(evaluation_ids, token_for_prefetch)
+
             return redirect(url_for('index'))
         else:
             messageType = 'error'
