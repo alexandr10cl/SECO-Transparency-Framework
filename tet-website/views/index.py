@@ -13,6 +13,7 @@ import requests
 import os
 from sqlalchemy.exc import IntegrityError
 from secrets import token_urlsafe
+from services.heatmap_prefetch import schedule_heatmap_prefetch
 
 # Performance: Import eager loading for optimized queries
 from sqlalchemy.orm import joinedload, selectinload, contains_eager
@@ -85,7 +86,7 @@ def evaluations():
                 Evaluation.evaluation_id.cast(db.String).like(search_pattern)
             )
         )
-    
+
     # Fix #29: Apply sorting (using created_at for chronological order)
     # Note: MySQL doesn't support NULLS LAST/FIRST, so we use simple sorting
     # NULL values will naturally sort to the end/beginning depending on ASC/DESC
@@ -115,6 +116,11 @@ def evaluations():
     # Fix #27: Paginate results (FAST)
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     evaluations = pagination.items
+
+    # Schedule background heatmap prefetch for fast dashboard loading
+    token = session.get('uxt_access_token')
+    prefetch_ids = [evaluation.evaluation_id for evaluation in evaluations[:5]]
+    schedule_heatmap_prefetch(prefetch_ids, token)
     
     return render_template('evaluations.html', 
                          evaluations=evaluations,
@@ -1314,6 +1320,13 @@ def eval_dashboard(id):
             else:
                 category['procedure_scores'][f'P{process_id}'] = 0
 
+    # PERFORMANCE: Immediately prefetch heatmap for THIS evaluation (priority)
+    # This ensures the heatmap is ready when user clicks the Hotspots tab
+    token = session.get('uxt_access_token')
+    if token:
+        # Priority prefetch - load THIS evaluation's heatmap immediately (parallel)
+        schedule_heatmap_prefetch([id], token, priority=True)
+    
     return render_template('dashboard.html',
                             evaluation=evaluation,
                             user=user,

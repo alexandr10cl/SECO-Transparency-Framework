@@ -13,6 +13,16 @@
     <div id="root"></div>
     <script src="{{ url_for('static', filename='dashboard/static/js/main.0344493c.js') }}"></script>
 #}
+
+<!-- Full-page loading overlay -->
+<div id="page-loader" class="page-loader">
+    <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <h3>Loading Dashboard...</h3>
+        <p>Preparing evaluation data and analytics</p>
+    </div>
+</div>
+
 <br><br>
 <div class="dashboard-container">
     <div class="dashboard-title">
@@ -674,23 +684,16 @@
     <div class="hotspots-container">
         <div class="hotspot-card">
             <div class="hotspots-header">
-            <h2>Heatmaps by Task</h2>
-            <p>Viewing participant interactions mapped to specific tasks.</p>
+            <h2>Heatmap Insights by URL</h2>
+            <p>Visualize where developers collectively focused their attention across all scenarios. Aggregated by URL to reveal clear, engaging, or confusing sections of the portal.</p>
             </div>
 
             <div class="task-heatmap-container">
             <hr class="task-heatmap-divider">
 
-            <!-- Filtros de tarefas -->
+            <!-- Filtros de cenários (preenchidos via JavaScript) -->
             <div class="task-filters-container">
-                <h3>Filter by Task</h3>
-                <div class="task-filters" id="task-filters">
-                    <div class="filter-item">
-                        <input type="checkbox" id="filter-all" checked>
-                        <label for="filter-all">Show All Tasks</label>
-                    </div>
-                    <!-- Filtros específicos serão inseridos aqui via JavaScript -->
-                </div>
+                <div class="task-filters" id="task-filters"></div>
             </div>
 
             <!-- raiz onde os heatmaps vindos da API serão inseridos -->
