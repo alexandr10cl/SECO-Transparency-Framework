@@ -166,10 +166,12 @@
                         <span class="btn-icon">✏️</span>
                         Edit Evaluation
                     </a>
-                    <a href="{{ url_for('delete_evaluation', id=evaluation.evaluation_id) }}" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this evaluation?')">
-                        <span class="btn-icon">🗑️</span>
-                        Delete Evaluation
-                    </a>
+                    <form method="post" action="{{ url_for('delete_evaluation', id=evaluation.evaluation_id) }}" class="delete-evaluation-form" data-confirm-message="Are you sure you want to delete this evaluation? This action cannot be undone.">
+                        <button type="submit" class="action-btn delete-btn">
+                            <span class="btn-icon">🗑️</span>
+                            Delete Evaluation
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -179,20 +181,4 @@
 
 {% block scripts %}
 <script src="/static/js/eval.js"></script>
-<script>
-// Show loading overlay immediately when clicking dashboard button
-document.addEventListener('DOMContentLoaded', function() {
-    const dashboardBtn = document.querySelector('.dashboard-btn[href*="eval_dashboard"]');
-    const loader = document.getElementById('page-loader');
-    
-    if (loader && dashboardBtn) {
-        dashboardBtn.addEventListener('click', function(e) {
-            // Show loader immediately (before navigation)
-            loader.style.display = 'flex';
-            // Allow navigation to proceed normally
-            // The loader will stay visible until the new page loads
-        });
-    }
-});
-</script>
 {% endblock %}

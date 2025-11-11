@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, session, url_for, jsonify, abort, flash
+from flask import render_template, request, redirect, session, url_for, jsonify, abort, flash, current_app
 from index import app, db
 from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, 
@@ -11,7 +11,7 @@ from datetime import datetime
 import random as rd
 import requests
 import os
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from secrets import token_urlsafe
 from services.heatmap_prefetch import schedule_heatmap_prefetch
 
@@ -584,38 +584,21 @@ def update_evaluation(id):
     # redirecting to the evaluations page
     return redirect(url_for('evaluation', id=id))
 
-@app.route('/evaluations/<int:id>/delete')
+@app.route('/evaluations/<int:id>/delete', methods=['POST'])
+@login_required
 def delete_evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
-    
-    # Delete all related objects tied to this evaluation's collected data
-    for c in evaluation.collected_data:
-        # Answers are linked to CollectedData (not PerformedTask)
-        for a in c.answers:
-            db.session.delete(a)
+    evaluation_name = evaluation.name
 
-        # Delete navigation events tied to this CollectedData
-        for n in c.navigation:
-            db.session.delete(n)
+    try:
+        db.session.delete(evaluation)
+        db.session.commit()
+        flash(f'Evaluation "{evaluation_name}" deleted successfully.', 'success')
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception("Failed to delete evaluation %s", id)
+        flash('Failed to delete evaluation. Please try again.', 'error')
 
-        # Delete performed tasks tied to this CollectedData
-        for p in c.performed_tasks:
-            db.session.delete(p)
-
-        # Delete developer questionnaire if present
-        if getattr(c, 'developer_questionnaire', None):
-            db.session.delete(c.developer_questionnaire)
-
-        # Finally, delete the collected data record itself
-        db.session.delete(c)
-    
-    for w in evaluation.ksc_weights:
-        db.session.delete(w)
-    
-    # Now delete the evaluation itself
-    
-    db.session.delete(evaluation)
-    db.session.commit()
     return redirect(url_for('evaluations'))
 
 @app.route('/evaluations/<int:id>')

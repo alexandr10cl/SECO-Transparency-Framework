@@ -13,21 +13,33 @@ class CollectedData(db.Model):
 
 
     # Relationship with PerformedTask
-    performed_tasks = db.relationship('PerformedTask',
-                                    backref=db.backref('collected_data', lazy=True))
+    performed_tasks = db.relationship(
+        'PerformedTask',
+        backref=db.backref('collected_data', lazy=True),
+        cascade='all, delete-orphan'
+    )
     
     # Relationship with DeveloperQuestionnaire
-    developer_questionnaire = db.relationship('DeveloperQuestionnaire',
-                                        backref=db.backref('collected_data', lazy=True, uselist=False),
-                                        uselist=False)
+    developer_questionnaire = db.relationship(
+        'DeveloperQuestionnaire',
+        backref=db.backref('collected_data', lazy=True, uselist=False),
+        cascade='all, delete-orphan',
+        uselist=False
+    )
     
     # Rlationship with Navigation
-    navigation = db.relationship('Navigation',
-                                backref=db.backref('collected_data', lazy=True))
+    navigation = db.relationship(
+        'Navigation',
+        backref=db.backref('collected_data', lazy=True),
+        cascade='all, delete-orphan'
+    )
     
     # Relationship with Answer table
-    answers = db.relationship('Answer',
-                            backref=db.backref('collected_data', lazy=True))
+    answers = db.relationship(
+        'Answer',
+        backref=db.backref('collected_data', lazy=True),
+        cascade='all, delete-orphan'
+    )
 
     # Foreign key to the evaluation table
     evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False) 
