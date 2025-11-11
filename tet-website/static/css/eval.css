@@ -837,6 +837,16 @@
     gap: var(--space-3);
 }
 
+.modal-actions > a.action-btn,
+.modal-actions > .delete-evaluation-form {
+    width: 100%;
+}
+
+.modal-actions .action-btn {
+    width: 100%;
+    justify-content: center;
+}
+
 .action-btn {
     display: flex;
     align-items: center;
