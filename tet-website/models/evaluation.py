@@ -33,8 +33,11 @@ class Evaluation(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
 
     # Relationship with CollectedData
-    collected_data = db.relationship('CollectedData',
-                                    backref=db.backref('evaluation', lazy=True)) 
+    collected_data = db.relationship(
+        'CollectedData',
+        backref=db.backref('evaluation', lazy=True),
+        cascade='all, delete-orphan'
+    ) 
     
     # Relationship with SECO_process
     seco_processes = db.relationship('SECO_process',
@@ -54,4 +57,7 @@ class EvaluationCriterionWheight(db.Model):
     evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False)
 
     # Relationship
-    evaluation = db.relationship('Evaluation', backref=db.backref('ksc_weights', lazy=True))
+    evaluation = db.relationship(
+        'Evaluation',
+        backref=db.backref('ksc_weights', lazy=True, cascade='all, delete-orphan')
+    )
