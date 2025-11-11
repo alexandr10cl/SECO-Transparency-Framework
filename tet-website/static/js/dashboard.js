@@ -215,11 +215,36 @@ const pieChartConfig = {
   }
 };
 
+function getPieChartSize(width) {
+  if (width < 480) return 220;
+  if (width < 768) return 240;
+  if (width < 1024) return 280;
+  if (width >= 1800) return 440;
+  if (width >= 1600) return 420;
+  if (width >= 1400) return 380;
+  if (width >= 1200) return 360;
+  if (width >= 1025) return 320;
+  return 320;
+}
+
+function applyPieCanvasSize() {
+  const pieCanvas = document.getElementById('pieChart');
+  if (!pieCanvas) return;
+  const width = window.innerWidth;
+  const pieHeight = getPieChartSize(width);
+  pieCanvas.style.height = pieHeight + 'px';
+  pieCanvas.style.maxHeight = pieHeight + 'px';
+  pieCanvas.style.width = pieHeight + 'px';
+  pieCanvas.style.maxWidth = pieHeight + 'px';
+}
+
 // Gráfico de Pizza - Developer Emotions (Modern Professional Design)
 fetch(`/api/satisfaction/${id}`)
   .then(response => response.json())
   .then(data => {
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    const pieCanvas = document.getElementById('pieChart');
+    applyPieCanvasSize();
+    const pieCtx = pieCanvas.getContext('2d');
     const pieChart = new Chart(pieCtx, {
       type: 'pie',
       data: {
@@ -538,17 +563,9 @@ window.addEventListener('resize', () => {
       }
     });
     
-    // Update pie chart size responsively
     const pieCanvas = document.getElementById('pieChart');
     if (pieCanvas) {
-      let pieHeight = 320;
-      if (width < 480) pieHeight = 220;
-      else if (width < 768) pieHeight = 240;
-      else if (width < 1024) pieHeight = 280;
-      else if (width >= 1400) pieHeight = 380;
-      else if (width >= 1200) pieHeight = 340;
-      else if (width >= 1025) pieHeight = 320;
-      
+      const pieHeight = getPieChartSize(width);
       pieCanvas.style.height = pieHeight + 'px';
       pieCanvas.style.maxHeight = pieHeight + 'px';
       pieCanvas.style.width = pieHeight + 'px';

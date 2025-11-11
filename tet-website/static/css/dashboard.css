@@ -358,8 +358,12 @@ body {
 
 /* Chart container with proper spacing */
 .dev-emotion .chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    max-width: 100%;
+    max-width: 520px;
     padding: 0 8px;
     margin: 0 auto;
     position: relative;
@@ -367,7 +371,44 @@ body {
 
 /* Ensure legend appears below chart with proper spacing */
 .dev-emotion canvas {
-    margin-bottom: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 280px;
+    max-height: 400px;
+    display: block;
+    margin: 0 auto 16px auto;
+    aspect-ratio: 1;
+}
+
+@media (min-width: 1600px) {
+    .dev-emotion .chart-container {
+        max-width: 560px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .dev-emotion canvas {
+        max-width: 420px !important;
+        min-height: 420px;
+        max-height: 420px !important;
+    }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .dev-emotion canvas {
+        max-width: 360px !important;
+        min-height: 360px;
+        max-height: 360px !important;
+    }
+}
+
+@media (min-width: 1025px) and (max-width: 1199px) {
+    .dev-emotion canvas {
+        max-width: 320px !important;
+        min-height: 320px;
+        max-height: 320px !important;
+    }
 }
 
 /* Style Chart.js legend container for horizontal layout */
