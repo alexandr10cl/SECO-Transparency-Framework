@@ -25,22 +25,7 @@ from services.heatmap_service import (
 from collections import Counter
 
 
-# spaCy lazy loading - carrega apenas quando necessário
-_nlp_model = None
-
-
-def get_nlp_model():
-    """Lazy load spaCy model para economizar memória"""
-    global _nlp_model
-    if _nlp_model is None:
-        try:
-            import spacy
-
-            _nlp_model = spacy.load("en_core_web_sm", disable=["parser", "ner"])
-        except Exception:
-            app.logger.warning("spaCy not installed. Falling back to basic stopwords.")
-            _nlp_model = "fallback"
-    return _nlp_model
+# spaCy removido - usando método básico de stopwords para economizar espaço no servidor
 
 
 @app.route('/api/heatmap-scenarios/<int:evaluation_id>')
@@ -197,42 +182,29 @@ def process_text_for_wordcloud(text: str, max_words: int = 100) -> List[List[Any
     if not text or text.strip() == "":
         return []
 
-    nlp = get_nlp_model()
+    # Usando método básico (sem spaCy) para economizar espaço no servidor
+    import re
 
-    if nlp != "fallback":
-        doc = nlp(text.lower())
-        filtered = [
-            token.text
-            for token in doc
-            if not token.is_stop
-            and not token.is_punct
-            and not token.is_space
-            and token.is_alpha
-            and len(token.text) > 2
-        ]
-    else:
-        import re
-
-        STOPWORDS = {
-            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with',
-            'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her',
-            'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up',
-            'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time',
-            'no', 'just', 'him', 'know', 'take', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
-            'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'also', 'back',
-            'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want',
-            'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is', 'was', 'are', 'were', 'been',
-            'has', 'had', 'did', 'does', 'de', 'het', 'een', 'van', 'en', 'op', 'dat', 'die', 'voor',
-            'met', 'te', 'zijn', 'er', 'aan', 'wordt', 'als', 'ook', 'maar', 'door', 'bij', 'naar', 'om',
-            'tot', 'uit', 'werd', 'dan', 'kan', 'heeft', 'niet', 'meer', 'dit', 'deze', 'ze', 'al', 'nog',
-            'wel', 'hij', 'over', 'moet', 'twee', 'geen', 'zoals', 'worden', 'alle', 'veel', 'o', 'a', 'e',
-            'que', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por',
-            'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou',
-            'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela',
-            'até', 'isso', 'ela', 'entre', 'era'
-        }
-        words = re.findall(r'\b[a-zA-Z]+\b', text.lower())
-        filtered = [word for word in words if len(word) > 2 and word not in STOPWORDS]
+    STOPWORDS = {
+        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with',
+        'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her',
+        'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up',
+        'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time',
+        'no', 'just', 'him', 'know', 'take', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
+        'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'also', 'back',
+        'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want',
+        'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is', 'was', 'are', 'were', 'been',
+        'has', 'had', 'did', 'does', 'de', 'het', 'een', 'van', 'en', 'op', 'dat', 'die', 'voor',
+        'met', 'te', 'zijn', 'er', 'aan', 'wordt', 'als', 'ook', 'maar', 'door', 'bij', 'naar', 'om',
+        'tot', 'uit', 'werd', 'dan', 'kan', 'heeft', 'niet', 'meer', 'dit', 'deze', 'ze', 'al', 'nog',
+        'wel', 'hij', 'over', 'moet', 'twee', 'geen', 'zoals', 'worden', 'alle', 'veel', 'o', 'a', 'e',
+        'que', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por',
+        'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou',
+        'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela',
+        'até', 'isso', 'ela', 'entre', 'era'
+    }
+    words = re.findall(r'\b[a-zA-Z]+\b', text.lower())
+    filtered = [word for word in words if len(word) > 2 and word not in STOPWORDS]
 
     frequency = Counter(filtered)
     return [[word, freq] for word, freq in frequency.most_common(max_words)]
