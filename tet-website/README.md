@@ -159,6 +159,31 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+#### 3.1. (Opcional) Instale spaCy para Word Clouds Melhorados
+
+Para filtrar automaticamente stopwoorden (como "the", "de", "het") na word cloud:
+
+**Windows:**
+```bash
+install_spacy.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x install_spacy.sh
+./install_spacy.sh
+```
+
+**Manual:**
+```bash
+pip install spacy
+python -m spacy download en_core_web_sm
+```
+
+> ⚠️ **Nota:** Se spaCy não estiver instalado, o sistema usa fallback automático com stopwoorden básicas.
+
+Veja [INSTALL_SPACY.md](INSTALL_SPACY.md) para mais detalhes.
+
 #### 4. Configure as variáveis de ambiente
 
 Crie um arquivo `.env` na raiz do diretório `tet-website` com as seguintes variáveis:

@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("teste");
+    const loader = document.getElementById("page-loader");
 
     // Modal functionality
     const modals = document.querySelectorAll(".modal");
@@ -78,6 +78,45 @@ document.addEventListener("DOMContentLoaded", () => {
             if (e.target === modal) {
                 modal.classList.add("inv");
                 modal.style.display = "none";
+            }
+        });
+    });
+
+    // Show loading overlay immediately when clicking dashboard button
+    const dashboardBtn = document.querySelector('.dashboard-btn[href*="eval_dashboard"]');
+    if (loader && dashboardBtn) {
+        dashboardBtn.addEventListener('click', () => {
+            loader.style.display = 'flex';
+        });
+    }
+
+    // Handle delete evaluation form submission
+    const deleteForms = document.querySelectorAll('.delete-evaluation-form');
+    deleteForms.forEach(form => {
+        form.addEventListener('submit', (event) => {
+            const message = form.dataset.confirmMessage || 'Are you sure you want to delete this evaluation? This action cannot be undone.';
+            if (!window.confirm(message)) {
+                event.preventDefault();
+                return;
+            }
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('is-loading');
+                submitBtn.innerHTML = '<span class="btn-icon">⏳</span>Deleting...';
+            }
+
+            if (loader) {
+                loader.style.display = 'flex';
+                const title = loader.querySelector('h3');
+                const subtitle = loader.querySelector('p');
+                if (title) {
+                    title.textContent = 'Deleting Evaluation...';
+                }
+                if (subtitle) {
+                    subtitle.textContent = 'Cleaning up related data';
+                }
             }
         });
     });

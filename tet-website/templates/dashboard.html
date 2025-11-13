@@ -13,6 +13,16 @@
     <div id="root"></div>
     <script src="{{ url_for('static', filename='dashboard/static/js/main.0344493c.js') }}"></script>
 #}
+
+<!-- Full-page loading overlay -->
+<div id="page-loader" class="page-loader">
+    <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <h3>Loading Dashboard...</h3>
+        <p>Preparing evaluation data and analytics</p>
+    </div>
+</div>
+
 <br><br>
 <div class="dashboard-container">
     <div class="dashboard-title">
@@ -34,6 +44,14 @@
             <h3>Participants</h3>
             <h2>{{ count_collected_data }}</h2>
         </div>
+        <div class="evaluation-info-card objective-card">
+            <h3>Initial Objective</h3>
+            {% if eManagerObjective %}
+                <h2 class="objective-content">{{ eManagerObjective }}</h2>
+            {% else %}
+                <h2 class="objective-content no-objective">No objective defined</h2>
+            {% endif %}
+        </div>
         <!-- <div class="evaluation-info-card">
             <h3>Transparency Score</h3>
             <h2>82%</h2>
@@ -43,7 +61,7 @@
     <div class="dashboard-navbar">
         <ul>
             <li class="active">Overview</li>
-            <li>Evaluated Procedures</li>
+            <li>Evaluated Scenarios</li>
             <li>Hotspots</li>
         </ul>
     </div>
@@ -82,13 +100,39 @@
                     </div>
                 </div>
 
+                <!-- Evaluated Scenarios Section -->
+                <div class="evaluated-scenarios-section">
+                    <h3>Evaluated Scenarios</h3>
+                    <p class="scenarios-subtitle">Scenarios analyzed under the cognitive dimension of Developer Experience:</p>
+                    <div class="scenarios-grid">
+                        {% for card in scenario_cards %}
+                        <div class="scenario-card" 
+                             data-scenario-id="S{{ card.index }}"
+                             data-scenario-title="{{ card.title }}"
+                             data-scenario-description="{{ card.description }}">
+                            <span class="scenario-id">S{{ card.index }}</span>
+                            <h4>{{ card.title }}</h4>
+                            <p>{{ card.summary }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <!-- Software Ecosystems Dimensions Section -->
                 <div class="seco-dimensions-section">
                     <h3>Software Ecosystems Dimensions</h3>
+                    <p class="dimensions-subtitle">These scores indicate how clearly each ecosystem dimension communicates information essential to developers' understanding of platform structures and processes, as part of cognitive experience.</p>
                     <div class="dimensions-grid">
                         {% for d in dimension_scores %}
                         <div class="dimension-card">
                             <h4>{{ d.name }}</h4>
+                            {% if d.name == 'Technical' %}
+                                <p class="dimension-focus">Focus: Documentation, code structure, and tools clarity.</p>
+                            {% elif d.name == 'Social' %}
+                                <p class="dimension-focus">Focus: Communication, collaboration, and community exchange.</p>
+                            {% elif d.name == 'Business' %}
+                                <p class="dimension-focus">Focus: Policies, decision flows, and governance visibility.</p>
+                            {% endif %}
                             {% if d.average_score is not none %}
                                 <div class="dimension-score">
                                     <span class="score">Score: {{ d.average_score }}</span>
@@ -111,7 +155,17 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <p>Not related to the evaluation</p>
+                                {% if count_collected_data == 0 %}
+                                    <div class="awaiting-data-message">
+                                        <span class="material-symbols-outlined">pending</span>
+                                        <p>Awaiting participant data</p>
+                                        <small>Scores will appear once participants complete the evaluation</small>
+                                    </div>
+                                {% elif not d.has_guidelines %}
+                                    <p class="not-related-message">Not related to the evaluation</p>
+                                {% else %}
+                                    <p class="no-data-message">No data available</p>
+                                {% endif %}
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -125,7 +179,7 @@
                         {% for category_key, category in dx_categories.items() %}
                         <div class="dx-card">
                             <h4>{{ category.name }}</h4>
-                            {% if category.score is not none %}
+                            {% if category.score is not none and category.score > 0 %}
                                 <div class="dx-score">
                                     <span class="score">Score: {{ category.score }}</span>
                                     <span class="transparency-badge {{ category.transparency_badge|lower|replace(' ', '-') }}">
@@ -147,7 +201,15 @@
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <p>No data</p>
+                                {% if count_collected_data == 0 %}
+                                    <div class="awaiting-data-message">
+                                        <span class="material-symbols-outlined">pending</span>
+                                        <p>Awaiting participant data</p>
+                                        <small>Scores will appear once participants complete the evaluation</small>
+                                    </div>
+                                {% else %}
+                                    <p class="no-data-message">No data available for this category</p>
+                                {% endif %}
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -160,10 +222,13 @@
                     <p>Summary of academic background and experience of the evaluation participants.</p>
                     <div class="profilecharts">
                         <div class="academic">
-                            <canvas id="experienceChart" style="max-width: 600px; height: 300px;"></canvas>
+                            <canvas id="experienceChart" style="height: 300px;"></canvas>
                         </div>
                         <div class="experience">
-                            <canvas id="educationChart" style="max-width: 600px; height: 300px; margin-top: 40px;"></canvas>
+                            <canvas id="educationChart" style="height: 300px;"></canvas>
+                        </div>
+                        <div class="familiarity">
+                            <canvas id="familiarityChart" style="height: 300px;"></canvas>
                         </div>
                     </div>
                     <p>Based on Carver et al. (2016), participants with less than 3 years of professional experience were categorized in the low experience group, those with 3 to 5 years in the medium experience group, and those with more than 5 years in the high experience group.</p>
@@ -195,128 +260,351 @@
         </div>
     </div>
 
-    <div class="evaluated-procedures-container">
-        <div class="procedures-layout">
-            <div class="procedures-sidebar">
-                <h3>Evaluated Procedures</h3>
-                <ul class="procedures-list">
-                    {% for process in seco_processes %}
-                    <li class="procedure-item {% if loop.first %}active{% endif %}" data-process-id="{{ process.seco_process_id }}">
-                        <span class="procedure-id">P{{ process.seco_process_id }}</span>
-                        <span class="procedure-description">{{ process.description }}</span>
+    <div class="evaluated-scenarios-container">
+        <div class="scenarios-layout">
+            <div class="scenarios-sidebar">
+                <h3>Evaluated Scenarios</h3>
+                <ul class="scenarios-list">
+                    {% for task in processed_tasks %}
+                    <li class="scenario-item {% if loop.first %}active{% endif %}" data-scenario-id="{{ task.task_id }}">
+                        <span class="scenario-id">S{{ loop.index }}</span>
+                        <span class="scenario-title">{{ task.title }}</span>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
 
-            <div class="procedures-content">
-                {% for process in seco_processes %}
-                <div class="procedure-panel {% if loop.first %}active{% endif %}" data-process-id="{{ process.seco_process_id }}">
-                    <div class="procedure-guidelines">
-                        <h3>Associated Guidelines</h3>
-                        <div class="guidelines-list">
-                            {% for guideline in process.guidelines %}
+            <div class="scenarios-content">
+                {% for task in processed_tasks %}
+                <div class="scenario-panel {% if loop.first %}active{% endif %}" data-scenario-id="{{ task.task_id }}">
+
+                    <!-- Título do Scenario -->
+                    <div class="scenario-header">
+                        <h2>{{ task.title }}</h2>
+                        {% if task.guidelines and task.guidelines|length > 0 and task.guidelines[0].notes %}
+                            <p class="scenario-guideline-note">
+                                <span class="note-icon material-symbols-outlined">info</span>
+                                {{ task.guidelines[0].notes }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mini-seção: Scenario Performance -->
+                    <div class="scenario-performance-section">
+                        <h3>Scenario Performance</h3>
+                        <p class="section-subtitle">Scenario performance reflects how effectively and fluently developers completed the scenario.</p>
+
+                        <div class="performance-metrics-table">
+                            <table class="metrics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Result</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                        <th>Insight</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- SUCCESS RATE -->
+                                    <tr class="metric-row">
+                                        <td class="metric-name">Success Rate</td>
+                                        <td class="metric-result">{{ task.completion_rate|round|int }}%</td>
+                                        <td class="metric-target">≥ 90%</td>
+                                        <td class="metric-status">
+                                            {% set success_rate = task.completion_rate|round|int %}
+                                            {% if success_rate >= 90 %}
+                                                <span class="status-badge successful">
+                                                    <span class="status-icon">●</span>
+                                                    Successful
+                                                </span>
+                                            {% elif success_rate >= 70 %}
+                                                <span class="status-badge partially-successful">
+                                                    <span class="status-icon">●</span>
+                                                    Partially Successful
+                                                </span>
+                                            {% elif success_rate >= 50 %}
+                                                <span class="status-badge low-success">
+                                                    <span class="status-icon">●</span>
+                                                    Low Success
+                                                </span>
+                                            {% else %}
+                                                <span class="status-badge unsuccessful">
+                                                    <span class="status-icon">●</span>
+                                                    Unsuccessful
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="metric-insight">
+                                            {% if success_rate >= 90 %}
+                                                Scenario completed easily and consistently.
+                                            {% elif success_rate >= 70 %}
+                                                Most developers completed the scenario, with minor friction.
+                                            {% elif success_rate >= 50 %}
+                                                Several developers struggled to complete the scenario.
+                                            {% else %}
+                                                Most developers could not complete the scenario.
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <!-- AVERAGE COMPLETION TIME -->
+                                    <tr class="metric-row">
+                                        <td class="metric-name">Average Completion Time</td>
+                                        <td class="metric-result">{{ task.avg_time|round|int }} s</td>
+                                        <td class="metric-target">≤ 30 s</td>
+                                        <td class="metric-status">
+                                            {% set avg_time = task.avg_time|round|int %}
+                                            {% if avg_time <= 30 %}
+                                                <span class="status-badge high-fluency">
+                                                    <span class="status-icon">●</span>
+                                                    High Fluency
+                                                </span>
+                                            {% elif avg_time <= 60 %}
+                                                <span class="status-badge moderate-fluency">
+                                                    <span class="status-icon">●</span>
+                                                    Moderate Fluency
+                                                </span>
+                                            {% elif avg_time <= 90 %}
+                                                <span class="status-badge slow-interaction">
+                                                    <span class="status-icon">●</span>
+                                                    Slow Interaction
+                                                </span>
+                                            {% else %}
+                                                <span class="status-badge cognitive-overload">
+                                                    <span class="status-icon">●</span>
+                                                    Cognitive Overload
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="metric-insight">
+                                            {% if avg_time <= 30 %}
+                                                Scenario completed quickly and smoothly.
+                                            {% elif avg_time <= 60 %}
+                                                Scenario completed with acceptable effort.
+                                            {% elif avg_time <= 90 %}
+                                                Developers needed extra time to find or understand information.
+                                            {% else %}
+                                                Scenario took too long, information was unclear or hard to locate.
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Mini-seção: Transparency & Priority -->
+                    <div class="transparency-priority-section">
+                        <h3>Transparency & Priority</h3>
+                        <p class="section-subtitle">Transparency Score represents developers' cognitive perception of how clearly information is structured and accessible.</p>
+
+                        <!-- Guidelines Accordion -->
+                        <div class="guidelines-accordion">
+                            {% set has_guidelines_with_data = namespace(value=False) %}
+                            {% for guideline in task.guidelines %}
                                 {% set g_result = result|selectattr('title', 'equalto', guideline.title)|first|default(None) %}
                                 {% if g_result %}
-                                <div class="guideline-card">
-                                    <h4>{{ guideline.title }}</h4>
-                                    <p>{{ guideline.description }}</p>
-                                    {% if g_result.average_score is not none %}
-                                        <span class="score-badge">Score: {{ g_result.average_score }}%</span>
-                                    {% endif %}
-
-                                    <div class="guideline-ksc-section">
-                                        <h5>Key Success Criteria:</h5>
-                                        {% for ksc in g_result.key_success_criteria %}
-                                        <div class="ksc-item">
-                                            <h6>{{ ksc.title }}</h6>
-                                            <p>{{ ksc.description }}</p>
-                                            {% if ksc.score is not none %}
-                                                <div class="ksc-score">
-                                                    <span>Score: {{ ksc.porcentagem }}%</span>
-                                                    <span class="ksc-status {{ ksc.status|lower|replace(' ', '-') }}">{{ ksc.status }}</span>
-                                                </div>
-                                            {% else %}
-                                                <span class="ksc-status no-answers">No Answers</span>
-                                            {% endif %}
+                                {% set has_guidelines_with_data.value = True %}
+                                <div class="guideline-accordion-item">
+                                    <!-- Header: Título da Guideline -->
+                                    <div class="guideline-accordion-header" data-guideline-id="{{ guideline.guidelineID }}">
+                                        <div class="guideline-header-content">
+                                            <h4 class="guideline-title">{{ guideline.title }}</h4>
+                                            <div class="guideline-header-metrics">
+                                                <span class="guideline-score">
+                                                    Transparency Score:
+                                                    <strong>{{ g_result.average_score|round|int }} / 100</strong>
+                                                </span>
+                                                <span class="priority-badge {{ g_result.priority|lower|replace(' ', '-') }}">
+                                                    <span class="priority-icon">●</span>
+                                                    {{ g_result.priority }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        {% endfor %}
+                                        <span class="guideline-toggle material-symbols-outlined">expand_more</span>
+                                    </div>
+
+                                    <!-- Content: Detalhes da Guideline -->
+                                    <div class="guideline-accordion-content">
+                                        <p class="guideline-description">{{ guideline.description }}</p>
+
+                                        <!-- Priority Insight -->
+                                        <div class="priority-insight-box">
+                                            <strong>Priority Insight:</strong> {{ g_result.priority_insight }}
+                                        </div>
+
+                                        <!-- Tabela de Key Success Criteria -->
+                                        <h5>Key Success Criteria</h5>
+                                        <p class="ksc-explanation">Each criterion score is the overall transparency score according to its assigned weight. Lower scores on highly weighted criteria have stronger impact on the final result. Target ≥ 75.</p>
+
+                                        <table class="ksc-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Criterion</th>
+                                                    <th>Score (0-100)</th>
+                                                    <th>Weight (0-10)</th>
+                                                    <th>Status</th>
+                                                    <th>Insight</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for ksc in g_result.key_success_criteria %}
+                                                <tr>
+                                                    <td class="ksc-name">
+                                                        <span class="ksc-name-clickable"
+                                                              onclick="openKscModal('{{ ksc.title|replace("'", "\\'") }}', '{{ ksc.description|replace("'", "\\'")|replace("\n", " ")|replace("\r", "") }}', {{ ksc.porcentagem|round|int }}, {{ ksc.weight }}, '{{ ksc.insight|replace("'", "\\'")|replace("\n", " ")|replace("\r", "") }}')">
+                                                            {{ ksc.title }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="ksc-score">{{ ksc.porcentagem|round|int }} / 100</td>
+                                                    <td class="ksc-weight">{{ ksc.weight }}</td>
+                                                    <td class="ksc-status">
+                                                        {% set ksc_score = ksc.porcentagem|round|int %}
+                                                        {% if ksc_score >= 75 %}
+                                                            <span class="status-badge fulfilled">
+                                                                <span class="status-icon">●</span>
+                                                                Fulfilled
+                                                            </span>
+                                                        {% elif ksc_score >= 50 %}
+                                                            <span class="status-badge partially-fulfilled">
+                                                                <span class="status-icon">●</span>
+                                                                Partially Fulfilled
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="status-badge not-fulfilled">
+                                                                <span class="status-icon">●</span>
+                                                                Not Fulfilled
+                                                            </span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="ksc-insight">{{ ksc.insight }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                                 {% endif %}
                             {% endfor %}
+
+                            {% if not has_guidelines_with_data.value %}
+                            <div class="no-guidelines-message">
+                                <p>No guidelines associated with this scenario.</p>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <div class="procedure-tasks">
-                        <h3>Associated Tasks</h3>
-                        <div class="tasks-accordion">
-                            {% set process_tasks = tasks_by_process|selectattr('process_id', 'equalto', process.seco_process_id)|first|default({'tasks': []}) %}
-                            {% for task in process_tasks.tasks %}
-                                {% set avg_time = task.avg_time if task.avg_time is not none else 0 %}
-                                {% set completion_rate = task.completion_rate if task.completion_rate is not none else 0 %}
-                                <div class="task-accordion-item">
-                                    <div class="task-accordion-header" data-task-id="{{ task.task_id }}">
-                                        <span class="task-title">{{ task.title }}</span>
-                                        <span class="task-toggle material-symbols-outlined">expand_more</span>
-                                    </div>
-                                    <div class="task-accordion-content">
-                                        <div class="task-metrics">
-                                            <div class="metrics-header">
-                                                <span>Performance Metrics</span>
-                                                <button class="info-btn" onclick="openMetricsModal()">
-                                                    <span class="material-symbols-outlined">info</span>
-                                                </button>
-                                            </div>
-                                            <div class="metric-row">
-                                                <strong>Average Time:</strong>
-                                                <span>{{ avg_time }} seconds</span>
-                                                {% if avg_time <= 30 %}
-                                                    <span class="badge badge-excellent">Fast</span>
-                                                {% elif avg_time <= 60 %}
-                                                    <span class="badge badge-good">Moderate</span>
-                                                {% elif avg_time <= 120 %}
-                                                    <span class="badge badge-warning">Slow</span>
-                                                {% else %}
-                                                    <span class="badge badge-critical">Very Slow</span>
-                                                {% endif %}
-                                            </div>
-                                            <div class="metric-row">
-                                                <strong>Success Rate:</strong>
-                                                <span>{{ completion_rate }}%</span>
-                                                {% if completion_rate >= 90 %}
-                                                    <span class="badge badge-excellent">High Success</span>
-                                                {% elif completion_rate >= 70 %}
-                                                    <span class="badge badge-good">Good Success</span>
-                                                {% elif completion_rate >= 50 %}
-                                                    <span class="badge badge-warning">Low Success</span>
-                                                {% else %}
-                                                    <span class="badge badge-critical">Poor Success</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
+                    <!-- Mini-seção: Developers Reflections -->
+                    <div class="developers-reflections-section">
+                        <h3>Developers Reflections</h3>
+                        <p class="section-subtitle">Word cloud showing the most frequently used terms in developer comments for this scenario.</p>
+                        <div class="scenario-wordcloud-container">
+                            <canvas id="scenario-wordcloud-{{ task.task_id }}" class="scenario-wordcloud"></canvas>
+                        </div>
+                    </div>
 
-                                        <div class="task-comments-section">
-                                            <h4>Developer Comments:</h4>
-                                            {% if task.comments %}
-                                            <ul class="comments-list">
-                                                {% for comment in task.comments %}
-                                                    <li>{{ comment }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                            {% else %}
-                                            <p class="no-comments">No comments available</p>
-                                            {% endif %}
-                                        </div>
+                    <!-- Mini-seção: Developers Comments -->
+                    <div class="developers-comments-section">
+                        <h3>Developers Comments</h3>
+                        <p class="section-subtitle">Direct feedback from developers who completed this scenario.</p>
+
+                        {% if task.comments %}
+                            <div class="comments-list" id="comments-list-{{ task.task_id }}">
+                                {% for comment in task.comments %}
+                                <div class="comment-card {% if loop.index > 3 %}hidden-comment{% endif %}">
+                                    <div class="comment-header">
+                                        <span class="comment-author">Developer {{ loop.index }}</span>
+                                        <span class="comment-badge">Feedback</span>
                                     </div>
+                                    <p class="comment-text">{{ comment }}</p>
                                 </div>
-                            {% else %}
-                                <p class="no-tasks">No tasks associated with this procedure</p>
-                            {% endfor %}
-                        </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if task.comments|length > 3 %}
+                            <button class="show-more-comments-btn" onclick="toggleComments({{ task.task_id }})">
+                                <span class="btn-text-more">Show More Comments ({{ task.comments|length - 3 }} hidden)</span>
+                                <span class="btn-text-less" style="display: none;">Show Less Comments</span>
+                                <span class="material-symbols-outlined">expand_more</span>
+                            </button>
+                            {% endif %}
+                        {% else %}
+                            <div class="no-comments-message">
+                                <p>No comments provided by developers for this scenario.</p>
+                            </div>
+                        {% endif %}
                     </div>
+
+                    <!-- Mini-seção: Improvement Actions -->
+                    <div class="improvement-actions-section">
+                        <h3>Improvement Actions</h3>
+                        <p class="section-subtitle">Improvement Actions list only the Key Success Criteria (KSCs) that were Partially Fulfilled or Not Fulfilled. Actions are ordered by their assigned weights: higher-weighted items appear first, indicating greater impact on overall transparency.</p>
+
+                        {% if task.improvement_actions and task.improvement_actions|length > 0 %}
+                            <div class="improvement-actions-list">
+                                {% for action in task.improvement_actions %}
+                                <div class="improvement-action-item">
+                                    <h4 class="improvement-action-title">{{ action.title }}</h4>
+                                    <p class="improvement-action-description">
+                                        <strong>Action:</strong> {{ action.description }}
+                                    </p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-improvement-actions-message">
+                                <p>All Key Success Criteria for this scenario are fully fulfilled. No improvement actions needed.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalhes do KSC -->
+    <div id="kscModal" class="modal">
+        <div class="modal-content ksc-modal-content">
+            <div class="modal-header">
+                <h2 id="kscModalTitle">Key Success Criterion Details</h2>
+                <span class="close-modal" onclick="closeKscModal()">&times;</span>
+            </div>
+            <div class="modal-body ksc-modal-body">
+                <div class="ksc-detail-section">
+                    <h3>Name</h3>
+                    <p id="kscModalName" class="ksc-detail-value"></p>
+                </div>
+
+                <div class="ksc-detail-section">
+                    <h3>Description</h3>
+                    <p id="kscModalDescription" class="ksc-detail-description"></p>
+                </div>
+
+                <div class="ksc-metrics-grid">
+                    <div class="ksc-detail-section">
+                        <h3>Transparency Score</h3>
+                        <p id="kscModalScore" class="ksc-detail-score"></p>
+                    </div>
+
+                    <div class="ksc-detail-section">
+                        <h3>Weight</h3>
+                        <p id="kscModalWeight" class="ksc-detail-weight"></p>
+                    </div>
+
+                    <div class="ksc-detail-section">
+                        <h3>Status</h3>
+                        <p id="kscModalStatus" class="ksc-detail-status"></p>
+                    </div>
+                </div>
+
+                <div class="ksc-detail-section">
+                    <h3>Insight</h3>
+                    <p id="kscModalInsight" class="ksc-detail-insight"></p>
+                </div>
             </div>
         </div>
     </div>
@@ -376,29 +664,36 @@
         </div>
     </div>
 
+    <!-- Modal for Scenario Details -->
+    <div id="scenarioModal" class="modal">
+        <div class="modal-content scenario-modal-content">
+            <div class="modal-header">
+                <h2><span id="scenario-modal-id"></span> - Scenario Details</h2>
+                <span class="close-modal" onclick="closeScenarioModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3 id="scenario-modal-title"></h3>
+                <p id="scenario-modal-description"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- elemento escondido com o id da avaliação (usado pelo JS) -->
     <p id="id-avaliacao" style="display:none">{{ evaluation.evaluation_id }}</p>
 
     <div class="hotspots-container">
         <div class="hotspot-card">
             <div class="hotspots-header">
-            <h2>Heatmaps by Task</h2>
-            <p>Viewing participant interactions mapped to specific tasks.</p>
+            <h2>Heatmap Insights by URL</h2>
+            <p>Visualize where developers collectively focused their attention across all scenarios. Aggregated by URL to reveal clear, engaging, or confusing sections of the portal.</p>
             </div>
 
             <div class="task-heatmap-container">
             <hr class="task-heatmap-divider">
 
-            <!-- Filtros de tarefas -->
+            <!-- Filtros de cenários (preenchidos via JavaScript) -->
             <div class="task-filters-container">
-                <h3>Filter by Task</h3>
-                <div class="task-filters" id="task-filters">
-                    <div class="filter-item">
-                        <input type="checkbox" id="filter-all" checked>
-                        <label for="filter-all">Show All Tasks</label>
-                    </div>
-                    <!-- Filtros específicos serão inseridos aqui via JavaScript -->
-                </div>
+                <div class="task-filters" id="task-filters"></div>
             </div>
 
             <!-- raiz onde os heatmaps vindos da API serão inseridos -->
@@ -432,6 +727,46 @@
                     }
                 }
             });
+        });
+
+        // Scenario Modal Functions
+        function openScenarioModal(id, title, description) {
+            document.getElementById('scenario-modal-id').textContent = id;
+            document.getElementById('scenario-modal-title').textContent = title;
+            document.getElementById('scenario-modal-description').textContent = description;
+            document.getElementById('scenarioModal').style.display = 'block';
+        }
+
+        function closeScenarioModal() {
+            document.getElementById('scenarioModal').style.display = 'none';
+        }
+
+        // Add click handlers to scenario cards
+        document.querySelectorAll('.scenario-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                const id = this.getAttribute('data-scenario-id');
+                const title = this.getAttribute('data-scenario-title');
+                const description = this.getAttribute('data-scenario-description');
+                openScenarioModal(id, title, description);
+            });
+        });
+
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            var modal = document.getElementById('scenarioModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                var modal = document.getElementById('scenarioModal');
+                if (modal.style.display === 'block') {
+                    closeScenarioModal();
+                }
+            }
         });
     </script>
 {% endblock %}

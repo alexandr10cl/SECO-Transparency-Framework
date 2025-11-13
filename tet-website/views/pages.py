@@ -33,11 +33,39 @@ def downloads():
 
 @app.route('/download-extension')
 def download_extension():
+    # Fix #13: Check if file exists before attempting download
+    file_path = os.path.join(app.root_path, 'static', 'downloads', 'tet-extension.zip')
+    
+    if not os.path.exists(file_path):
+        return render_template('error.html',
+                             error_code=404,
+                             error_message="Extension file not found. Please contact support."), 404
+    
     try:
-        file_path = os.path.join(app.root_path, 'static', 'downloads', 'tet-extension.zip')
         return send_file(file_path, as_attachment=True, download_name='tet-extension.zip')
     except Exception as e:
-        return f"Error downloading file: {str(e)}", 404
+        print(f"Error serving extension file: {str(e)}")
+        return render_template('error.html',
+                             error_code=500,
+                             error_message="Error downloading extension. Please try again or contact support."), 500
+
+@app.route('/download-uxtracking')
+def download_uxtracking():
+    # Fix #13: Check if file exists before attempting download
+    file_path = os.path.join(app.root_path, 'static', 'downloads', 'UX-Tracking-Extension-v2-main.zip')
+    
+    if not os.path.exists(file_path):
+        return render_template('error.html',
+                             error_code=404,
+                             error_message="UX-Tracking extension file not found. Please contact support."), 404
+    
+    try:
+        return send_file(file_path, as_attachment=True, download_name='UX-Tracking-Extension-v2.zip')
+    except Exception as e:
+        print(f"Error serving UX-Tracking file: {str(e)}")
+        return render_template('error.html',
+                             error_code=500,
+                             error_message="Error downloading UX-Tracking extension. Please try again or contact support."), 500
 
 @app.route('/guidelines')
 def guidelines():

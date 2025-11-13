@@ -1,10 +1,11 @@
 from flask import render_template, request, redirect, session, url_for, flash
 import requests
 from index import app, db
-from models import User, UserType
+from models import User, UserType, Evaluation
 from functions import isLogged, isAdmin, send_verification_email, send_password_reset_email
 import secrets
 import os
+from services.heatmap_prefetch import schedule_heatmap_prefetch
 
 DEV_MODE = os.getenv('DEV_MODE', 'False') == 'True'
 admin_credentials = {
@@ -45,41 +46,70 @@ def auth():
                 messageEA = ''
                 return redirect(url_for('signin'))
 
+            # Fix #1: Make session permanent so timeout works
+            session.permanent = True
             session['user_signed_in'] = user.email
             session['user_type'] = user.type.value
 
-            # Pegar token de autenticação do UXT
+            # Fix #2: UXT API fallback - don't block login if UXT is down
+            # Try to get UXT token, but allow login even if it fails
             uxt_url = 'https://uxt-stage.liis.com.br/auth/login'
-
             uxt_dados = {
                 "email": user.email,
                 "password": request.form.get('passw')
             }
 
-            resposta = requests.post(uxt_url, json=uxt_dados)
-            if resposta.status_code == 200:
-                access_token = resposta.json().get('access_token')
-                if access_token:
-                    session['uxt_access_token'] = access_token
-                    session['user_signed_in'] = user.email
-                    session['user_type'] = user.type.value
-                    print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
-                    message = ''
-                    messageEA = ''
-                    messageReg = ''
-                    messageType = ''
+            try:
+                # Set timeout to prevent hanging (increased to 15s for slower UXT API responses)
+                resposta = requests.post(uxt_url, json=uxt_dados, timeout=60)
+                
+                if resposta.status_code == 200:
+                    access_token = resposta.json().get('access_token')
+                    if access_token:
+                        session['uxt_access_token'] = access_token
+                        print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
+                    else:
+                        print("[UXT] Nenhum token de acesso retornado.")
+                        # Continue login without UXT token
+                        session['uxt_access_token'] = None
                 else:
-                    print("[UXT] Nenhum token de acesso retornado.")
-                    messageType = 'error'
-                    message = 'Error authenticating with UXTracking service. Please try again later.'
-            else:
-                print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
-                print(f"[UXT] Resposta: {resposta.text}")
-                return redirect(url_for('signin'))
+                    print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
+                    print(f"[UXT] Resposta: {resposta.text}")
+                    # Continue login without UXT token
+                    session['uxt_access_token'] = None
+                    
+            except requests.exceptions.Timeout:
+                # UXT API timeout - allow login anyway
+                print("[UXT] Timeout ao conectar com API UXT. Continuando login sem UXT token.")
+                session['uxt_access_token'] = None
+                
+            except requests.exceptions.ConnectionError:
+                # UXT API not reachable - allow login anyway
+                print("[UXT] Erro de conexão com API UXT. Continuando login sem UXT token.")
+                session['uxt_access_token'] = None
+                
+            except requests.exceptions.RequestException as e:
+                # Any other request error - allow login anyway
+                print(f"[UXT] Erro ao conectar com API UXT: {str(e)}. Continuando login sem UXT token.")
+                session['uxt_access_token'] = None
 
+            # Always allow login regardless of UXT status
             message = ''
             messageReg = ''
             messageEA = ''
+            messageType = ''
+
+            # Prefetch heatmaps in the background for faster dashboard loading
+            token_for_prefetch = session.get('uxt_access_token')
+            evaluation_ids = [
+                evaluation.evaluation_id
+                for evaluation in Evaluation.query
+                    .filter_by(user_id=user.user_id)
+                    .order_by(Evaluation.created_at.desc(), Evaluation.evaluation_id.desc())
+                    .limit(5)
+            ]
+            schedule_heatmap_prefetch(evaluation_ids, token_for_prefetch)
+
             return redirect(url_for('index'))
         else:
             messageType = 'error'

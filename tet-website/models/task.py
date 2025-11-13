@@ -25,6 +25,7 @@ class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(1000), nullable=False)
+    summary = db.Column(db.String(500), nullable=False)
     
     # Relationship with seco_process
     seco_processes = db.relationship('SECO_process',
@@ -49,7 +50,7 @@ class PerformedTask(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
 
     # Relationship com Task
-    task = db.relationship('Task', backref='performed_tasks')
+    task = db.relationship('Task', backref=db.backref('performed_tasks', passive_deletes=True), passive_deletes=True)
 
 class Question(db.Model):
     __tablename__ = 'question'

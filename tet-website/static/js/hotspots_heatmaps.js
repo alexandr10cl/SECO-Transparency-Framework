@@ -1,262 +1,326 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const idElem = document.getElementById('id-avaliacao');
-  if (!idElem) {
-    console.warn('Element #evaluation-id not found. No heatmap will be loaded.');
+  const evaluationIdElement = document.getElementById('id-avaliacao');
+  if (!evaluationIdElement) {
+    console.warn('Evaluation id element not found. Heatmaps will not be loaded.');
     return;
   }
 
-  const id = idElem.textContent.trim();
+  const evaluationId = evaluationIdElement.textContent.trim();
   const root = document.getElementById('heatmaps-root');
   const filtersContainer = document.getElementById('task-filters');
-  
-  if (!root || !filtersContainer) return;
 
-  let availableTasks = [];
-  let heatmapContainers = [];
+  if (!root || !filtersContainer) {
+    console.warn('Heatmap root or filters container not found.');
+    return;
+  }
+
+  let availableScenarios = [];
+  let heatmapCards = [];
+  let scenarioMappingAvailable = true;
 
   root.innerHTML = '<p class="loading">Loading heatmaps...</p>';
 
-  // Usar nova API que mapeia heatmaps com tarefas
-  fetch(`/api/heatmap-tasks/${id}`)
+  fetch(`/api/heatmap-scenarios/${evaluationId}`)
     .then(response => {
-      if (!response.ok) throw new Error(`Network error: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`Network error: ${response.status} ${response.statusText}`);
+      }
       return response.json();
     })
     .then(data => {
       root.innerHTML = '';
-      
-      // Use new segmented_heatmaps structure
-      const segmentedHeatmaps = data.segmented_heatmaps || {};
-      availableTasks = data.available_tasks || [];
+
+      const heatmapsByUrl = data.heatmaps_by_url || [];
+      availableScenarios = data.available_scenarios || [];
       const metadata = data.metadata || {};
 
-      // Display data quality information
-      displayDataQualityInfo(metadata);
+      scenarioMappingAvailable = metadata.scenario_mapping_available !== false;
 
-      // Criar filtros baseados nas tarefas disponíveis
-      setupTaskFilters(availableTasks);
+      if (metadata) {
+        displayDataQualityInfo(metadata);
+      }
 
-      // Check if we have any heatmaps
-      const allHeatmaps = [];
-      Object.values(segmentedHeatmaps).forEach(taskData => {
-        if (taskData.heatmaps && taskData.heatmaps.length > 0) {
-          allHeatmaps.push(...taskData.heatmaps);
-        }
-      });
+      setupScenarioFilters(availableScenarios, metadata);
 
-      if (allHeatmaps.length === 0) {
-        root.innerHTML = '<p>No heatmaps found for this evaluation.</p>';
+      if (!heatmapsByUrl.length) {
+        const emptyState = document.createElement('p');
+        emptyState.textContent = 'No heatmaps were generated for this evaluation yet.';
+        root.appendChild(emptyState);
         return;
       }
 
-      // Display heatmaps by task
-      Object.entries(segmentedHeatmaps).forEach(([taskId, taskData]) => {
-        if (taskData.heatmaps && taskData.heatmaps.length > 0) {
-          // Create task section header
-          const taskHeader = document.createElement('div');
-          taskHeader.className = 'task-section-header';
-          taskHeader.innerHTML = `
-            <h3>${taskData.task_info.title}</h3>
-            <p>${taskData.task_info.description}</p>
-            <div class="task-stats">${taskData.heatmaps.length} heatmap(s)</div>
-          `;
-          root.appendChild(taskHeader);
+      heatmapsByUrl.forEach((urlData, index) => {
+        const section = createHeatmapCard(urlData, index);
+        root.appendChild(section.card);
+        heatmapCards.push(section.card);
 
-          // Add heatmaps for this task
-          taskData.heatmaps.forEach((heatmapData, index) => {
-            // Analisar tarefas presentes neste heatmap
-            const tasksInHeatmap = getTasksFromPoints(heatmapData.points || []);
+        const heatmapPayload = {
+          image: urlData.image,
+          mime: urlData.mime || 'image/jpeg',
+          width: urlData.width,
+          height: urlData.height,
+          points: urlData.aggregated_points || urlData.points || [],
+          title: urlData.title || urlData.url || `Heatmap ${index + 1}`
+        };
 
-            // Criar wrapper para o heatmap
-            const container = createHeatmapContainer(heatmapData, index, tasksInHeatmap);
-            root.appendChild(container);
-            heatmapContainers.push(container);
-
-            // Inicializar heatmap
-            initializeHeatmap(container, heatmapData, index);
-          });
-        }
+        initializeHeatmap(section.heatmapContainer, heatmapPayload, index);
       });
+
+      applyFilters();
     })
     .catch(error => {
-      console.error('Error loading or processing heatmap data:', error);
-      root.innerHTML = `<p>Error loading heatmaps: ${error.message}</p>`;
+      console.error('Error loading scenario heatmaps:', error);
+      
+      // Create a more user-friendly error display
+      const errorContainer = document.createElement('div');
+      errorContainer.className = 'heatmap-error-container';
+      errorContainer.innerHTML = `
+        <div class="heatmap-error-card">
+          <div class="error-icon">⚠️</div>
+          <h3>Unable to Load Heatmaps</h3>
+          <p class="error-message">${escapeHtml(error.message)}</p>
+          <p class="error-hint">This may happen if:</p>
+          <ul class="error-reasons">
+            <li>The UX Tracking API is temporarily unavailable</li>
+            <li>The heatmap data is very large and took too long to load</li>
+            <li>Your network connection was interrupted</li>
+          </ul>
+          <button class="retry-button" onclick="location.reload()">
+            🔄 Retry
+          </button>
+        </div>
+      `;
+      root.innerHTML = '';
+      root.appendChild(errorContainer);
     });
 
-  // Função para configurar filtros
-  function setupTaskFilters(tasks) {
-    // Limpar filtros existentes (manter apenas "Show All")
-    const existingFilters = filtersContainer.querySelectorAll('.filter-item:not(:first-child)');
-    existingFilters.forEach(item => item.remove());
+  function setupScenarioFilters(scenarios, metadata = {}) {
+    filtersContainer.innerHTML = '';
 
-    // Adicionar filtro para cada tarefa
-    tasks.forEach(task => {
-      const filterItem = document.createElement('div');
-      filterItem.className = 'filter-item';
-      
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.id = `filter-task-${task.task_id}`;
-      checkbox.checked = true;
-      
-      const label = document.createElement('label');
-      label.htmlFor = checkbox.id;
-      label.textContent = task.title;
-      
-      filterItem.appendChild(checkbox);
-      filterItem.appendChild(label);
-      filtersContainer.appendChild(filterItem);
+    const header = document.createElement('h3');
+    header.textContent = 'Filter by Scenario';
+    const list = document.createElement('div');
+    list.className = 'task-filters-list';
 
-      // Adicionar event listener para o filtro
-      checkbox.addEventListener('change', handleFilterChange);
-    });
+    filtersContainer.appendChild(header);
+    filtersContainer.appendChild(list);
 
-    // Configurar filtro "Show All"
-    const showAllCheckbox = document.getElementById('filter-all');
-    if (showAllCheckbox) {
-      showAllCheckbox.addEventListener('change', handleShowAllChange);
+    const mappingAvailable = scenarioMappingAvailable && Array.isArray(scenarios) && scenarios.length > 0;
+
+    if (!mappingAvailable) {
+      const disabledMessage = document.createElement('div');
+      disabledMessage.className = 'filter-disabled-message';
+      const reason = metadata.scenario_mapping_reason
+        || 'Scenario filters are unavailable because navigation data could not be linked to specific scenarios.';
+      disabledMessage.innerHTML = `<strong>Scenario filters unavailable.</strong><br>${escapeHtml(reason)}`;
+      list.appendChild(disabledMessage);
+      scenarioMappingAvailable = false;
+      return;
     }
-  }
 
-  // Função para extrair tarefas únicas dos pontos do heatmap
-  function getTasksFromPoints(points) {
-    const tasks = new Set();
-    points.forEach(point => {
-      if (point.active_task && point.active_task.task_id) {
-        tasks.add(point.active_task.task_id);
+    const showAllItem = createFilterItem({
+      id: 'filter-all-scenarios',
+      label: 'Show All Scenarios',
+      checked: true
+    });
+    list.appendChild(showAllItem.container);
+    showAllItem.checkbox.addEventListener('change', handleShowAllChange);
+
+    scenarios.forEach(scenario => {
+      const normalizedId = normalizeScenarioId(scenario.task_id);
+      if (normalizedId === null) {
+        return;
       }
+
+      const item = createFilterItem({
+        id: `filter-scenario-${normalizedId}`,
+        label: scenario.title || `Scenario ${normalizedId}`,
+        checked: true,
+        description: scenario.description || ''
+      });
+
+      item.checkbox.dataset.scenarioId = normalizedId;
+      item.checkbox.addEventListener('change', handleFilterChange);
+      list.appendChild(item.container);
     });
-    return Array.from(tasks);
   }
 
-  // Função para criar container do heatmap com interface moderna
-  function createHeatmapContainer(heatmapData, index, tasksInHeatmap) {
+  function createFilterItem({ id, label, checked = false, description = '' }) {
     const container = document.createElement('div');
-    container.classList.add('heatmap-wrapper');
-    
-    // Estilos modernos base
-    Object.assign(container.style, {
-      position: 'relative',
-      maxWidth: '100%',
-      marginBottom: '32px',
-      borderRadius: '16px',
-      overflow: 'hidden',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-      border: '1px solid rgba(255, 255, 255, 0.18)',
-      background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      width: heatmapData.width ? `${heatmapData.width}px` : '640px',
-      height: heatmapData.height ? `${heatmapData.height}px` : '360px'
-    });
-    
-    // Hover effect
-    container.addEventListener('mouseenter', () => {
-      container.style.transform = 'translateY(-4px)';
-      container.style.boxShadow = '0 12px 48px rgba(0, 0, 0, 0.18)';
-    });
-    
-    container.addEventListener('mouseleave', () => {
-      container.style.transform = 'translateY(0)';
-      container.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.12)';
-    });
-    
-    // Adicionar atributos para filtragem (normalizados)
-    container.dataset.heatmapIndex = index;
-    if (tasksInHeatmap.length > 0) {
-      container.dataset.taskIds = tasksInHeatmap.map(normalizeTaskId).join(',');
+    container.className = 'filter-item';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+    checkbox.checked = checked;
+
+    const labelElement = document.createElement('label');
+    labelElement.htmlFor = id;
+    labelElement.textContent = label;
+
+    if (description) {
+      labelElement.title = description;
     }
 
-    // Criar overlay moderno de tarefas ao invés de badge
-    if (tasksInHeatmap.length > 0) {
-      const taskOverlay = createTaskOverlay(tasksInHeatmap);
-      container.appendChild(taskOverlay);
+    container.appendChild(checkbox);
+    container.appendChild(labelElement);
+
+    return { container, checkbox };
+  }
+
+  function createHeatmapCard(urlData, index) {
+    const card = document.createElement('section');
+    card.className = 'heatmap-card';
+
+    const scenarioIds = (urlData.scenarios_involved || [])
+      .map(scenario => normalizeScenarioId(scenario.task_id))
+      .filter(id => id !== null);
+
+    if (scenarioIds.length > 0) {
+      card.dataset.scenarioIds = scenarioIds.join(',');
     }
 
-    // Adicionar indicador de cobertura se disponível
-    if (heatmapData.metadata && heatmapData.metadata.coverage_percentage) {
-      const coverageIndicator = createCoverageIndicator(heatmapData.metadata);
-      container.appendChild(coverageIndicator);
+    const header = document.createElement('div');
+    header.className = 'url-section-header';
+
+    const headerContent = document.createElement('div');
+    headerContent.className = 'url-header-content';
+
+    const titleElement = document.createElement('h3');
+    titleElement.className = 'url-title';
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'url-icon';
+    iconSpan.textContent = '🌐';
+
+    const titleText = document.createElement('span');
+    titleText.textContent = urlData.title || urlData.url || `Page ${index + 1}`;
+
+    titleElement.appendChild(iconSpan);
+    titleElement.appendChild(titleText);
+
+    const addressElement = document.createElement('p');
+    addressElement.className = 'url-address';
+    addressElement.textContent = urlData.url || 'Unknown URL';
+
+    headerContent.appendChild(titleElement);
+    headerContent.appendChild(addressElement);
+
+    const stats = document.createElement('div');
+    stats.className = 'url-stats';
+
+    stats.innerHTML = `
+      <div class="stat-item">
+        <span class="stat-value">${formatNumber(urlData.scenarios_count || 0)}</span>
+        <span class="stat-label">Scenarios</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">${formatNumber(urlData.total_points || 0)}</span>
+        <span class="stat-label">Interactions</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">${formatNumber(urlData.total_navigation_hits || 0)}</span>
+        <span class="stat-label">Navigation Hits</span>
+      </div>
+    `;
+
+    header.appendChild(headerContent);
+    header.appendChild(stats);
+    card.appendChild(header);
+
+    const tagContainer = createScenarioTags(urlData.scenarios_involved || []);
+    if (tagContainer) {
+      card.appendChild(tagContainer);
+    } else if (!scenarioMappingAvailable) {
+      const info = document.createElement('p');
+      info.className = 'scenario-tags-info';
+      info.textContent = 'Scenario attribution unavailable for this URL.';
+      card.appendChild(info);
     }
+
+    if (Array.isArray(urlData.sources) && urlData.sources.length > 1) {
+      const sourceInfo = document.createElement('p');
+      sourceInfo.className = 'heatmap-source-info';
+      const totalSources = urlData.sources.length;
+      const totalPoints = urlData.total_points || 0;
+      sourceInfo.textContent = `${totalSources} heatmaps combined · ${formatNumber(totalPoints)} interaction points`;
+      card.appendChild(sourceInfo);
+    }
+
+    const heatmapContainer = createHeatmapContainer(urlData);
+    card.appendChild(heatmapContainer);
+
+    return { card, heatmapContainer };
+  }
+
+  function createScenarioTags(scenarios) {
+    if (!Array.isArray(scenarios) || scenarios.length === 0) {
+      return null;
+    }
+
+    const container = document.createElement('div');
+    container.className = 'scenario-tags';
+
+    const label = document.createElement('span');
+    label.className = 'tag-label';
+    label.textContent = 'Scenarios:';
+    container.appendChild(label);
+
+    scenarios.forEach(scenario => {
+      const normalizedId = normalizeScenarioId(scenario.task_id);
+      const tag = document.createElement('span');
+      tag.className = 'scenario-tag';
+      tag.textContent = scenario.scenario_title || `Scenario ${normalizedId || ''}`;
+      tag.title = `${formatNumber(scenario.navigation_hits || 0)} navigation hits`;
+      if (normalizedId !== null) {
+        tag.dataset.scenarioId = normalizedId;
+      }
+      container.appendChild(tag);
+    });
 
     return container;
   }
 
-  // Função para criar overlay moderno de tarefas
-  function createTaskOverlay(tasksInHeatmap) {
-    const overlay = document.createElement('div');
-    overlay.className = 'task-overlay';
-    
-    Object.assign(overlay.style, {
-      position: 'absolute',
-      top: '16px',
-      left: '16px',
-      right: '16px',
-      zIndex: '10',
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '8px',
-      pointerEvents: 'none'
+  function createHeatmapContainer(heatmapData) {
+    const container = document.createElement('div');
+    container.className = 'heatmap-wrapper';
+
+    Object.assign(container.style, {
+      position: 'relative',
+      maxWidth: '100%',
+      marginTop: '16px',
+      borderRadius: '16px',
+      overflow: 'hidden',
+      boxShadow: '0 8px 32px rgba(15, 23, 42, 0.15)',
+      border: '1px solid rgba(148, 163, 184, 0.25)',
+      background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      width: heatmapData.width ? `${heatmapData.width}px` : '720px',
+      height: heatmapData.height ? `${heatmapData.height}px` : '405px'
     });
 
-    tasksInHeatmap.forEach(taskId => {
-      const task = availableTasks.find(t => normalizeTaskId(t.task_id) === normalizeTaskId(taskId));
-      if (task) {
-        const taskCard = document.createElement('div');
-        taskCard.className = 'task-card';
-        
-        Object.assign(taskCard.style, {
-          background: 'rgba(59, 130, 246, 0.9)',
-          color: 'white',
-          padding: '8px 16px',
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: '600',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          maxWidth: '200px',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          animation: 'slideInDown 0.3s ease-out'
-        });
-        
-        taskCard.textContent = task.title;
-        taskCard.title = `${task.title}${task.description ? ': ' + task.description : ''}`;
-        overlay.appendChild(taskCard);
-      }
+    container.addEventListener('mouseenter', () => {
+      container.style.transform = 'translateY(-4px)';
+      container.style.boxShadow = '0 16px 40px rgba(15, 23, 42, 0.18)';
     });
 
-    return overlay;
+    container.addEventListener('mouseleave', () => {
+      container.style.transform = 'translateY(0)';
+      container.style.boxShadow = '0 8px 32px rgba(15, 23, 42, 0.15)';
+    });
+
+    return container;
   }
 
-  // Função para criar indicador de cobertura
-  function createCoverageIndicator(metadata) {
-    const indicator = document.createElement('div');
-    indicator.className = 'coverage-indicator';
-    
-    Object.assign(indicator.style, {
-      position: 'absolute',
-      bottom: '16px',
-      right: '16px',
-      background: 'rgba(34, 197, 94, 0.9)',
-      color: 'white',
-      padding: '6px 12px',
-      borderRadius: '8px',
-      fontSize: '12px',
-      fontWeight: '600',
-      backdropFilter: 'blur(8px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      zIndex: '10'
-    });
-    
-    indicator.textContent = `${metadata.coverage_percentage}% mapped`;
-    indicator.title = `${metadata.points_with_tasks}/${metadata.total_points} points mapped to tasks`;
-    
-    return indicator;
-  }
-
-  // Função para inicializar heatmap
   function initializeHeatmap(container, heatmapData, index) {
+    if (!heatmapData.image) {
+      const fallback = document.createElement('p');
+      fallback.textContent = `Heatmap image ${index + 1} is unavailable.`;
+      fallback.className = 'heatmap-image-missing';
+      container.appendChild(fallback);
+      return;
+    }
+
     const img = new Image();
     const mime = heatmapData.mime || 'image/jpeg';
     img.src = `data:${mime};base64,${heatmapData.image}`;
@@ -280,10 +344,10 @@ document.addEventListener('DOMContentLoaded', () => {
       container.appendChild(img);
 
       const heatmapInstance = h337.create({
-        container: container,
+        container,
         radius: 40,
         maxOpacity: 0.6,
-        blur: 0.9,
+        blur: 0.9
       });
 
       const scaleX = container.clientWidth / sourceW;
@@ -292,174 +356,172 @@ document.addEventListener('DOMContentLoaded', () => {
       const pts = (heatmapData.points || []).map(point => ({
         x: Math.round((point.x || 0) * scaleX),
         y: Math.round((point.y || 0) * scaleY),
-        value: Math.max(1, Math.round((point.intensity || 0) * 700)),
+        value: Math.max(1, Math.round((point.intensity || 0) * 700))
       }));
 
       const maxVal = pts.length ? Math.max(...pts.map(p => p.value)) : 100;
+
       try {
         heatmapInstance.setData({ max: Math.max(maxVal, 100), data: pts });
       } catch (err) {
-        console.error('Error setting data on heatmapInstance:', err);
+        console.error('Error rendering heatmap', err);
         const errMsg = document.createElement('p');
         errMsg.textContent = `Error rendering heatmap ${index + 1}: ${err.message}`;
+        errMsg.className = 'heatmap-error';
         container.appendChild(errMsg);
       }
     };
 
     if (img.decode) {
       img.decode().then(initHeatmap).catch(err => {
-        console.warn('img.decode failed, using onload as fallback', err);
+        console.warn('img.decode failed, falling back to onload', err);
         img.onload = initHeatmap;
-        img.onerror = handleImageError;
+        img.onerror = () => showImageError(container, index);
       });
     } else {
       img.onload = initHeatmap;
-      img.onerror = handleImageError;
-    }
-
-    function handleImageError() {
-      console.error('Error loading heatmap image');
-      container.remove();
-      const em = document.createElement('p');
-      em.textContent = `Error loading heatmap image ${index + 1}.`;
-      root.appendChild(em);
+      img.onerror = () => showImageError(container, index);
     }
   }
 
-  // Função para normalizar task IDs (garantir consistência string/number)
-  function normalizeTaskId(id) {
+  function showImageError(container, index) {
+    console.error('Error loading heatmap image');
+    container.innerHTML = '';
+    const message = document.createElement('p');
+    message.textContent = `Error loading heatmap image ${index + 1}.`;
+    message.className = 'heatmap-error';
+    container.appendChild(message);
+  }
+
+  function normalizeScenarioId(id) {
     if (id === null || id === undefined) return null;
     const normalized = String(id).trim();
     return normalized === '' ? null : normalized;
   }
 
-  // Função para lidar com mudanças nos filtros
   function handleFilterChange() {
-    const showAll = document.getElementById('filter-all');
-    const taskFilters = Array.from(filtersContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all)'));
-    
-    // Desmarcar "Show All" se algum filtro específico foi desmarcado
-    const allTasksChecked = taskFilters.every(checkbox => checkbox.checked);
-    if (showAll) {
-      showAll.checked = allTasksChecked;
+    const showAllCheckbox = document.getElementById('filter-all-scenarios');
+    if (showAllCheckbox) {
+      const scenarioCheckboxes = Array.from(filtersContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all-scenarios)'));
+      showAllCheckbox.checked = scenarioCheckboxes.every(checkbox => checkbox.checked);
     }
 
     applyFilters();
   }
 
-  // Função para lidar com "Show All"
   function handleShowAllChange() {
-    const showAll = document.getElementById('filter-all');
-    const taskFilters = filtersContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all)');
-    
-    taskFilters.forEach(checkbox => {
-      checkbox.checked = showAll.checked;
+    const showAllCheckbox = document.getElementById('filter-all-scenarios');
+    const scenarioCheckboxes = filtersContainer.querySelectorAll('input[type="checkbox"]:not(#filter-all-scenarios)');
+
+    scenarioCheckboxes.forEach(checkbox => {
+      checkbox.checked = showAllCheckbox.checked;
     });
 
     applyFilters();
   }
 
-  // Função otimizada para aplicar filtros
   function applyFilters() {
-    const showAllCheckbox = document.getElementById('filter-all');
-    const taskFilters = Array.from(filtersContainer.querySelectorAll('input[type="checkbox"]:checked:not(#filter-all)'));
-    
-    // Se "Show All" está marcado ou nenhum filtro específico, mostrar tudo
-    if (showAllCheckbox && showAllCheckbox.checked) {
-      heatmapContainers.forEach(container => {
-        container.classList.remove('filtered-out');
-      });
+    if (!scenarioMappingAvailable) {
+      heatmapCards.forEach(card => card.classList.remove('filtered-out'));
       return;
     }
 
-    // Coletar IDs das tarefas selecionadas (normalizados como strings)
-    const checkedTaskIds = new Set();
-    taskFilters.forEach(checkbox => {
-      const id = normalizeTaskId(checkbox.id.replace('filter-task-', ''));
-      if (id !== null) {
-        checkedTaskIds.add(id);
-      }
-    });
+    const showAllCheckbox = document.getElementById('filter-all-scenarios');
+    const activeScenarioCheckboxes = Array.from(filtersContainer.querySelectorAll('input[type="checkbox"]:checked:not(#filter-all-scenarios)'));
 
-    console.log('🔍 Filtros aplicados:', Array.from(checkedTaskIds));
+    if (!activeScenarioCheckboxes.length || (showAllCheckbox && showAllCheckbox.checked)) {
+      heatmapCards.forEach(card => card.classList.remove('filtered-out'));
+      return;
+    }
 
-    // Aplicar filtros aos containers
-    heatmapContainers.forEach(container => {
-      const taskIdsStr = container.dataset.taskIds || '';
-      const containerTaskIds = taskIdsStr.split(',')
-        .map(normalizeTaskId)
+    const selectedScenarioIds = new Set(
+      activeScenarioCheckboxes
+        .map(checkbox => checkbox.dataset.scenarioId || checkbox.id.replace('filter-scenario-', ''))
+        .map(normalizeScenarioId)
+        .filter(id => id !== null)
+    );
+
+    heatmapCards.forEach(card => {
+      const datasetValue = card.dataset.scenarioIds || '';
+      const cardScenarioIds = datasetValue
+        .split(',')
+        .map(normalizeScenarioId)
         .filter(id => id !== null);
 
-      console.log(`📦 Container ${container.dataset.heatmapIndex}: tarefas [${containerTaskIds.join(', ')}]`);
-
-      // Mostrar se:
-      // 1. Nenhum filtro específico selecionado (mostrar tudo)
-      // 2. Container tem pelo menos uma tarefa que coincide com filtros
-      // 3. Container não tem tarefas e isso é explicitamente permitido
-      const shouldShow = checkedTaskIds.size === 0 || 
-                        containerTaskIds.some(id => checkedTaskIds.has(id));
+      const hasScenario = cardScenarioIds.length > 0;
+      const shouldShow = !selectedScenarioIds.size
+        || (hasScenario && cardScenarioIds.some(id => selectedScenarioIds.has(id)));
 
       if (shouldShow) {
-        container.classList.remove('filtered-out');
+        card.classList.remove('filtered-out');
       } else {
-        container.classList.add('filtered-out');
+        card.classList.add('filtered-out');
       }
     });
-
-    // Atualizar contador de heatmaps visíveis
-    const visibleCount = heatmapContainers.filter(c => !c.classList.contains('filtered-out')).length;
-    console.log(`📊 ${visibleCount}/${heatmapContainers.length} heatmaps visíveis`);
   }
 
   function displayDataQualityInfo(metadata) {
+    const qualityContainer = document.createElement('div');
+    qualityContainer.className = 'data-quality-info';
+
     const qualityScore = metadata.data_quality_score || 0;
     const warnings = metadata.data_quality_warnings || [];
     const fallbackUsed = metadata.fallback_used || false;
     const segmentationMethod = metadata.segmentation_method || 'unknown';
     const navigationCount = metadata.navigation_data_count || 0;
-    
-    // Create quality info container
-    const qualityContainer = document.createElement('div');
-    qualityContainer.className = 'data-quality-info';
-    
+
     let qualityClass = 'good';
     if (qualityScore < 50) qualityClass = 'poor';
     else if (qualityScore < 80) qualityClass = 'fair';
-    
+
     let qualityText = '';
     if (fallbackUsed) {
-      qualityText = '⚠️ Using fallback mode - Navigation tracking was not available';
+      qualityText = '⚠️ Using fallback mode – navigation tracking was not available.';
     } else if (qualityScore >= 80) {
-      qualityText = '✅ Good data quality - Navigation tracking working properly';
+      qualityText = '✅ Good data quality – navigation tracking working properly.';
     } else if (qualityScore >= 50) {
-      qualityText = '⚠️ Fair data quality - Some navigation data missing';
+      qualityText = '⚠️ Fair data quality – some navigation data is missing.';
     } else {
-      qualityText = '❌ Poor data quality - Navigation tracking issues detected';
+      qualityText = '❌ Poor data quality – navigation tracking issues detected.';
     }
-    
+
     qualityContainer.innerHTML = `
       <div class="quality-header">
         <h4>📊 Data Quality Assessment</h4>
-        <div class="quality-score ${qualityClass}">
-          Score: ${qualityScore}/100
-        </div>
+        <div class="quality-score ${qualityClass}">Score: ${qualityScore}/100</div>
       </div>
       <div class="quality-details">
         <p><strong>Status:</strong> ${qualityText}</p>
-        <p><strong>Method:</strong> ${segmentationMethod}</p>
-        <p><strong>Navigation Events:</strong> ${navigationCount}</p>
-        ${warnings.length > 0 ? `
+        <p><strong>Method:</strong> ${escapeHtml(segmentationMethod)}</p>
+        <p><strong>Navigation Events:</strong> ${formatNumber(navigationCount)}</p>
+        ${warnings.length ? `
           <div class="quality-warnings">
             <strong>⚠️ Warnings:</strong>
-            <ul>
-              ${warnings.map(warning => `<li>${warning}</li>`).join('')}
-            </ul>
+            <ul>${warnings.map(warning => `<li>${escapeHtml(warning)}</li>`).join('')}</ul>
           </div>
         ` : ''}
       </div>
     `;
-    
-    // Insert at the beginning of the root
+
     root.insertBefore(qualityContainer, root.firstChild);
+  }
+
+  function escapeHtml(value) {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatNumber(value) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return '0';
+    }
+    return Number(value).toLocaleString();
   }
 });

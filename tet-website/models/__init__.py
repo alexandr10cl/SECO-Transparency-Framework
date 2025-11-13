@@ -1,6 +1,6 @@
 from .enums import UserType, PerformedTaskStatus, SECOType
 from .user import User, Admin, SECO_MANAGER
-from .evaluation import Evaluation
+from .evaluation import Evaluation, EvaluationCriterionWheight
 from .collection_data import CollectedData, Navigation
 from .questionnaire import DeveloperQuestionnaire
 from .task import Task, PerformedTask, Question, Answer
@@ -27,5 +27,6 @@ __all__ = [
     'DX_factor',
     'SECO_process',
     'SECO_dimension',
-    'Navigation'
+    'Navigation',
+    'EvaluationCriterionWheight',
 ] 

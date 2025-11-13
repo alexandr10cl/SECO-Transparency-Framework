@@ -10,25 +10,58 @@
 <div class="container">
     <div class="header">
         <h1 class="title">Downloads</h1>
-        <p>Download the SECO-TransP browser extension and start evaluating software ecosystems</p>
+        <p>Download the browser extensions to evaluate software ecosystems and track user experience</p>
     </div>
 
-    <!-- Latest Version Section -->
-    <div class="latest-section">
-        <div class="badge">Latest Version</div>
-        <h2>SECO-TransP Extension v1.0.0</h2>
-        <p class="description">The newest version of our browser extension with all the latest features and improvements.</p>
-        <div class="extension-info">
-            <h3>About the Extension</h3>
-            <p>The SECO-TransP browser extension tracks user interactions, measures task completion times, and collects valuable data for analyzing developer experience in software ecosystem portals.</p>
-            <p>For detailed instructions on how to install and use the extension, please check our <a href="{{ url_for('doc') }}#chromeextension" class="doc-link">documentation</a>.</p>
+    <!-- Extensions Grid -->
+    <div class="extensions-grid">
+        <!-- SECO-TransP Extension Card -->
+        <div class="extension-card extension-card-blue">
+            <div class="badge">Latest Version</div>
+            <h2>SECO-TransP Extension</h2>
+            <p class="version">v1.0.0</p>
+            <p class="description">Track user interactions, measure scenario completion times, and collect valuable data for analyzing developer experience.</p>
+            <div class="extension-info">
+                <h3>Key Features</h3>
+                <ul class="features-list">
+                    <li>📊 Real-time navigation tracking</li>
+                    <li>⏱️ Task completion timing</li>
+                    <li>📝 User feedback collection</li>
+                    <li>🔄 Session synchronization</li>
+                </ul>
+                <p class="doc-hint">📖 <a href="{{ url_for('doc') }}#chromeextension" class="doc-link">Installation guide</a></p>
+            </div>
+            <a href="{{ url_for('download_extension') }}" class="btn-download">
+                <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Extension
+            </a>
         </div>
-        <a href="{{ url_for('download_extension') }}" class="btn-download">
-            <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download Latest Version
-        </a>
+
+        <!-- UX-Tracking Extension Card -->
+        <div class="extension-card extension-card-purple">
+            <div class="badge badge-purple">Complementary Tool</div>
+            <h2>UX-Tracking Extension</h2>
+            <p class="version">v2.0</p>
+            <p class="description">Advanced multimodal user experience tracking with comprehensive behavioral analysis capabilities.</p>
+            <div class="extension-info">
+                <h3>Key Features</h3>
+                <ul class="features-list">
+                    <li>📹 Facial expression tracking</li>
+                    <li>🖱️ Mouse movement recording</li>
+                    <li>⌨️ Keyboard input analysis</li>
+                    <li>🎤 Audio capture support</li>
+                </ul>
+                <p class="doc-hint">📖 <a href="{{ url_for('doc') }}#uxt" class="doc-link">Installation guide</a> • <a href="https://uxtracking.netlify.app/" target="_blank" class="doc-link">Official site</a></p>
+            </div>
+            <a href="{{ url_for('download_uxtracking') }}" class="btn-download btn-download-purple">
+                <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Extension
+            </a>
+        </div>
     </div>
 
     <!-- Previous Versions Section -->
@@ -66,13 +99,13 @@
                     <p>Complex Systems Engineering Laboratory</p>
                 </div>
                 <div class="i">
-                    <h4>Contato</h4>
-                    <p>(21) 98765-4321</p>
+                    <h4>Contact Us</h4>
+                    <p>+55 2198765-4321</p>
                     <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
                 </div>
             </div>
             <div class="copy">
-                <p>&copy; 2025 UNIRIO. Todos os direitos reservados.</p>
+                <p>&copy; © 2025 UNIRIO. All rights reserved.</p>
             </div>
         </div>
     </footer>

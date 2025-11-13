@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heatmaps by Task - Evaluation {{ evaluation_id }}</title>
+    <title>Heatmaps by Scenario - Evaluation {{ evaluation_id }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -86,7 +86,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Heatmaps by Task</h1>
+        <h1>Heatmaps by Scenario</h1>
         <p>Evaluation ID: <strong>{{ evaluation_id }}</strong></p>
         <div id="loading" class="loading">Loading heatmap data...</div>
         <div id="error" class="error" style="display: none;"></div>
@@ -132,7 +132,7 @@
             const stats = document.getElementById('stats');
             if (data.metadata) {
                 stats.innerHTML = `
-                    <div class="stat-item">Tasks with heatmaps: ${data.metadata.total_tasks_with_heatmaps || 0}</div>
+                    <div class="stat-item">Scenarios with heatmaps: ${data.metadata.total_tasks_with_heatmaps || 0}</div>
                     <div class="stat-item">Total heatmaps: ${data.metadata.total_heatmaps || 0}</div>
                     <div class="stat-item">Total points: ${data.metadata.total_points_processed || 0}</div>
                     <div class="stat-item">Navigation data: ${data.metadata.navigation_data_count || 0}</div>
@@ -154,7 +154,7 @@
                 
                 taskSection.innerHTML = `
                     <div class="task-header">
-                        <h2 class="task-title">Task ${taskId}: ${taskData.task_info.title}</h2>
+                        <h2 class="task-title">Scenario ${taskId}: ${taskData.task_info.title}</h2>
                         <p class="task-description">${taskData.task_info.description || 'No description available'}</p>
                     </div>
                     <div class="heatmaps-container" id="heatmaps-${taskId}"></div>
@@ -166,7 +166,7 @@
                 const heatmapsContainer = document.getElementById(`heatmaps-${taskId}`);
                 
                 if (taskData.heatmaps.length === 0) {
-                    heatmapsContainer.innerHTML = '<div class="no-data">No heatmaps available for this task.</div>';
+                    heatmapsContainer.innerHTML = '<div class="no-data">No heatmaps available for this scenario.</div>';
                     return;
                 }
                 

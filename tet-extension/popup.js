@@ -9,7 +9,7 @@ let overlay = document.getElementById('overlay');
 // API Configuration
 // Change isDevelopment to false for production deployment
 const CONFIG = {
-  isDevelopment: false, // Set to false for production
+  isDevelopment: true, // Set to false for production
   DEVELOPMENT_URL: "http://127.0.0.1:5000",
   PRODUCTION_URL: "https://seco-tranp-website.vercel.app/", // deployed URL
   get API_BASE_URL() {
@@ -229,7 +229,7 @@ document.getElementById("questionnaireButton").addEventListener("click", functio
   });
 
   const yearsInput = document.getElementById("question-experience");
-  if (!yearsInput.value || yearsInput.value < 0) {
+  if (!yearsInput.value || yearsInput.value < 0 || yearsInput.value > 100) {
     valid = false;
     yearsInput.classList.add("input-error");
   } else {
@@ -276,7 +276,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
     overlay.style.display = 'none';
   }, 5000);
 
-  let uxt_mode = true; // Opção de fazer a avaliação com UX-Tracking o não
+  let uxt_mode = false; // Opção de fazer a avaliação com UX-Tracking o não
 
   if (uxt_mode) {
     fetch("https://uxt-stage.liis.com.br/data/syncsession", {
@@ -402,25 +402,25 @@ function renderAll() {
             <div class="task-info">
               <p class="task-description" id="taskDescription${task.task_id}" style="display:none">${task.task_description}</p>
             </div>
-            <p id="pendingText${task.task_id}" class="pending-tasks-text" style="margin-bottom:10px;">You still have pending tasks. Click the button to get started.</p>
-            <button id="startTask${task.task_id}Button">Start Task</button>
-            <p id="taskInstructions${task.task_id}" style="display:none; color: #1E3A8A;">How did the execution of this task go?</p>
+            <p id="pendingText${task.task_id}" class="pending-tasks-text" style="margin-bottom:10px;">You still have pending scenarios. Click the button to get started.</p>
+            <button id="startTask${task.task_id}Button">Start Scenario</button>
+            <p id="taskInstructions${task.task_id}" style="display:none; color: #1E3A8A;">Do you believe you have achieved the goal of this scenario?</p>
             <button class="task-btn" id="finishTask${task.task_id}Button" style="display:none">
               <span class="material-symbols-outlined icon-botao">check</span>
-              Solved it
+              Yes, completely
             </button>
             <button class="task-btn" id="notSureTask${task.task_id}Button" style="display:none">
               <span class="material-symbols-outlined icon-botao">help</span>
-              Not sure
+              Partially
             </button>
             <button class="task-btn" id="couldntSolveTask${task.task_id}Button" style="display:none">
               <span class="material-symbols-outlined icon-botao">close</span>
-              Couldn't solve
+              No
             </button>
           </div>
           <div class="task_review" id="task${task.task_id}_review" style="display:none">
             <h1>Review: ${task.task_title}</h1>
-            <p>How was your experience with this task?</p>
+            <p>Briefly describe your experience in this scenario: what helped or hindered you in finding the information you needed?</p>
             <textarea class="custom-textarea" id="question-${task.task_id}" placeholder="Leave a comment about your experience..."></textarea>
             <button id="task${task.task_id}ReviewButton">Next</button>
           </div>
@@ -448,8 +448,8 @@ function renderAll() {
             </label>
             <div class="slider-container">
               <div class="slider-labels">
-                <span class="slider-label-left">Not at all</span>
-                <span class="slider-label-right">Totally agree</span>
+                <span class="slider-label-left">Not perceived</span>
+                <span class="slider-label-right">Fully perceived</span>
               </div>
               <input type="range" 
                      id="process-question-${proc.process_id}-${i}" 
@@ -932,5 +932,5 @@ function updateProgressBar() {
   document.getElementById("progressBarFill").style.width = `${progressPercentage}%`;
 
   const currentTaskNumber = Math.min(completedTasks + 1, totalTasks);
-  document.getElementById("progressText").textContent = `Task ${currentTaskNumber} of ${totalTasks}`;
+  document.getElementById("progressText").textContent = `Scenario ${currentTaskNumber} of ${totalTasks}`;
 }

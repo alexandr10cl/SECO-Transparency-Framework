@@ -45,8 +45,33 @@
             <section class="create-form-section">
                 <div class="info-card">
                     <h2 class="section-title">Evaluation Details</h2>
+                    <div class="multi-step-header">
+                        <span class="step-chip">New Flow</span>
+                        <h3 class="multi-step-title">Craft a high-impact transparency evaluation</h3>
+                        <p class="multi-step-subtitle">
+                            Provide the core information first, then distribute Key Success Criteria points with a guided, modern experience.
+                        </p>
+                        <div class="form-progress" id="form-progress">
+                            <div class="form-progress-step active" data-step="1">
+                                <span class="step-number">1</span>
+                                <div class="step-info">
+                                    <strong>Details</strong>
+                                    <span>Basics &amp; procedures</span>
+                                </div>
+                            </div>
+                            <div class="form-progress-divider"></div>
+                            <div class="form-progress-step" data-step="2">
+                                <span class="step-number">2</span>
+                                <div class="step-info">
+                                    <strong>KSC Distribution</strong>
+                                    <span id="progress-counter">Awaiting setup</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <form action="{{ url_for('add_evaluation') }}" method="post" class="create-form" novalidate>
+                        <div id="step-details">
                         <!-- Basic Information -->
                         <div class="form-group">
                             <label for="name" class="form-label">Evaluation Name</label>
@@ -60,8 +85,8 @@
 
                         <div class="form-group">
                             <label for="seco_portal_url" class="form-label">Portal URL</label>
-                            <input type="text" name="seco_portal_url" id="seco_portal_url" class="form-input" placeholder="https://example.com" value="{{ values.seco_portal_url if values else '' }}" required>
-                            <div class="form-help">Enter a valid URL (e.g., https://example.com)</div>
+                            <input type="text" name="seco_portal_url" id="seco_portal_url" class="form-input" placeholder="example.com" value="{{ values.seco_portal_url if values else '' }}" required>
+                            <div class="form-help">Enter the portal URL (e.g., example.com or https://example.com)</div>
                         </div>
 
                         <div class="form-group">
@@ -77,10 +102,23 @@
                             </select>
                         </div>
 
+                        <div class="form-group">
+                            <label for="manager_objective" class="form-label">Manager's Main Objective</label>
+                            <textarea name="manager_objective" id="manager_objective" class="form-input"
+                                    rows="4" maxlength="2000" 
+                                    placeholder="Describe the main objective of this evaluation (e.g., identify transparency gaps, prepare for certification, improve user experience, etc.)"
+                                    required>{{ values.manager_objective if values else '' }}</textarea>
+                            <div class="form-help">
+                                What is the primary goal you want to achieve with this evaluation?
+                                <span id="manager-objective-counter" style="float: right; color: #7f8c8d;">0 / 2000</span>
+                            </div>
+                        </div>
+
                         <!-- SECO Processes Selection -->
                         <div class="form-group">
-                            <label class="form-label">SECO Processes to Evaluate</label>
+                            <label class="form-label">SECO Procedures to Evaluate</label>
                             <div class="processes-grid" id="process-group" aria-describedby="process-error">
+                                {% set selected_process_ids = values.selected_process_ids if values is defined and values.selected_process_ids is defined else [] %}
                                 {% for process in seco_processes %}
                                 <div class="process-card">
                                     <label for="seco_{{ process.seco_process_id }}" class="process-label">
@@ -88,27 +126,53 @@
                                             <span class="process-id">P{{ process.seco_process_id }}</span>
                                             <input type="checkbox" id="seco_{{ process.seco_process_id }}" 
                                                     name="seco_process_ids" value="{{ process.seco_process_id }}"
-                                                    class="process-checkbox">
+                                                    class="process-checkbox"
+                                                    {% if (process.seco_process_id | string) in selected_process_ids %}checked{% endif %}>
                                         </div>
                                         <div class="process-description">{{ process.description }}</div>
                                     </label>
                                 </div>
                                 {% endfor %}
                             </div>
-                            <div id="process-error" class="form-error d-none" role="alert">
+                            <div id="process-error" class="form-error {% if error_msg %}{% else %}d-none{% endif %}" role="alert">
                                 {{ error_msg if error_msg else 'Please select at least one process' }}
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
+                        </div> <!-- /#step-details -->
+
+                        <!-- KSC points distribution (step 2) -->
+                        <div class="form-group" id="ksc-step" style="display:none;">
+                            <label for="form-label">KSC Points Distribution</label>
+                            <div id="ksc-container" class="ksc-container">
+                                <p class="form-help">Select procedures above to assign KSC importance points (total of 10 per procedure).</p>
+                            </div>
+                        </div>
+
                         <div class="form-actions">
                             <input type="hidden" name="form_token" value="{{ form_token }}">
-                            <button id="create-btn" type="submit" class="dashboard-btn">
+
+                            <!-- Next advances to KSC distribution step; final submit is separate -->
+                            <button id="next-btn" type="button" class="dashboard-btn btn-primary">
+                                <span class="btn-icon">➡️</span>
+                                <span class="btn-label">Next</span>
+                                <span class="spinner d-none">⏳</span>
+                            </button>
+
+                            <button id="prev-btn" type="button" class="dashboard-btn btn-ghost d-none" style="margin-left:8px;">
+                                <span class="btn-icon">◀️</span>
+                                <span class="btn-label">Back</span>
+                            </button>
+
+                            <!-- Hidden until last KSC step -->
+                            <button id="submit-btn" type="submit" class="dashboard-btn btn-primary d-none">
                                 <span class="btn-icon">✨</span>
-                                <span>Create Evaluation</span>
+                                <span class="btn-label">Create Evaluation</span>
                                 <span class="spinner d-none">⏳</span>
                             </button>
                         </div>
+
+                        
                     </form>
                 </div>
             </section>
@@ -118,5 +182,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  window.prefilledKscWeights = {{ (values.ksc_weights if values is defined and values.ksc_weights is defined else {}) | tojson }};
+</script>
 <script src="/static/js/evaluation.js"></script>
 {% endblock %}
