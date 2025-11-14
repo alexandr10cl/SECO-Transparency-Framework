@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="us">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,8 @@
     <link rel="stylesheet" href="/static/css/nav.css">
     {% block head %}
     {% endblock %}
-    <title>{% block title %}My WebSite{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}SECO-TransP: A framework to evaluate and enhance transparency in software ecosystem portals. Analyze, assess, and improve developer experience and portal governance.{% endblock %}">
+    <title>{% block title %}SECO-TransP - Transparency Evaluation Framework{% endblock %}</title>
 </head>
 <body>
     <nav class="navbar">
