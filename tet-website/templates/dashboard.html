@@ -172,72 +172,102 @@
                     </div>
                 </div>
 
-                <!-- Developer Experience Section -->
+               <!-- Developer Experience Section -->
                 <div class="developer-experience-section">
-                    <h3>Developer Experience</h3>
-                    <div class="dx-grid">
-                        {% for category_key, category in dx_categories.items() %}
-                        <div class="dx-card">
-                            <h4>{{ category.name }}</h4>
-                            {% if category.score is not none and category.score > 0 %}
-                                <div class="dx-score">
-                                    <span class="score">Score: {{ category.score }}</span>
-                                    <span class="transparency-badge {{ category.transparency_badge|lower|replace(' ', '-') }}">
-                                        {{ category.transparency_badge }}
-                                    </span>
-                                </div>
-                                <div class="procedure-bars">
-                                    {% for process in seco_processes %}
-                                        {% set procedure_key = 'P' + process.seco_process_id|string %}
-                                        {% if category.procedure_scores[procedure_key] and category.procedure_scores[procedure_key] > 0 %}
-                                        <div class="procedure-bar">
-                                            <span class="procedure-label">P{{ process.seco_process_id }}</span>
-                                            <div class="progress-bar">
-                                                <div class="progress-fill" data-pct="{{ category.procedure_scores[procedure_key] }}"></div>
-                                            </div>
-                                            <span class="procedure-score">{{ category.procedure_scores[procedure_key] }}</span>
-                                        </div>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {% if count_collected_data == 0 %}
-                                    <div class="awaiting-data-message">
-                                        <span class="material-symbols-outlined">pending</span>
-                                        <p>Awaiting participant data</p>
-                                        <small>Scores will appear once participants complete the evaluation</small>
-                                    </div>
-                                {% else %}
-                                    <p class="no-data-message">No data available for this category</p>
-                                {% endif %}
-                            {% endif %}
+                <h3>Developer Experience - Cognitive Dimension</h3>
+                <p class="dx-subtitle">These categories show how developers cognitively experience transparency while performing the evaluated scenarios.</p>
+                <div class="dx-grid">
+                    {% for category_key, category in dx_categories.items() %}
+                    <div class="dx-card">
+                    <h4>{{ category.name }}</h4>
+
+                    {% if category.name == 'Common Technological Platform' %}
+                        <p class="dimension-focus">Focus: Understanding tools, codebase, and infrastructure clarity.</p>
+                    {% elif category.name == 'Projects and Applications' %}
+                        <p class="dimension-focus">Focus: Learning how projects evolve and how information is organized.</p>
+                    {% elif category.name == 'Community Interaction' %}
+                        <p class="dimension-focus">Focus: Communicating, sharing, and accessing collective knowledge.</p>
+                    {% elif category.name == 'Expectations and Value of Contribution' %}
+                        <p class="dimension-focus">Focus: Understanding contribution rules, recognition, and clarity of decision processes.</p>
+                    {% endif %}
+
+                    {% if category.score is not none and category.score > 0 %}
+                        <div class="dx-score">
+                        <span class="score">Score: {{ category.score }}</span>
+                        <span class="transparency-badge {{ category.transparency_badge|lower|replace(' ', '-') }}">
+                            {{ category.transparency_badge }}
+                        </span>
                         </div>
+
+                        <div class="procedure-bars">
+                        {% for process in seco_processes %}
+                            {% set procedure_key = 'P' + process.seco_process_id|string %}
+                            {% if category.procedure_scores[procedure_key] and category.procedure_scores[procedure_key] > 0 %}
+                            <div class="procedure-bar">
+                            <span class="procedure-label">P{{ process.seco_process_id }}</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" data-pct="{{ category.procedure_scores[procedure_key] }}"></div>
+                            </div>
+                            <span class="procedure-score">{{ category.procedure_scores[procedure_key] }}</span>
+                            </div>
+                            {% endif %}
                         {% endfor %}
+                        </div>
+                    {% else %}
+                        {% if count_collected_data == 0 %}
+                        <div class="awaiting-data-message">
+                            <span class="material-symbols-outlined">pending</span>
+                            <p>Awaiting participant data</p>
+                            <small>Scores will appear once participants complete the evaluation</small>
+                        </div>
+                        {% else %}
+                        <p class="no-data-message">No data available for this category</p>
+                        {% endif %}
+                    {% endif %}
                     </div>
+                    {% endfor %}
                 </div>
-            </div>
-            <div class="overview-content">
+                </div>
+
                 <div class="overview-profile">
                     <h3>Participants' Profile</h3>
-                    <p>Summary of academic background and experience of the evaluation participants.</p>
+                    <p>
+                        Participants’ background, familiarity, and experience: factors influencing how transparency is cognitively perceived across scenarios.
+                    </p>
+
                     <div class="profilecharts">
+
+                        <!-- Academic Background -->
                         <div class="academic">
-                            <canvas id="experienceChart" style="height: 300px;"></canvas>
-                        </div>
-                        <div class="experience">
                             <canvas id="educationChart" style="height: 300px;"></canvas>
+                            <p class="chart-legend">Academic background distribution among participants.</p>
                         </div>
+
+                        <!-- Professional Experience -->
+                        <div class="experience">
+                            <canvas id="experienceChart" style="height: 300px;"></canvas>
+                            <p class="chart-legend">Years of experience in software development.</p>
+                        </div>
+
+                        <!-- Familiarity with the Portal -->
                         <div class="familiarity">
                             <canvas id="familiarityChart" style="height: 300px;"></canvas>
+                            <p class="chart-legend">Frequency of portal use among participants.</p>
                         </div>
+
                     </div>
-                    <p>Based on Carver et al. (2016), participants with less than 3 years of professional experience were categorized in the low experience group, those with 3 to 5 years in the medium experience group, and those with more than 5 years in the high experience group.</p>
+
+                    <p>
+                        Participants with less than 3 years of professional experience were categorized in the low experience group,
+                        those with 3 to 5 years in the medium experience group, and those with more than 5 years in the high experience group.
+                    </p>
                 </div>
             </div>
+
             <div class="aside">
                 <div class="word-cloud">
                     <h3>Word Cloud</h3>
-                    <p>Word cloud showing the terms most frequently cited by developers throughout the evaluation process.</p>
+                    <p>Words reflecting how developers experienced and understood transparency.</p>
                     <canvas id="word-cloud"></canvas>
                 </div>
                 <div class="dev-emotion">
@@ -248,7 +278,7 @@
             </div>
             <div class="developer-comments">
                 <h3>Developer Comments</h3>
-                <p>Comments and suggestions from developers after the evaluation process.</p>
+                <p>Developers’ open feedback on transparency and experience.</p>
                 <div class="comments">
                     {% for d in collected_data %}
                     <div class="comment-card">
@@ -351,25 +381,29 @@
                                     <!-- AVERAGE COMPLETION TIME -->
                                     <tr class="metric-row">
                                         <td class="metric-name">Average Completion Time</td>
-                                        <td class="metric-result">{{ task.avg_time|round|int }} s</td>
-                                        <td class="metric-target">≤ 30 s</td>
+                                        <td class="metric-result">{{ (task.avg_time // 60)|int }}m {{ (task.avg_time % 60)|int }}s</td>
+                                        <td class="metric-target">≤ 3 min</td>
                                         <td class="metric-status">
-                                            {% set avg_time = task.avg_time|round|int %}
-                                            {% if avg_time <= 30 %}
+                                             {% set avg_time_min = (task.avg_time / 60) %}
+
+                                            {% if avg_time_min <= 3 %}
                                                 <span class="status-badge high-fluency">
                                                     <span class="status-icon">●</span>
                                                     High Fluency
                                                 </span>
-                                            {% elif avg_time <= 60 %}
+
+                                            {% elif avg_time_min <= 5 %}
                                                 <span class="status-badge moderate-fluency">
                                                     <span class="status-icon">●</span>
                                                     Moderate Fluency
                                                 </span>
-                                            {% elif avg_time <= 90 %}
+
+                                            {% elif avg_time_min <= 10 %}
                                                 <span class="status-badge slow-interaction">
                                                     <span class="status-icon">●</span>
                                                     Slow Interaction
                                                 </span>
+
                                             {% else %}
                                                 <span class="status-badge cognitive-overload">
                                                     <span class="status-icon">●</span>
@@ -378,11 +412,11 @@
                                             {% endif %}
                                         </td>
                                         <td class="metric-insight">
-                                            {% if avg_time <= 30 %}
+                                            {% if avg_time_min <= 3 %}
                                                 Scenario completed quickly and smoothly.
-                                            {% elif avg_time <= 60 %}
+                                            {% elif avg_time_min <= 5 %}
                                                 Scenario completed with acceptable effort.
-                                            {% elif avg_time <= 90 %}
+                                            {% elif avg_time_min <= 10 %}
                                                 Developers needed extra time to find or understand information.
                                             {% else %}
                                                 Scenario took too long, information was unclear or hard to locate.
@@ -420,6 +454,9 @@
                                                     <span class="priority-icon">●</span>
                                                     {{ g_result.priority }}
                                                 </span>
+                                                <span class="guideline-score">
+                                                    <strong>Priority Insight:</strong> {{ g_result.priority_insight }}
+                                                </span>
                                             </div>
                                         </div>
                                         <span class="guideline-toggle material-symbols-outlined">expand_more</span>
@@ -428,11 +465,6 @@
                                     <!-- Content: Detalhes da Guideline -->
                                     <div class="guideline-accordion-content">
                                         <p class="guideline-description">{{ guideline.description }}</p>
-
-                                        <!-- Priority Insight -->
-                                        <div class="priority-insight-box">
-                                            <strong>Priority Insight:</strong> {{ g_result.priority_insight }}
-                                        </div>
 
                                         <!-- Tabela de Key Success Criteria -->
                                         <h5>Key Success Criteria</h5>
@@ -622,19 +654,19 @@
                     <div class="metric-info-list">
                         <div class="metric-info-item">
                             <span class="badge badge-excellent">Fast</span>
-                            <span>≤ 30 seconds - Excellent performance</span>
+                            <span>≤ 3 min - Excellent performance</span>
                         </div>
                         <div class="metric-info-item">
                             <span class="badge badge-good">Moderate</span>
-                            <span>31-60 seconds - Good performance</span>
+                            <span>3–5 min - Good performance</span>
                         </div>
                         <div class="metric-info-item">
                             <span class="badge badge-warning">Slow</span>
-                            <span>61-120 seconds - Needs improvement</span>
+                            <span>5–10 min - Needs improvement</span>
                         </div>
                         <div class="metric-info-item">
                             <span class="badge badge-critical">Very Slow</span>
-                            <span>> 120 seconds - Critical, requires attention</span>
+                            <span>> 10 min - Critical, requires attention</span>
                         </div>
                     </div>
                 </div>
@@ -686,7 +718,12 @@
             <div class="hotspots-header">
             <h2>Heatmap Insights by URL</h2>
             <p>Visualize where developers collectively focused their attention across all scenarios. Aggregated by URL to reveal clear, engaging, or confusing sections of the portal.</p>
-            </div>
+            <p class="scenario-guideline-note">
+                <span class="note-icon material-symbols-outlined">info</span>
+                Heatmap insights visualize where developers collectively focused their attention across all scenarios.  Aggregated by URL, these patterns reveal which sections of the portal are clear,
+                 engaging, or confusing. Combine with completion time, transparency scores and developers’ reflections and comments to understand cognitive effort distribution.
+            </p>   
+        </div>
 
             <div class="task-heatmap-container">
             <hr class="task-heatmap-divider">

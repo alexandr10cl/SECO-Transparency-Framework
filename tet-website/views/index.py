@@ -1020,11 +1020,11 @@ def eval_dashboard(id):
         processed_tasks.append({
             "task_id": task_id,
             "title": info["title"],
+             "summary": summary, 
             "comments": info["comments"],
             "avg_time": avg_time,
             "completion_rate": completion_rate
         })
-
     # Para cada task processada, buscar guidelines relacionadas
     for task_data in processed_tasks:
         task_id_current = task_data['task_id']
