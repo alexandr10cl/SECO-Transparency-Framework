@@ -113,7 +113,8 @@ body {
 .evaluation-info {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    flex-wrap: wrap;   
+    align-items: stretch;
     gap: 8px;
 }
 
@@ -126,11 +127,15 @@ body {
     box-shadow:
         0 4px 6px rgba(0, 0, 0, 0.08),
         0 8px 16px rgba(0, 0, 0, 0.04);
-    width: 100%;
     background-color: hsl(var(--card));
     transition: box-shadow 0.3s ease;
+    flex: 1 1 calc(50% - 8px);
 }
- 
+
+.evaluation-info-card.objective-card {
+    flex: 1 1 100%;
+}
+
 .evaluation-info-card h3 {
     color: hsl(var(--muted-foreground));
     margin: 0;
