@@ -270,6 +270,21 @@ document.getElementById("verifyButton").addEventListener("click", function () {
 
 // Sincronizar código com API DO UX-TRACKING
 document.getElementById("syncButton").addEventListener("click", function () {
+  const syncButton = document.getElementById("syncButton");
+  const buttonText = syncButton.querySelector(".sync-button-text");
+  const buttonLoader = syncButton.querySelector(".sync-button-loader");
+  const syncStatus = document.getElementById("syncStatus");
+  const syncSuccess = document.getElementById("syncSuccess");
+  
+  // Hide previous messages
+  syncStatus.style.display = "none";
+  syncSuccess.style.display = "none";
+  
+  // Show loading state
+  syncButton.disabled = true;
+  buttonText.style.display = "none";
+  buttonLoader.style.display = "inline-flex";
+  
   overlay.style.display = 'block'; // Exibe o overlay de carregamento
 
   setTimeout(() => {
@@ -292,36 +307,97 @@ document.getElementById("syncButton").addEventListener("click", function () {
       if (response.status >= 200 && response.status < 300) {
         // Sucesso (qualquer 2xx)
         return response.json().then(data => {
-          console.log("Success:", data);
+          console.log("Sync response:", data);
           
+          // VALIDATE: Check if UX-Tracking is actually synchronized
+          // The sync is only successful if we have a valid sessionId and cod
+          const hasValidSessionId = data.sessionId && 
+                                    data.sessionId !== "0" && 
+                                    data.sessionId !== 0 && 
+                                    data.sessionId !== null && 
+                                    data.sessionId !== undefined;
+          
+          const hasValidCod = data.cod && 
+                             data.cod !== "" && 
+                             data.cod !== null && 
+                             data.cod !== undefined;
+          
+          if (!hasValidSessionId || !hasValidCod) {
+            // UX-Tracking not synchronized - show error
+            console.warn("Sync failed: Invalid session data", { sessionId: data.sessionId, cod: data.cod });
+            
+            buttonText.style.display = "inline-flex";
+            buttonLoader.style.display = "none";
+            syncButton.disabled = false;
+            syncStatus.style.display = "flex";
+            
+            // Update error message
+            const statusText = syncStatus.textContent || syncStatus.innerText;
+            if (statusText) {
+              syncStatus.textContent = "UX-Tracking is not active. Please start the session in UX-Tracking first, then try again.";
+            }
+            return;
+          }
+          
+          // Valid sync - proceed
           data_collection.uxt_cod = data.cod;
           data_collection.uxt_sessionId = data.sessionId; 
 
-          fetchtasks(data_collection.evaluation_code);
+          // Show success state
+          buttonText.style.display = "inline-flex";
+          buttonLoader.style.display = "none";
+          syncButton.disabled = false;
+          syncSuccess.style.display = "flex";
+          
+          // Navigate after short delay
+          setTimeout(() => {
+            fetchtasks(data_collection.evaluation_code);
+          }, 1500);
         });
       } else {
         return response.json().then(errorData => {
           console.error(`Error: ${response.status} - ${errorData.message || response.statusText}`);
   
-          document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+          // Show error state
+          buttonText.style.display = "inline-flex";
+          buttonLoader.style.display = "none";
+          syncButton.disabled = false;
+          syncStatus.style.display = "flex";
         }).catch(() => {
           console.error(`Error: ${response.status} - ${response.statusText}`);
   
-          document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+          // Show error state
+          buttonText.style.display = "inline-flex";
+          buttonLoader.style.display = "none";
+          syncButton.disabled = false;
+          syncStatus.style.display = "flex";
         });
       }
     })
     .catch(error => {
       console.error("Fetch error:", error);
-      document.getElementById("syncStatus").style.display = "block"; // Exibe mensagem de erro
+      
+      // Show error state
+      buttonText.style.display = "inline-flex";
+      buttonLoader.style.display = "none";
+      syncButton.disabled = false;
+      syncStatus.style.display = "flex";
     });
   } else {
     // Se não for usar UX-Tracking, apenas salva os dados e avança
     data_collection.uxt_cod = "default";
     data_collection.uxt_sessionId = "0";
 
-    currentPhase = "initial";
-    fetchtasks(data_collection.evaluation_code);
+    // Show success state
+    buttonText.style.display = "inline-flex";
+    buttonLoader.style.display = "none";
+    syncButton.disabled = false;
+    syncSuccess.style.display = "flex";
+
+    setTimeout(() => {
+      currentPhase = "initial";
+      fetchtasks(data_collection.evaluation_code);
+    }, 1500);
   }
 
 });
@@ -934,3 +1010,191 @@ function updateProgressBar() {
   const currentTaskNumber = Math.min(completedTasks + 1, totalTasks);
   document.getElementById("progressText").textContent = `Scenario ${currentTaskNumber} of ${totalTasks}`;
 }
+
+// Extension Help Widget functionality
+(function () {
+  const widget = document.getElementById("extensionHelpWidget");
+  if (!widget) return;
+
+  const launcher = widget.querySelector(".extension-help__launcher");
+  const closeBtn = widget.querySelector(".extension-help__close");
+  const videoPlayer = document.getElementById("extensionVideoPlayer");
+
+  const setCollapsed = (collapsed) => {
+    widget.classList.toggle("extension-help--collapsed", collapsed);
+    if (launcher) {
+      launcher.setAttribute("aria-hidden", collapsed ? "false" : "true");
+      launcher.tabIndex = collapsed ? 0 : -1;
+    }
+    if (closeBtn) {
+      closeBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    }
+    
+    // When opening, start video and enter picture-in-picture
+    if (!collapsed && videoPlayer) {
+      // Start playing the video
+      videoPlayer.play().catch(err => {
+        console.log("Autoplay prevented:", err);
+      });
+      
+      // Enter picture-in-picture mode after a short delay
+      // Note: PiP requires user interaction, so we trigger it after the click event
+      setTimeout(() => {
+        if (videoPlayer.requestPictureInPicture && document.pictureInPictureElement !== videoPlayer) {
+          videoPlayer.requestPictureInPicture().catch(err => {
+            console.log("Picture-in-picture not available:", err);
+          });
+        }
+      }, 500);
+    } else if (collapsed && videoPlayer) {
+      // Pause video when closing
+      videoPlayer.pause();
+      // Exit picture-in-picture if active
+      if (document.pictureInPictureElement === videoPlayer && document.exitPictureInPicture) {
+        document.exitPictureInPicture().catch(err => {
+          console.log("Exit picture-in-picture error:", err);
+        });
+      }
+    }
+  };
+
+  launcher?.addEventListener("click", () => setCollapsed(false));
+  closeBtn?.addEventListener("click", () => setCollapsed(true));
+
+  // Initialize state - start collapsed
+  setCollapsed(true);
+})();
+
+// Tutorial Carousel functionality
+(function () {
+  const carousel = document.querySelector(".tutorial-carousel");
+  if (!carousel) return;
+
+  const images = Array.from(carousel.querySelectorAll(".tutorial-carousel__image"));
+  const dots = Array.from(carousel.querySelectorAll(".tutorial-carousel__dot"));
+  const prevBtn = carousel.querySelector(".tutorial-carousel__arrow--prev");
+  const nextBtn = carousel.querySelector(".tutorial-carousel__arrow--next");
+  
+  let currentStep = 1;
+  const totalSteps = images.length;
+  let direction = 1; // 1 = forward, -1 = backward
+  let autoAdvanceInterval = null;
+  let userInteracted = false;
+
+  const showStep = (step) => {
+    // Update images
+    images.forEach((img, index) => {
+      if (index + 1 === step) {
+        img.classList.add("tutorial-carousel__image--active");
+      } else {
+        img.classList.remove("tutorial-carousel__image--active");
+      }
+    });
+
+    // Update dots
+    dots.forEach((dot, index) => {
+      if (index + 1 === step) {
+        dot.classList.add("tutorial-carousel__dot--active");
+      } else {
+        dot.classList.remove("tutorial-carousel__dot--active");
+      }
+    });
+
+    currentStep = step;
+  };
+
+  const nextStep = () => {
+    if (currentStep >= totalSteps) {
+      direction = -1; // Switch to backward
+      showStep(currentStep - 1);
+    } else {
+      showStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep <= 1) {
+      direction = 1; // Switch to forward
+      showStep(currentStep + 1);
+    } else {
+      showStep(currentStep - 1);
+    }
+  };
+
+  const autoAdvance = () => {
+    if (direction === 1) {
+      nextStep();
+    } else {
+      prevStep();
+    }
+  };
+
+  const startAutoAdvance = () => {
+    if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
+    autoAdvanceInterval = setInterval(autoAdvance, 4000); // Change every 4 seconds
+  };
+
+  const stopAutoAdvance = () => {
+    if (autoAdvanceInterval) {
+      clearInterval(autoAdvanceInterval);
+      autoAdvanceInterval = null;
+    }
+  };
+
+  const handleUserInteraction = () => {
+    if (!userInteracted) {
+      userInteracted = true;
+      stopAutoAdvance();
+      // Resume after 10 seconds of no interaction
+      setTimeout(() => {
+        if (userInteracted) {
+          userInteracted = false;
+          startAutoAdvance();
+        }
+      }, 10000);
+    }
+  };
+
+  // Button events
+  nextBtn?.addEventListener("click", () => {
+    nextStep();
+    handleUserInteraction();
+  });
+  prevBtn?.addEventListener("click", () => {
+    prevStep();
+    handleUserInteraction();
+  });
+
+  // Dot events
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+      showStep(index + 1);
+      handleUserInteraction();
+    });
+  });
+
+  // Keyboard navigation
+  carousel.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      prevStep();
+      handleUserInteraction();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      nextStep();
+      handleUserInteraction();
+    }
+  });
+
+  // Pause on hover
+  carousel.addEventListener("mouseenter", stopAutoAdvance);
+  carousel.addEventListener("mouseleave", () => {
+    if (!userInteracted) {
+      startAutoAdvance();
+    }
+  });
+
+  // Initialize
+  showStep(1);
+  startAutoAdvance();
+})();

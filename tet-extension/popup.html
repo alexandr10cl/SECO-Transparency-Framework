@@ -58,16 +58,79 @@
             <h1>+</h1>
             <img src="/static/logo.png" alt="UX-Tracking logo" style="width: 70px; height: 70px;">
         </div>
-        <hr style="border: 1px solid #ccc; width: 80%;">
-        <h2>Session Synchronization</h2>
-        <p>Before starting the evaluation, you must initialize UX-Tracking capture using the same code you used to validate this evaluation. Once you have done that, click
-            the button below to synchronize the session.
-        </p>
-        <img src="/static/tutorial.png" alt="Tutorial image" style="width: 224px; height: 295px;">
-        <h2 class="highlight-message">When the 'Start Session' button turns red, it means the UX-tracking capture has started.</h2>
-        <p><strong>ATTENTION:</strong> Start UX-Tracking before attempting to synchronize here.</p>
-        <p id="syncStatus" class="sync-status">Sync didn’t work. Try again, and make sure UX tracking is turned on first.</p>
-        <button id="syncButton">Synchronize</button>
+        <hr style="border: 1px solid #e5e7eb; width: 80%; margin: 16px 0;">
+        <h2 style="margin: 0 0 12px 0; color: #1E3A8A;">Session Synchronization</h2>
+        <p style="margin: 0 0 16px 0; max-width: 90%; line-height: 1.5;">Before starting the evaluation, you must initialize UX-Tracking capture using the same code you used to validate this evaluation. Once you have done that, click the button below to synchronize the session.</p>
+        <div class="sync-tutorial-container">
+            <div class="tutorial-carousel">
+                <button class="tutorial-carousel__arrow tutorial-carousel__arrow--prev" type="button" aria-label="Previous image">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <div class="tutorial-carousel__images">
+                    <img src="/static/tutorial.png" alt="Before clicking Iniciar sessão" class="tutorial-carousel__image tutorial-carousel__image--active" data-step="1">
+                    <img src="/static/tutorial-after.png" alt="After clicking Iniciar sessão - button is red" class="tutorial-carousel__image" data-step="2">
+                </div>
+                <button class="tutorial-carousel__arrow tutorial-carousel__arrow--next" type="button" aria-label="Next image">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+                <div class="tutorial-carousel__indicators">
+                    <span class="tutorial-carousel__dot tutorial-carousel__dot--active" data-step="1"></span>
+                    <span class="tutorial-carousel__dot" data-step="2"></span>
+                </div>
+            </div>
+        </div>
+        <div class="sync-info-box">
+            <span class="material-symbols-outlined sync-info-icon">info</span>
+            <span>When the <strong>'Iniciar sessão'</strong> button turns <strong style="color: #dc2626;">red</strong>, it means the UX-tracking capture has started.</span>
+        </div>
+        <div class="sync-attention-box">
+            <span class="material-symbols-outlined sync-attention-icon">warning</span>
+            <span><strong>ATTENTION:</strong> Start UX-Tracking before attempting to synchronize here.</span>
+        </div>
+        <p id="syncStatus" class="sync-status">Sync didn't work. Try again, and make sure UX tracking is turned on first.</p>
+        <div id="syncSuccess" class="sync-success" style="display: none;">
+            <span class="material-symbols-outlined sync-success-icon">check_circle</span>
+            <span>Synchronized successfully!</span>
+        </div>
+        <button id="syncButton" class="sync-primary-button">
+            <span class="sync-button-text">Synchronize</span>
+            <span class="sync-button-loader" style="display: none;">
+                <span class="sync-spinner"></span>
+                <span>Syncing...</span>
+            </span>
+        </button>
+        
+        <!-- Need Help Widget -->
+        <div class="extension-help extension-help--collapsed" id="extensionHelpWidget">
+            <button class="extension-help__launcher" type="button" aria-label="Watch tutorial" title="Watch video tutorial">
+                <span class="material-symbols-outlined extension-help__icon">play_circle</span>
+                <span>Watch tutorial</span>
+            </button>
+            <div class="extension-help__panel" role="dialog" aria-label="Help walkthrough">
+                <div class="extension-help__panel-header">
+                    <div>
+                        <p class="extension-help__label">Need help with synchronization?</p>
+                        <p class="extension-help__subtitle">Quick 2-min guide</p>
+                    </div>
+                    <button class="extension-help__close" type="button" aria-label="Close help">×</button>
+                </div>
+                <div class="extension-help__video is-active" data-name="extension" role="tabpanel">
+                    <p class="extension-help__title">How to Sync with UX-Tracking</p>
+                    <div class="extension-help__ratio">
+                        <video
+                            id="extensionVideoPlayer"
+                            controls
+                            autoplay
+                            preload="auto"
+                            style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;">
+                            <source src="static/demovideo.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <p class="extension-help__caption">Watch this quick guide to sync your session with UX-Tracking.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="main_page">

@@ -26,5 +26,15 @@
   },
   "host_permissions": [
     "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "static/*.mp4",
+        "static/*.png",
+        "static/*.jpg"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
