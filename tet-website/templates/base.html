@@ -10,6 +10,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon.png">
     
     <link rel="stylesheet" href="/static/css/nav.css">
+    <link rel="stylesheet" href="/static/css/video-help.css">
     {% block head %}
     {% endblock %}
     <meta name="description" content="{% block meta_description %}SECO-TransP: A framework to evaluate and enhance transparency in software ecosystem portals. Analyze, assess, and improve developer experience and portal governance.{% endblock %}">
@@ -56,7 +57,57 @@
 
     {% block content %}{% endblock %}
 
+    {% block video_help %}
+    <div class="video-help video-help--collapsed" id="videoHelpWidget">
+        <button class="video-help__launcher" type="button" aria-label="Open video help">
+            <span>Video Help</span>
+        </button>
+        <div class="video-help__panel" role="dialog" aria-label="Video help walkthroughs">
+            <div class="video-help__panel-header">
+                <div>
+                    <p class="video-help__label">Need a walkthrough?</p>
+                    <p class="video-help__subtitle">Watch a quick demo.</p>
+                </div>
+                <button class="video-help__close" type="button" aria-label="Minimize video help">–</button>
+            </div>
+            <div class="video-help__tabs" role="tablist">
+                <button class="video-help__tab is-active" type="button" data-target="extension" role="tab" aria-selected="true">Extension</button>
+                <button class="video-help__tab" type="button" data-target="tool" role="tab" aria-selected="false">Tool</button>
+            </div>
+            <div class="video-help__video is-active" data-name="extension" role="tabpanel">
+                <p class="video-help__title">Browser Extension</p>
+                <div class="video-help__ratio">
+                    <iframe
+                        src="{{ extension_video_url|default('https://www.youtube.com/embed/tgbNymZ7vqY', true) }}"
+                        title="Extension demo video"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+                <p class="video-help__caption">Steps to install and configure the extension.</p>
+            </div>
+            <div class="video-help__video" data-name="tool" role="tabpanel" aria-hidden="true">
+                <p class="video-help__title">Portal Tooling</p>
+                <div class="video-help__ratio">
+                    <iframe
+                        src="{{ tool_video_url|default('https://www.youtube.com/embed/oHg5SJYRHA0', true) }}"
+                        title="Portal tool demo video"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy">
+                    </iframe>
+                </div>
+                <p class="video-help__caption">Overview of using the transparency tool.</p>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
     {% block scripts %}{% endblock %}
     <script src="/static/js/nav.js"></script>
+    <script src="/static/js/video-help.js"></script>
 </body>
 </html>
