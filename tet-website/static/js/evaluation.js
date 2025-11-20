@@ -526,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
           : '';
         header.innerHTML = `
           <strong>${processDescription}</strong>
-          <span class="form-help">Distribute a total of <strong>10 points</strong> among the KSCs below based on their importance.</span>
+          <span class="form-help">Distribute a total of <strong>10 points</strong> among the key success criteria below, based on their importance to your organization’s goals and context.</span>
           ${taskDetails}
         `;
         group.appendChild(header);
