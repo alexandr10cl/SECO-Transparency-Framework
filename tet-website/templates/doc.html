@@ -19,6 +19,9 @@
         <div class="sidebar-header">
             <span class="material-symbols-outlined">article</span>
             <h2>Documentation</h2>
+            <div class="sidebar-progress" id="sidebarProgress" style="display: none;">
+                <div class="sidebar-progress-bar" id="sidebarProgressBar"></div>
+            </div>
         </div>
         <ul class="sidebar-menu">
             <li><a href="#introduction" class="active">Introduction</a></li>
@@ -27,6 +30,7 @@
             <li><a href="#uxt">How to use UX-Tracking</a></li>
             <li><a href="#dashboard">Dashboard</a></li>
             <li><a href="#glossary">Glossary of Terms</a></li>
+            <li><a href="#glossary-tutorials">Tutorials</a></li>
         </ul>
     </div>
     <div class="content">
@@ -45,11 +49,11 @@
 
             <h3>🔍 What does SECO-TransP offer?</h3>
             <ul>
-                <li>✅ <strong>7 Transparency Guidelines (G1–G7)</strong>, mapeadas aos <em>Common Software Ecosystem Procedures</em> (P1–P7), a fatores de DX e a condicionantes de transparência;</li>
-                <li>🧪 <strong>Evaluation Scenarios</strong> que simulam interações reais de desenvolvedores com portais;</li>
-                <li>📊 <strong>Perception Questionnaire</strong> com escala VAS (0–100) para capturar experiência subjetiva por KSC;</li>
-                <li>🛠️ <strong>Browser Extension + Evaluation Portal</strong> para rastrear cenários, coletar feedback e gerar o dashboard;</li>
-                <li>🏅 <strong>Transparency Badges</strong> com níveis: High • Moderate • Low.</li>
+                <li>✅ <strong>7 Transparency Guidelines (G1-G7)</strong>, mapped to <em>Common Software Ecosystem Procedures</em> (P1-P7), to DX factors and transparency conditioning factors;</li>
+                <li>🧪 <strong>Evaluation Scenarios</strong> that simulate real interactions of developers with portals;</li>
+                <li>📊 <strong>Perception Questionnaire</strong> with VAS scale (0-100) to capture subjective experience per KSC;</li>
+                <li>🛠️ <strong>Browser Extension + Evaluation Portal</strong> to track scenarios, collect feedback and generate the dashboard;</li>
+                <li>🏅 <strong>Transparency Badges</strong> with levels: High • Moderate • Low.</li>
             </ul>
 
             <h3>👩‍💻 Who is it for?</h3>
@@ -70,56 +74,71 @@
                 <p>
                 The evaluation using the SECO-TransP framework is conducted in six main steps, starting with the initial setup by the portal manager and ending with the aggregated analysis of the developers' feedback. Below is the complete step-by-step guide:</p>
                 
-                <h2>Step 1 – Configure the Evaluation in SECO-TransP</h2>
+                <h2>Step 1: Configure the Evaluation in SECO-TransP</h2>
                 <p>
-                    <strong>At this stage, a portal manager defines the initial parameters of the evaluation:</strong><br>
-                    – Provides basic information about the portal to be evaluated.<br>
-                    – Selects the common software ecosystem procedures to be the focus of the evaluation, such as documentation access, communication channels, governance, etc.<br>
-                    – Then, the manager saves this initial configuration in the system.
+                    <strong>At this stage, a portal manager defines the initial parameters of the evaluation:</strong>
                 </p>
+                <ul>
+                    <li>Provides basic information about the portal to be evaluated.</li>
+                    <li>Selects the common software ecosystem procedures to be the focus of the evaluation, such as documentation access, communication channels, governance, etc.</li>
+                    <li>Then, the manager saves this initial configuration in the system.</li>
+                </ul>
 
-                <h2>Step 2 – Generate Evaluation Code and Link Scenarios</h2>
+                <h2>Step 2: Generate Evaluation Code and Link Scenarios</h2>
                 <p>
-                    <strong>After configuring the evaluation, a portal manager:</strong><br>
-                    – Generates a unique <strong>7-digit evaluation code</strong>.<br>
-                    – Shares this code with participating developers.<br>
-                    – SECO-TransP automatically generates evaluation scenarios based on the selected procedures and links them to the code.
+                    <strong>After configuring the evaluation, a portal manager:</strong>
                 </p>
+                <ul>
+                    <li>Generates a unique <strong>7-digit evaluation code</strong>.</li>
+                    <li>Shares this code with participating developers.</li>
+                    <li>SECO-TransP automatically generates evaluation scenarios based on the selected procedures and links them to the code.</li>
+                </ul>
 
-                <h2>Step 3 – Developer Access and Profile Questionnaire</h2>
+                <h2>Step 3: Developer Access and Profile Questionnaire</h2>
                 <p>
-                    <strong>Once the developer receives the evaluation code:</strong><br>
-                    – Accesses the SECO-TransP extension and enters the provided code.<br>
-                    – Completes a profile questionnaire with information such as education level, work sector, and development experience — data that help contextualize the evaluation results.
+                    <strong>Once the developer receives the evaluation code:</strong>
                 </p>
+                <ul>
+                    <li>Accesses the SECO-TransP extension and enters the provided code.</li>
+                    <li>Completes a profile questionnaire with information such as education level, work sector, and development experience. This data helps contextualize the evaluation results.</li>
+                </ul>
 
-                <h2>Step 4 – Scenario Execution and Quick Feedback</h2>
+                <h2>Step 4: Scenario Execution and Quick Feedback</h2>
                 <p>
-                    <strong>For each assigned scenario:</strong><br>
-                    – A developer indicates whether they were able to complete the scenario.<br>
-                    – Optionally, the developer may add a short comment about the scenario.
+                    <strong>For each assigned scenario:</strong>
                 </p>
+                <ul>
+                    <li>A developer indicates whether they were able to complete the scenario.</li>
+                    <li>Optionally, the developer may add a short comment about the scenario.</li>
+                </ul>
 
-                <h2>Step 5 – Detailed Evaluation by Success Criteria</h2>
+                <h2>Step 5: Detailed Evaluation by Success Criteria</h2>
                 <p>
-                    <strong>After all scenarios of a procedure are completed:</strong><br>
-                    – A developer <strong>answers</strong> detailed questions based on the Key Success Criteria (KSCs) of each guideline linked to that procedure.<br>
-                    – Each question is rated using a Visual Analogue Scale (VAS) from <strong>0 to 100</strong>.<br>
-                    – An optional comment field is provided for qualitative observations.<br>
-                    – At the end, the developer also provides a general satisfaction rating using a <strong>0–10 slider</strong>.
+                    <strong>After all scenarios of a procedure are completed:</strong>
                 </p>
+                <ul>
+                    <li>A developer <strong>answers</strong> detailed questions based on the Key Success Criteria (KSCs) of each guideline linked to that procedure.</li>
+                    <li>Each question is rated using a Visual Analogue Scale (VAS) from <strong>0 to 100</strong>.</li>
+                    <li>An optional comment field is provided for qualitative observations.</li>
+                    <li>At the end, the developer also provides a general satisfaction rating using a <strong>0-10 slider</strong>.</li>
+                </ul>
 
-                <h2>Step 6 – Calculation and Interpretation of Results</h2>
+                <h2>Step 6: Calculation and Interpretation of Results</h2>
                 <p>
-                    <strong>Based on the developers’ responses:</strong><br>
-                    – Each answer on the VAS is recorded as a numerical value from 0 to 100, where higher values indicate a stronger perception that the criterion was fully met in the portal.<br>
-                    – The system calculates average scores per criterion, and guideline, and procedure.<br>
-                    – Guidelines are classified as:<br>
-                    &emsp;• Fulfilled if the average score is ≥ 75<br>
-                    &emsp;• Partially Fulfilled if the average score is between 50 and 74<br>
-                    &emsp;• Not Fulfilled if the average score is &lt; 50<br>
-                    – These classifications are used to generate visual badges and support transparency benchmarking across portals.
+                    <strong>Based on the developers' responses:</strong>
                 </p>
+                <ul>
+                    <li>Each answer on the VAS is recorded as a numerical value from 0 to 100, where higher values indicate a stronger perception that the criterion was fully met in the portal.</li>
+                    <li>The system calculates average scores per criterion, guideline, and procedure.</li>
+                    <li>Guidelines are classified as:
+                        <ul>
+                            <li>Fulfilled if the average score is ≥ 75</li>
+                            <li>Partially Fulfilled if the average score is between 50 and 74</li>
+                            <li>Not Fulfilled if the average score is &lt; 50</li>
+                        </ul>
+                    </li>
+                    <li>These classifications are used to generate visual badges and support transparency benchmarking across portals.</li>
+                </ul>
 
         </section>
         <hr>
@@ -167,7 +186,6 @@
                 <li>Ensure the <strong>UX-Tracking system</strong> is active</li>
                 <li>Click <strong>“Synchronize”</strong></li>
                 <li>If successful, the evaluation overview page will load</li>
-                <li><strong>Note:</strong> The tool works even without UX-Tracking</li>
             </ul>
 
             <h3>4. Evaluation Stages</h3>
@@ -193,7 +211,7 @@
             <p>After each scenario, you'll write a short comment about your experience and click <strong>"Next"</strong> to proceed.</p>
 
             <h4>Step 4: Process Review</h4>
-            <p>Once all scenarios of a process are completed, a brief questionnaire will be displayed, where each question is answered using a slider scale (0–100) to indicate the extent to which specific objectives were achieved.</p>
+            <p>Once all scenarios of a process are completed, a brief questionnaire will be displayed, where each question is answered using a slider scale (0-100) to indicate the extent to which specific objectives were achieved.</p>
 
             <h4>Step 5: Final Questionnaire</h4>
             <p>Finally, you will provide overall feedback about your experience and rate how you felt using the portal using an emoji scale (from 😫 to 🤩).</p>
@@ -211,7 +229,7 @@
                 <li><strong>Feedback:</strong> text comments, radio/slider selections</li>
                 <li><strong>Navigation:</strong> URL history and tab switches</li>
                 <li><strong>Profile Info:</strong> academic background, sector, experience</li>
-                <li><strong>Emotion/Satisfaction:</strong> final overall rating (e.g., 0–10)</li>
+                <li><strong>Emotion/Satisfaction:</strong> final overall rating (e.g., 0-10)</li>
             </ul>
             <p><em>Optional and consent-based:</em> eye-tracking via webcam for gaze estimation.</p>
             <p>All data are collected <strong>anonymously</strong>, stored securely, and restricted to the research team.</p>
@@ -262,7 +280,7 @@
             </ul>
 
             <div class="guideline-info-card">
-                <h4>Transparency Score – Overview</h4>
+                <h4>Transparency Score: Overview</h4>
                 <p>
                     The overall transparency score of the portal is calculated based on the average ratings across all evaluated guidelines. 
                     Based on this score, the portal is assigned one of the following transparency levels:
@@ -280,7 +298,7 @@
                 </div>
             </div>
 
-            <h3>2. Performed Scenarios — Metrics & Badges</h3>
+            <h3>2. Performed Scenarios: Metrics & Badges</h3>
                 <p>This section explains how each scenario metric is computed and which badge is displayed based on the thresholds.</p>
 
                 <!-- Time Performance -->
@@ -292,16 +310,16 @@
 
                 <div class="status-blocks">
                     <div class="status-label">
-                    🟢 <strong>High Fluency</strong>: ≤ 3 min — Scenario completed quickly and smoothly.
+                    🟢 <strong>High Fluency</strong>: ≤ 3 min. Scenario completed quickly and smoothly.
                     </div>
                     <div class="status-label">
-                    🟡 <strong>Moderate Fluency</strong>: 3–5 min — Scenario completed with acceptable effort.
+                    🟡 <strong>Moderate Fluency</strong>: 3-5 min. Scenario completed with acceptable effort.
                     </div>
                     <div class="status-label">
-                    🟠 <strong>Slow Interaction</strong>: 5–10 min — Developers needed extra time to find or understand information.
+                    🟠 <strong>Slow Interaction</strong>: 5-10 min. Developers needed extra time to find or understand information.
                     </div>
                     <div class="status-label">
-                    🔴 <strong>Cognitive Overload</strong>: &gt; 10 min — Scenario took too long; information was unclear or hard to locate.
+                    🔴 <strong>Cognitive Overload</strong>: &gt; 10 min. Scenario took too long; information was unclear or hard to locate.
                     </div>
                 </div>
 
@@ -325,16 +343,16 @@
 
                     <div class="status-blocks">
                         <div class="status-label">
-                            🟢 <strong>Successful</strong>: ≥ 90% — Scenario completed easily and consistently.
+                            🟢 <strong>Successful</strong>: ≥ 90%. Scenario completed easily and consistently.
                         </div>
                         <div class="status-label">
-                            🟡 <strong>Partially Successful</strong>: 70–89% — Most developers completed the scenario, with minor friction.
+                            🟡 <strong>Partially Successful</strong>: 70-89%. Most developers completed the scenario, with minor friction.
                         </div>
                         <div class="status-label">
-                            🟠 <strong>Low Success</strong>: 50–69% — Several developers struggled to complete the scenario.
+                            🟠 <strong>Low Success</strong>: 50-69%. Several developers struggled to complete the scenario.
                         </div>
                         <div class="status-label">
-                            🔴 <strong>Unsuccessful</strong>: &lt; 50% — Most developers could not complete the scenario.
+                            🔴 <strong>Unsuccessful</strong>: &lt; 50%. Most developers could not complete the scenario.
                         </div>
                     </div>
 
@@ -356,10 +374,10 @@
                 The larger the gap, the higher the priority for improvement.</p>
 
                 <ul>
-                    <li>Gap ≤ 0 → 🟢 <strong>Low Priority</strong> — Target reached or exceeded.</li>
-                    <li>Gap 1–10 → 🟡 <strong>Medium Priority</strong> — Minor improvement needed.</li>
-                    <li>Gap 11–20 → 🟠 <strong>High Priority</strong> — Significant improvement required.</li>
-                    <li>Gap &gt; 20 → 🔴 <strong>Critical Priority</strong> — Major transparency issue; immediate action recommended.</li>
+                    <li>Gap ≤ 0 → 🟢 <strong>Low Priority</strong>. Target reached or exceeded.</li>
+                    <li>Gap 1-10 → 🟡 <strong>Medium Priority</strong>. Minor improvement needed.</li>
+                    <li>Gap 11-20 → 🟠 <strong>High Priority</strong>. Significant improvement required.</li>
+                    <li>Gap &gt; 20 → 🔴 <strong>Critical Priority</strong>. Major transparency issue; immediate action recommended.</li>
                 </ul>
 
                 <details>
@@ -384,7 +402,7 @@
             <h3>4. Guidelines Score</h3>
             <p>
             The <strong>Guidelines Score</strong> section displays the evaluation results based on each guideline’s
-            <em>Key Success Criteria (KSCs)</em>. Developer responses on a VAS (0–100) are translated into scores and statuses.
+            <em>Key Success Criteria (KSCs)</em>. Developer responses on a VAS (0-100) are translated into scores and statuses.
             </p>
 
             <p>
@@ -470,7 +488,7 @@
 
                 <dt><strong>Transparency Badge</strong></dt>
                 <dd>
-                    A visual indicator assigned to a guideline based on evaluation scores. The three levels are: <strong>High Transparency</strong> (≥ 75), <strong>Moderate Transparency</strong> (50–74), and <strong>Low Transparency</strong> (< 50).
+                    A visual indicator assigned to a guideline based on evaluation scores. The three levels are: <strong>High Transparency</strong> (≥ 75), <strong>Moderate Transparency</strong> (50-74), and <strong>Low Transparency</strong> (< 50).
                 </dd>
 
                 <dt><strong>Transparency Guideline</strong></dt>
@@ -483,8 +501,56 @@
                     A type of measurement scale where developers indicate their perception by selecting a position along a continuous line, typically from 0 to 100.
                 </dd>
                 </dl>
+
+                <h2 id="glossary-tutorials" style="margin-top: 3rem; margin-bottom: 1.5rem;">Tutorials</h2>
+                <p style="margin-bottom: 1.5rem;">Watch video tutorials to learn how to use the SECO-TransP framework and its tools:</p>
+                
+                <div class="tutorials-grid">
+                    <div class="tutorial-card">
+                        <div class="tutorial-card-header">
+                            <span class="material-symbols-outlined tutorial-icon">extension</span>
+                            <h3>Browser Extension Setup</h3>
+                        </div>
+                        <p class="tutorial-description">Learn how to install, configure, and use the SECO-TransP browser extension for evaluation.</p>
+                        <button class="tutorial-button" onclick="openTutorialModal('extension')">
+                            <span class="material-symbols-outlined">play_circle</span>
+                            Watch Tutorial
+                        </button>
+                    </div>
+
+                    <div class="tutorial-card">
+                        <div class="tutorial-card-header">
+                            <span class="material-symbols-outlined tutorial-icon">dashboard</span>
+                            <h3>Portal Tooling</h3>
+                        </div>
+                        <p class="tutorial-description">Overview of using the transparency evaluation tool and dashboard features.</p>
+                        <button class="tutorial-button" onclick="openTutorialModal('tool')">
+                            <span class="material-symbols-outlined">play_circle</span>
+                            Watch Tutorial
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
+
+        <!-- Tutorial Modal -->
+        <div id="tutorialModal" class="tutorial-modal">
+            <div class="tutorial-modal-content">
+                <div class="tutorial-modal-header">
+                    <h2 id="tutorialModalTitle">Tutorial</h2>
+                    <button class="tutorial-modal-close" onclick="closeTutorialModal()" aria-label="Close">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="tutorial-modal-body">
+                    <div class="tutorial-video-container">
+                        <iframe id="tutorialVideoFrame" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <p id="tutorialModalCaption" class="tutorial-modal-caption"></p>
+                </div>
+            </div>
+            <div class="tutorial-modal-overlay" onclick="closeTutorialModal()"></div>
+        </div>
 
 
 
@@ -516,7 +582,23 @@
             // Active link handling
             const sidebarLinks = document.querySelectorAll(".sidebar-menu a");
             sidebarLinks.forEach(link => {
-                link.addEventListener("click", function() {
+                link.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    
+                    if (targetSection) {
+                        // Smooth scroll with offset for header
+                        const headerOffset = 80;
+                        const elementPosition = targetSection.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                        
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                    
                     sidebarLinks.forEach(l => l.classList.remove("active"));
                     this.classList.add("active");
                     
@@ -528,6 +610,132 @@
                     }
                 });
             });
+
+            // Scroll Spy - Auto update active section based on scroll position
+            const sections = document.querySelectorAll('section[id]');
+            const sidebarLinksMap = new Map();
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href.startsWith('#')) {
+                    const sectionId = href.substring(1);
+                    sidebarLinksMap.set(sectionId, link);
+                }
+            });
+
+            if (sections.length > 0 && 'IntersectionObserver' in window) {
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '-80px 0px -60% 0px', // Account for header, trigger when section is in upper viewport
+                    threshold: 0
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const sectionId = entry.target.getAttribute('id');
+                            const correspondingLink = sidebarLinksMap.get(sectionId);
+                            
+                            if (correspondingLink) {
+                                sidebarLinks.forEach(l => l.classList.remove("active"));
+                                correspondingLink.classList.add("active");
+                            }
+                        }
+                    });
+                }, observerOptions);
+
+                sections.forEach(section => {
+                    observer.observe(section);
+                });
+            }
+
+            // Subtle reading progress indicator in sidebar header
+            const sidebarProgress = document.getElementById('sidebarProgress');
+            const sidebarProgressBar = document.getElementById('sidebarProgressBar');
+            
+            if (sidebarProgress && sidebarProgressBar) {
+                const updateProgress = () => {
+                    const windowHeight = window.innerHeight;
+                    const documentHeight = document.documentElement.scrollHeight;
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const scrollableHeight = documentHeight - windowHeight;
+                    const progress = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
+                    
+                    sidebarProgressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+                    
+                    // Show progress bar only when scrolled past a threshold
+                    if (scrollTop > 100) {
+                        sidebarProgress.style.display = 'block';
+                    } else {
+                        sidebarProgress.style.display = 'none';
+                    }
+                };
+
+                // Throttle scroll events for performance
+                let ticking = false;
+                window.addEventListener('scroll', () => {
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            updateProgress();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }, { passive: true });
+
+                // Initial update
+                updateProgress();
+            }
+        });
+
+        // Tutorial Modal Functions
+        const tutorialVideos = {
+            extension: {
+                url: "{{ extension_video_url|default('https://www.youtube.com/embed/tgbNymZ7vqY', true) }}",
+                title: "Browser Extension Setup",
+                caption: "Steps to install and configure the extension."
+            },
+            tool: {
+                url: "{{ tool_video_url|default('https://www.youtube.com/embed/oHg5SJYRHA0', true) }}",
+                title: "Portal Tooling",
+                caption: "Overview of using the transparency tool."
+            }
+        };
+
+        function openTutorialModal(type) {
+            const modal = document.getElementById('tutorialModal');
+            const videoFrame = document.getElementById('tutorialVideoFrame');
+            const modalTitle = document.getElementById('tutorialModalTitle');
+            const modalCaption = document.getElementById('tutorialModalCaption');
+            
+            if (modal && tutorialVideos[type]) {
+                const video = tutorialVideos[type];
+                videoFrame.src = video.url;
+                modalTitle.textContent = video.title;
+                modalCaption.textContent = video.caption;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeTutorialModal() {
+            const modal = document.getElementById('tutorialModal');
+            const videoFrame = document.getElementById('tutorialVideoFrame');
+            
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                // Stop video playback
+                if (videoFrame) {
+                    videoFrame.src = '';
+                }
+            }
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTutorialModal();
+            }
         });
     </script>
 {% endblock %}
