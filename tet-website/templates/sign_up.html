@@ -8,14 +8,32 @@
 
 {% block content %}
 <div class="signin">
-    <form class="signinForm" action="{{ url_for('register') }}" method="post">
+    <form class="signinForm" action="{{ url_for('register') }}" method="post" id="signupForm">
         <h2 class="signup">Sign up</h2>
-        <input type="email" name="email" id="email" placeholder="Type your email">
-        <input type="text" name="name" id="name" placeholder="Type your username">
-        <input type="password" name="passw" id="passw" placeholder="Type your password">
-        <input type="password" name="confpass"  id="confpass" placeholder="Confirm your password">
+        <div class="form-group">
+            <label for="email" class="sr-only">Email</label>
+            <input type="email" name="email" id="email" placeholder="Type your email" required aria-label="Email address">
+        </div>
+        <div class="form-group">
+            <label for="name" class="sr-only">Username</label>
+            <input type="text" name="name" id="name" placeholder="Type your username" required aria-label="Username">
+        </div>
+        <div class="form-group">
+            <label for="passw" class="sr-only">Password</label>
+            <input type="password" name="passw" id="passw" placeholder="Type your password" required aria-label="Password">
+        </div>
+        <div class="form-group">
+            <label for="confpass" class="sr-only">Confirm Password</label>
+            <input type="password" name="confpass" id="confpass" placeholder="Confirm your password" required aria-label="Confirm password">
+        </div>
         <a href="{{ url_for('signin') }}">Do you already have an account?</a>
-        <button class="btn btn-submit">Create account</button>
+        <button type="submit" class="btn btn-submit" id="submitBtn">
+            <span class="btn-text">Create account</span>
+            <span class="btn-loader" style="display: none;">
+                <span class="spinner"></span>
+                Creating account...
+            </span>
+        </button>
     </form>
 </div>
 {% endblock %}

@@ -8,20 +8,36 @@
 
 {% block content %}
 <div class="signin">
-    <form class="signinForm" action="{{ url_for('auth') }}" method="post">
+    <form class="signinForm" action="{{ url_for('auth') }}" method="post" id="signinForm">
         <h2 class="signup">Sign in</h2>
-        <input type="email" name="email" id="email" placeholder="Type your email">
-        <input type="password" name="passw" id="passw" placeholder="Type your password">
+        <div class="form-group">
+            <label for="email" class="sr-only">Email</label>
+            <input type="email" name="email" id="email" placeholder="Type your email" required aria-label="Email address">
+        </div>
+        <div class="form-group">
+            <label for="passw" class="sr-only">Password</label>
+            <input type="password" name="passw" id="passw" placeholder="Type your password" required aria-label="Password">
+        </div>
         <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
         <a href="{{ url_for('signup') }}">Don't you have an account?</a>
-        <button class="btn btn-submit">Sign in</button>
+        <button type="submit" class="btn btn-submit" id="submitBtn">
+            <span class="btn-text">Sign in</span>
+            <span class="btn-loader" style="display: none;">
+                <span class="spinner"></span>
+                Signing in...
+            </span>
+        </button>
         {% if message != '' %}
-        <p class="msg {{ messageType }}">{{ message }}</p>
+        <p class="msg {{ messageType }}" role="alert">{{ message }}</p>
         {% elif messageCE != '' %}
-        <p class="msg {{ messageType }}">{{ messageEA }}</p>
+        <p class="msg {{ messageType }}" role="alert">{{ messageEA }}</p>
         {% elif messageReg != '' %}
-        <p class="msgR {{ messageType }}">{{ messageReg }}</p>
+        <p class="msgR {{ messageType }}" role="alert">{{ messageReg }}</p>
         {% endif %}
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/sign_in.js"></script>
 {% endblock %}

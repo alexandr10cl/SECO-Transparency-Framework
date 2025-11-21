@@ -12,43 +12,56 @@
         
         <div class="header">
             <h1 class="title">Guidelines</h1>
-            <p>An easy and understandable way to reach the transparency</p>
+            <p>An easy and understandable way to achieve transparency</p>
         </div>
 
-        <h1 class="title">Guidelines for Transparency</h1>
-
-        <div class="guidelines">
+        <section class="guidelines-section">
+            <h2 class="section-title">Guidelines for Transparency</h2>
+            <div class="guidelines">
             {% for g in guidelines %}
-                <div class="g" onclick="openModal('{{ g.guidelineID }}')">
+                <div class="g" 
+                     role="button" 
+                     tabindex="0" 
+                     aria-label="View guideline G{{ g.guidelineID }}: {{ g.title }}"
+                     onclick="openModal('{{ g.guidelineID }}')"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModal('{{ g.guidelineID }}');}">
                     <div class="g-inner">
                         <div class="g-front">
                             <h2>G{{ g.guidelineID }}</h2>
                             <p>{{ g.title }}</p>
-                            <i class="ic fas fa-info-circle text-3xl mt-4"></i>
+                            <i class="ic fas fa-info-circle text-3xl mt-4" aria-hidden="true"></i>
                         </div>
                         <div class="g-back">
                             <h3>G{{ g.guidelineID }}</h3>
                             <p>Click to view full details</p>
-                            <i class="ic fas fa-expand text-3xl mt-4 text-gray-600"></i>
+                            <i class="ic fas fa-expand text-3xl mt-4 text-gray-600" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
             {% endfor %}
-        </div>
+            </div>
+        </section>
 
         
-        <div id="gModal" class="modal inv">
+        <div id="gModal" class="modal inv" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <!-- Indicador de carregamento -->
-                <div id="modal-loading" style="display:none; text-align:center; margin: 2em 0;">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p>Loading...</p>
+                <button class="close" onclick="closeModal()" aria-label="Close modal">&times;</button>
+                <!-- Loading Skeleton -->
+                <div id="modal-loading" class="modal-loading" style="display:none;">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-grid">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
                 </div>
                 <!-- Conteúdo do modal -->
                 <div id="modal-main-content">
-                    <h2 id="modal-title"></h2>
-                    <p id="modal-description"></p>
+                    <h2 id="modal-title" class="modal-title"></h2>
+                    <p id="modal-description" class="modal-description"></p>
 
                     <div class="details">
                         <div class="processes">
@@ -57,7 +70,7 @@
                         </div>
                         <div class="dimensions">
                             <h3>Dimensions</h3>
-                            <ul id=modal-dimensions></ul></ul>
+                            <ul id="modal-dimensions"></ul>
                         </div>
                         <div class="condFac">
                             <h3>Conditioning Factors</h3>
@@ -65,7 +78,7 @@
                         </div>
                         <div class="dxFac">
                             <h3>Developer Experience Factors</h3>
-                            <ul id="modal-dx"></ul></ul>
+                            <ul id="modal-dx"></ul>
                         </div>
                     </div>
                     <h3 class="ksch3">Key Sucess Criteria</h3>
@@ -79,9 +92,9 @@
         
 
         <section class="references">
-            <h2>All Elements Reference</h2>
+            <h2 class="references-main-title">All Elements Reference</h2>
             <div class="references-space">
-                <h3>Common Software Ecosystems Procedures</h3><br>
+                <h3 class="references-subtitle">Common Software Ecosystems Procedures</h3>
                 <p>List the software ecosystem procedures that the guideline applies to or affects, based on the process list provided by Zacarias et al. (2024)</p>
                 <div class="references-content">
                     {% for p in processes %}
@@ -93,7 +106,7 @@
                 </div>
             </div>
             <div class="references-space">
-                <h3>Conditioning Factors for Transparency</h3><br>
+                <h3 class="references-subtitle">Conditioning Factors for Transparency</h3>
                 <p>Factors that influence or condition the application of transparency in the context of this guideline, based on those proposed by Zacarias et al. (2024)</p>
                 <div class="references-content">
                     {% for cf in conditioning_factors %}
@@ -105,7 +118,7 @@
                 </div>
             </div>
             <div class="references-space">
-                <h3>Developer Experience Factors</h3><br>
+                <h3 class="references-subtitle">Developer Experience Factors</h3>
                 <p>How this guideline impacts the developer experience within an ecosystem, based on the list of developer experience factors proposed by Zacarias et al. (2025)</p>
                 <div class="references-content">
                     {% for f in factors %}
@@ -128,12 +141,11 @@
                 </div>
                 <div class="i">
                     <h4>Contact Us</h4>
-                    <p>+55 2198765-4321</p>
                     <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
                 </div>
             </div>
             <div class="copy">
-                <p>&copy; © 2025 UNIRIO. All rights reserved.</p> 
+                <p>&copy; 2025 UNIRIO. All rights reserved.</p> 
             </div>
         </div>
     </footer>

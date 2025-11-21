@@ -53,7 +53,7 @@
                     <li>⌨️ Keyboard input analysis</li>
                     <li>🎤 Audio capture support</li>
                 </ul>
-                <p class="doc-hint">📖 <a href="{{ url_for('doc') }}#uxt" class="doc-link">Installation guide</a> • <a href="https://uxtracking.netlify.app/" target="_blank" class="doc-link">Official site</a></p>
+                <p class="doc-hint">📖 <a href="{{ url_for('doc') }}#uxt" class="doc-link">Installation guide</a> • <a href="https://uxtracking.netlify.app/" target="_blank" rel="noopener noreferrer" class="doc-link">Official site</a></p>
             </div>
             <a href="{{ url_for('download_uxtracking') }}" class="btn-download btn-download-purple">
                 <svg class="download-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,7 +71,7 @@
             <svg class="warning-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span>Older versions may not work correctly and are provided for reference only.</span>
+            <span>Older versions may not work correctly and are provided for reference only. We recommend using the latest version for the best experience.</span>
         </div>
 
         <div class="versions-list">
@@ -81,12 +81,12 @@
                     <p class="version-date">Released: October 2, 2024</p>
                     <p class="version-description">Beta version with core tracking features.</p>
                 </div>
-                <button class="btn-download-small">
+                <a href="{{ url_for('download_extension') }}" class="btn-download-small" aria-label="Download development version">
                     <svg class="download-icon-small" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                     Download
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -100,12 +100,11 @@
                 </div>
                 <div class="i">
                     <h4>Contact Us</h4>
-                    <p>+55 2198765-4321</p>
                     <p>458 Pasteur Avenue, Urca, Rio de Janeiro, Brazil</p>
                 </div>
             </div>
             <div class="copy">
-                <p>&copy; © 2025 UNIRIO. All rights reserved.</p>
+                <p>&copy; 2025 UNIRIO. All rights reserved.</p>
             </div>
         </div>
     </footer>

@@ -18,6 +18,7 @@ html {
     font-family: system-ui, -apple-system, sans-serif;
     font-size: 16px;
     overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 body {
@@ -43,7 +44,7 @@ img {
 .header {
     width: 100%;
     padding: 3rem 1rem;
-    background: linear-gradient(90deg, rgb(104, 126, 255), var(--cor-1), blue);
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -55,19 +56,21 @@ img {
     font-size: 2rem;
     color: var(--cor-2);
     margin-bottom: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .header p {
-    color: white;
+    color: rgba(255, 255, 255, 0.95);
     font-size: 1rem;
-    font-weight: 500;
-    line-height: 1.5;
+    font-weight: 400;
+    line-height: 1.6;
     padding: 0 1rem;
 }
 
 /* Our Group Section - Mobile First */
 .ourgroup {
-    padding: 2rem 1rem;
+    padding: 4rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -81,15 +84,18 @@ img {
 
 .ourgroup .d1 h2 {
     font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333;
+    margin-bottom: 1.5rem;
+    color: #1e3a8a;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .ourgroup .d1 p {
-    text-align: justify;
-    margin-bottom: 1rem;
-    line-height: 1.6;
-    color: #555;
+    text-align: left;
+    margin-bottom: 1.25rem;
+    line-height: 1.75;
+    color: #374151;
+    font-size: 1rem;
 }
 
 .ourgroup .d2 {
@@ -100,25 +106,41 @@ img {
 }
 
 .ourgroup .d2 img {
-    border-radius: 10px;
+    border-radius: 12px;
     width: 100%;
     max-width: 500px;
     height: auto;
     object-fit: contain;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Our Goals Section - Mobile First */
 .our-goals {
     width: 100%;
-    padding: 2rem 1rem;
-    background-color: #e4e4e48a;
+    padding: 4rem 1rem;
+    background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 0.2s forwards;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .our-goals h2 {
     font-size: 1.5rem;
     text-align: center;
-    margin-bottom: 2rem;
-    color: #333;
+    margin-bottom: 3rem;
+    color: #1e3a8a;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .goals {
@@ -129,13 +151,28 @@ img {
 }
 
 .goal {
-    background-color: var(--cor-2);
-    padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    background-color: white;
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     max-width: 350px;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.goal:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.goal:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.goal:nth-child(3) {
+    animation-delay: 0.3s;
 }
 
 .goal img {
@@ -146,27 +183,29 @@ img {
 
 .goal h4 {
     text-align: left;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     margin-bottom: 1rem;
-    color: #333;
+    color: #1e3a8a;
+    font-weight: 600;
 }
 
 .goal p {
     text-align: left;
-    line-height: 1.5;
+    line-height: 1.7;
     font-size: 0.95rem;
-    color: #555;
+    color: #374151;
 }
 
 .goal:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
 }
 
 /* Members Section - Mobile First */
 .members {
     width: 100%;
-    padding: 2rem 1rem;
+    padding: 4rem 1rem;
 }
 
 .members .title {
@@ -176,14 +215,17 @@ img {
 
 .members h2 {
     font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    color: #333;
+    margin-bottom: 0.75rem;
+    color: #1e3a8a;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .members .title p {
     text-align: center;
-    color: #666;
-    font-size: 0.95rem;
+    color: #4b5563;
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 /* Cards - Mobile First */
@@ -194,6 +236,19 @@ img {
     gap: 2rem;
     width: 100%;
     padding: 1rem 0;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.3s forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .card-full {
@@ -345,18 +400,34 @@ img {
     border-color: transparent transparent #1f1f1f transparent;
 }
 
-.link:hover .tooltip-text {
+.link:hover .tooltip-text,
+.link:focus .tooltip-text {
     visibility: visible;
     opacity: 0.9;
+}
+
+/* Focus states for accessibility */
+.link:focus {
+    outline: 2px solid var(--cor-1);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.card-full:focus-within {
+    outline: 2px solid var(--cor-1);
+    outline-offset: 4px;
+    border-radius: 20px;
 }
 
 /* Footer - Mobile First */
 footer {
     width: 100%;
-    background: linear-gradient(90deg, rgb(44, 60, 155), rgb(28, 39, 100));
-    color: lightblue;
-    padding: 2rem 1rem;
-    margin-top: 3rem;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 4rem 1rem 2.5rem;
+    text-align: center;
+    margin-top: 0;
+    border-top: 3px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-content {
@@ -372,27 +443,29 @@ footer {
 
 .i {
     width: 100%;
-    text-align: center;
 }
 
 .i h4 {
     margin-bottom: 1rem;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: white;
 }
 
 .i p {
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .copy {
-    padding-top: 1.5rem;
-    border-top: 1px solid lightblue;
-    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .copy p {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 /* Tablet Styles */
@@ -411,7 +484,7 @@ footer {
     }
     
     .ourgroup {
-        padding: 3rem 2rem;
+        padding: 5rem 2rem;
         flex-direction: row;
         align-items: center;
     }
@@ -430,12 +503,12 @@ footer {
     }
     
     .our-goals {
-        padding: 3rem 2rem;
+        padding: 5rem 2rem;
     }
     
     .our-goals h2 {
         font-size: 1.8rem;
-        margin-bottom: 3rem;
+        margin-bottom: 4rem;
     }
     
     .goals {
@@ -450,7 +523,7 @@ footer {
     }
     
     .members {
-        padding: 3rem 2rem;
+        padding: 5rem 2rem;
     }
     
     .members h2 {
@@ -465,7 +538,7 @@ footer {
     }
     
     footer {
-        padding: 3rem 2rem;
+        padding: 4rem 2rem 3rem;
     }
     
     .footer-content .info {
@@ -496,7 +569,7 @@ footer {
     }
     
     .ourgroup {
-        padding: 4rem 8rem;
+        padding: 6rem 8rem;
     }
     
     .ourgroup .d1 h2 {
@@ -512,12 +585,12 @@ footer {
     }
     
     .our-goals {
-        padding: 4rem 3rem;
+        padding: 6rem 3rem;
     }
     
     .our-goals h2 {
         font-size: 2rem;
-        margin-bottom: 4rem;
+        margin-bottom: 4.5rem;
     }
     
     .goals {
@@ -536,12 +609,12 @@ footer {
     }
     
     .members {
-        padding: 4rem 3rem;
+        padding: 6rem 3rem;
     }
     
     .members h2 {
         font-size: 2rem;
-        padding: 2rem 0 1rem 0;
+        padding: 0 0 1rem 0;
     }
     
     .cards {
@@ -565,7 +638,7 @@ footer {
     }
     
     footer {
-        padding: 3rem 8rem;
+        padding: 5rem 8rem 3.5rem;
     }
     
     .footer-content {
@@ -577,7 +650,7 @@ footer {
 /* Large Desktop */
 @media screen and (min-width: 1440px) {
     .ourgroup {
-        padding: 5rem 10rem;
+        padding: 7rem 10rem;
         max-width: 1400px;
         margin: 0 auto;
     }

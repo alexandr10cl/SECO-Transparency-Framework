@@ -7,10 +7,21 @@ function openModal(id) {
         console.error('Elemento #gModal não encontrado no DOM');
         return;
     }
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
     // Mostra o modal e o indicador de carregamento, esconde o conteúdo
     modal.classList.remove('inv');
+    modal.setAttribute('aria-hidden', 'false');
     if (loading) loading.style.display = 'block';
     if (mainContent) mainContent.style.display = 'none';
+    
+    // Focus trap - focus on close button
+    const closeBtn = modal.querySelector('.close');
+    if (closeBtn) {
+        setTimeout(() => closeBtn.focus(), 100);
+    }
 
     fetch(`/api/guideline/${id}`)
         .then(response => response.json())
@@ -91,9 +102,17 @@ function openModal(id) {
         })
         .catch(error => {
             if (loading) loading.style.display = 'none';
-            if (mainContent) mainContent.style.display = 'block';
-            alert('Erro ao carregar guideline.');
-            console.error(error);
+            if (mainContent) {
+                mainContent.style.display = 'block';
+                mainContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <h3 style="color: #dc2626; margin-bottom: 1rem;">Error Loading Guideline</h3>
+                        <p style="color: #6b7280; margin-bottom: 1.5rem;">Unable to load the guideline details. Please try again.</p>
+                        <button onclick="closeModal()" style="padding: 0.75rem 1.5rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Close</button>
+                    </div>
+                `;
+            }
+            console.error('Error loading guideline:', error);
         });
 }
 
@@ -102,16 +121,32 @@ function closeModal() {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         modal.classList.add('inv'); // Esconde o modal
+        modal.setAttribute('aria-hidden', 'true');
     });
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
 }
 
 // Fecha o modal ao clicar fora dele
-window.onclick = function(event) {
+document.addEventListener('click', function(event) {
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
-        if (event.target === modal) {
-            modal.classList.add('inv'); // Esconde o modal
+        if (event.target === modal && !modal.classList.contains('inv')) {
+            closeModal();
         }
     });
-};
+});
+
+// Close modal on ESC key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (!modal.classList.contains('inv')) {
+                closeModal();
+            }
+        });
+    }
+});
 
