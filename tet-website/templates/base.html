@@ -77,28 +77,26 @@
             <div class="video-help__video is-active" data-name="extension" role="tabpanel">
                 <p class="video-help__title">Browser Extension</p>
                 <div class="video-help__ratio">
-                    <iframe
-                        src="{{ extension_video_url|default('https://www.youtube.com/embed/tgbNymZ7vqY', true) }}"
+                    <video
+                        src="{{ extension_video_url }}"
                         title="Extension demo video"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen
-                        loading="lazy">
-                    </iframe>
+                        controls
+                        preload="metadata">
+                        Your browser does not support the video element.
+                    </video>
                 </div>
                 <p class="video-help__caption">Steps to install and configure the extension.</p>
             </div>
             <div class="video-help__video" data-name="tool" role="tabpanel" aria-hidden="true">
                 <p class="video-help__title">Portal Tooling</p>
                 <div class="video-help__ratio">
-                    <iframe
-                        src="{{ tool_video_url|default('https://www.youtube.com/embed/oHg5SJYRHA0', true) }}"
+                    <video
+                        src="{{ tool_video_url }}"
                         title="Portal tool demo video"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen
-                        loading="lazy">
-                    </iframe>
+                        controls
+                        preload="metadata">
+                        Your browser does not support the video element.
+                    </video>
                 </div>
                 <p class="video-help__caption">Overview of using the transparency tool.</p>
             </div>

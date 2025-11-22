@@ -145,11 +145,13 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 18px 35px rgba(13, 24, 74, 0.55);
 }
 
-.video-help__ratio iframe {
+.video-help__ratio iframe,
+.video-help__ratio video {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    object-fit: contain;
 }
 
 .video-help__caption {

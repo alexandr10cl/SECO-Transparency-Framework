@@ -46,6 +46,15 @@ from models import *
 from models.database import init_db
 init_db()
 
+# Context processor to make video URLs available to all templates
+@app.context_processor
+def inject_video_urls():
+    from flask import url_for
+    return {
+        'extension_video_url': url_for('static', filename='videos/vídeo tutorial extensão.mp4'),
+        'tool_video_url': url_for('static', filename='videos/tutorial criação de avaliação.mp4')
+    }
+
 # Fix #4: Global error handlers for database connection issues
 # Handle database connection errors gracefully instead of crashing
 from sqlalchemy.exc import OperationalError, DisconnectionError, DatabaseError
