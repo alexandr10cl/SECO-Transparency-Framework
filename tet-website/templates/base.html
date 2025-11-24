@@ -77,26 +77,26 @@
             <div class="video-help__video is-active" data-name="extension" role="tabpanel">
                 <p class="video-help__title">Browser Extension</p>
                 <div class="video-help__ratio">
-                    <video
+                    <iframe
                         src="{{ extension_video_url }}"
                         title="Extension demo video"
-                        controls
-                        preload="metadata">
-                        Your browser does not support the video element.
-                    </video>
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
                 </div>
                 <p class="video-help__caption">Steps to install and configure the extension.</p>
             </div>
             <div class="video-help__video" data-name="tool" role="tabpanel" aria-hidden="true">
                 <p class="video-help__title">Portal Tooling</p>
                 <div class="video-help__ratio">
-                    <video
+                    <iframe
                         src="{{ tool_video_url }}"
                         title="Portal tool demo video"
-                        controls
-                        preload="metadata">
-                        Your browser does not support the video element.
-                    </video>
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
                 </div>
                 <p class="video-help__caption">Overview of using the transparency tool.</p>
             </div>
