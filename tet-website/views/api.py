@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import pytz
 import requests
-from flask import jsonify, session, request
+from flask import jsonify, request
 
 from functions import isLogged
 from index import app, db
@@ -21,8 +21,33 @@ from services.heatmap_service import (
     aggregate_heatmaps_by_url,
     normalize_timestamp,
 )
+from services.uxt_token_manager import get_uxt_token
 
 from collections import Counter
+
+
+def _token_error_response(details: str = "Session expired"):
+    return jsonify({
+        "error": "UXT authentication token not found",
+        "details": details,
+    }), 401
+
+
+def _execute_with_token(callback):
+    token = get_uxt_token()
+    if not token:
+        return None, _token_error_response()
+
+    try:
+        return callback(token), None
+    except requests.HTTPError as exc:
+        response = exc.response
+        if response is not None and response.status_code == 401:
+            refreshed = get_uxt_token(force_refresh=True)
+            if not refreshed:
+                return None, _token_error_response("Unable to refresh UX Tracking token. Please sign in again.")
+            return callback(refreshed), None
+        raise
 
 
 # spaCy removido - usando método básico de stopwords para economizar espaço no servidor
@@ -44,12 +69,13 @@ def api_heatmap_scenarios(evaluation_id: int):
         return jsonify(payload)
 
     # 2) No cache available - fetch from UX Tracking API now
-    token = session.get('uxt_access_token')
-    if not token:
-        return jsonify({"error": "UXT authentication token not found", "details": "Session expired"}), 401
-
     try:
-        payload = build_scenarios_payload(evaluation_id, token)
+        payload, token_error = _execute_with_token(
+            lambda token: build_scenarios_payload(evaluation_id, token)
+        )
+        if token_error:
+            return token_error
+
         payload['metadata']['cached'] = False
         set_cached_payload(evaluation_id, 'scenarios', payload)
         return jsonify(payload)
@@ -243,19 +269,21 @@ def api_view_heatmap(id):
     if not isLogged():
         return jsonify({"error": "User not authenticated"}), 401
     
-    token = session.get('uxt_access_token')
-    if not token:
-        return jsonify({"error": "UXT authentication token not found"}), 401
-    
     evaluation = Evaluation.query.get_or_404(id)
     try:
-        data = requests.get(
-            f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}',
-            headers={'Authorization': f'Bearer {token}'},
-            timeout=120,
-        )
-        data.raise_for_status()
-        payload = data.json()
+        def _fetch(token):
+            response = requests.get(
+                f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}',
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=120,
+            )
+            response.raise_for_status()
+            return response.json()
+
+        payload, token_error = _execute_with_token(_fetch)
+        if token_error:
+            return token_error
+
         heatmap_data = payload if isinstance(payload, list) else [payload]
         return jsonify(heatmap_data)
     except requests.exceptions.Timeout:
@@ -269,19 +297,22 @@ def api_heatmap_tasks(evaluation_id):
     if not isLogged():
         return jsonify({"error": "User not authenticated", "details": "Login required"}), 401
     
-    token = session.get('uxt_access_token')
-    if not token:
-        return jsonify({"error": "UXT authentication token not found", "details": "Session expired"}), 401
-    
     try:
         evaluation = Evaluation.query.get_or_404(evaluation_id)
-        response = requests.get(
-            f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}',
-            headers={'Authorization': f'Bearer {token}'},
-            timeout=120,
-        )
-        response.raise_for_status()
-        payload = response.json()
+
+        def _fetch(token):
+            response = requests.get(
+                f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}',
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=120,
+            )
+            response.raise_for_status()
+            return response.json()
+
+        payload, token_error = _execute_with_token(_fetch)
+        if token_error:
+            return token_error
+
         heatmap_data = payload if isinstance(payload, list) else [payload]
 
         performed_tasks: List[Any] = []
@@ -402,17 +433,20 @@ def debug_ufpa_raw(evaluation_id):
     if not isLogged():
         return jsonify({"error": "User not authenticated"}), 401
     
-    token = session.get('uxt_access_token')
-    if not token:
-        return jsonify({"error": "Token not found"}), 401
-    
     try:
-        response = requests.get(
-            f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}',
-            headers={'Authorization': f'Bearer {token}'},
-            timeout=120,
-        )
-        response.raise_for_status()
+        def _fetch(token):
+            response = requests.get(
+                f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}',
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=120,
+            )
+            response.raise_for_status()
+            return response
+
+        response, token_error = _execute_with_token(_fetch)
+        if token_error:
+            return token_error
+
         debug_info = {
             "url": response.url,
             "status_code": response.status_code,

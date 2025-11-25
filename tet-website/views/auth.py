@@ -6,6 +6,11 @@ from functions import isLogged, isAdmin, send_verification_email, send_password_
 import secrets
 import os
 from services.heatmap_prefetch import schedule_heatmap_prefetch
+from services.uxt_token_manager import (
+    clear_session_uxt_token,
+    get_uxt_token,
+    set_session_uxt_token,
+)
 
 DEV_MODE = os.getenv('DEV_MODE', 'False') == 'True'
 admin_credentials = {
@@ -64,34 +69,33 @@ def auth():
                 resposta = requests.post(uxt_url, json=uxt_dados, timeout=60)
                 
                 if resposta.status_code == 200:
-                    access_token = resposta.json().get('access_token')
+                    data = resposta.json()
+                    access_token = data.get('access_token')
                     if access_token:
-                        session['uxt_access_token'] = access_token
+                        set_session_uxt_token(access_token, data.get('expires_in'))
                         print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
                     else:
                         print("[UXT] Nenhum token de acesso retornado.")
-                        # Continue login without UXT token
-                        session['uxt_access_token'] = None
+                        clear_session_uxt_token()
                 else:
                     print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
                     print(f"[UXT] Resposta: {resposta.text}")
-                    # Continue login without UXT token
-                    session['uxt_access_token'] = None
+                    clear_session_uxt_token()
                     
             except requests.exceptions.Timeout:
                 # UXT API timeout - allow login anyway
                 print("[UXT] Timeout ao conectar com API UXT. Continuando login sem UXT token.")
-                session['uxt_access_token'] = None
+                clear_session_uxt_token()
                 
             except requests.exceptions.ConnectionError:
                 # UXT API not reachable - allow login anyway
                 print("[UXT] Erro de conexão com API UXT. Continuando login sem UXT token.")
-                session['uxt_access_token'] = None
+                clear_session_uxt_token()
                 
             except requests.exceptions.RequestException as e:
                 # Any other request error - allow login anyway
                 print(f"[UXT] Erro ao conectar com API UXT: {str(e)}. Continuando login sem UXT token.")
-                session['uxt_access_token'] = None
+                clear_session_uxt_token()
 
             # Always allow login regardless of UXT status
             message = ''
@@ -100,7 +104,7 @@ def auth():
             messageType = ''
 
             # Prefetch heatmaps in the background for faster dashboard loading
-            token_for_prefetch = session.get('uxt_access_token')
+            token_for_prefetch = get_uxt_token()
             evaluation_ids = [
                 evaluation.evaluation_id
                 for evaluation in Evaluation.query
@@ -316,6 +320,7 @@ def logout():
     if isLogged():
         session['user_signed_in'] = None
         session['user_type'] = None
+        clear_session_uxt_token()
         return redirect(url_for('index')) 
     
 @app.route('/forgot-password', methods=['GET', 'POST'])
