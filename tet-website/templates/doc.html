@@ -710,7 +710,13 @@
                 </div>
                 <div class="tutorial-modal-body">
                     <div class="tutorial-video-container">
-                        <video id="tutorialVideoFrame" src="" controls preload="metadata"></video>
+                        <iframe
+                            id="tutorialVideoFrame"
+                            src=""
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
                     </div>
                     <p id="tutorialModalCaption" class="tutorial-modal-caption"></p>
                 </div>
@@ -856,12 +862,12 @@
         // Tutorial Modal Functions
         const tutorialVideos = {
             extension: {
-                url: "{{ extension_video_url }}",
+                url: "https://www.youtube.com/embed/-jC_3eWaUf8",
                 title: "Browser Extension Setup",
                 caption: "Steps to install and configure the extension."
             },
             tool: {
-                url: "{{ tool_video_url }}",
+                url: "https://www.youtube.com/embed/LC0DVUUFau4",
                 title: "Portal Tooling",
                 caption: "Overview of using the transparency tool."
             }
@@ -890,9 +896,7 @@
             if (modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = '';
-                // Stop video playback
                 if (videoFrame) {
-                    videoFrame.pause();
                     videoFrame.src = '';
                 }
             }
