@@ -1,24 +1,24 @@
+from datetime import datetime
+from functools import lru_cache
+from secrets import token_urlsafe
+import os
+import random as rd
+
+import requests
 from flask import render_template, request, redirect, session, url_for, jsonify, abort, flash, current_app
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import joinedload, selectinload, contains_eager
+
+from functions import isLogged, isAdmin, login_required
 from index import app, db
 from models import (
-    User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question, 
-    DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor, 
-    EvaluationCriterionWheight, CollectedData, PerformedTask, Answer, 
+    User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
+    DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor,
+    EvaluationCriterionWheight, CollectedData, PerformedTask, Answer,
     Navigation, Task
 )
-from functions import isLogged, isAdmin, login_required  # Fix #3: Import login_required decorator
-from datetime import datetime
-import random as rd
-import requests
-import os
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from secrets import token_urlsafe
 from services.heatmap_prefetch import schedule_heatmap_prefetch
 from services.uxt_token_manager import get_uxt_token
-
-# Performance: Import eager loading for optimized queries
-from sqlalchemy.orm import joinedload, selectinload, contains_eager
-from functools import lru_cache
 
 # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
 credenciais_admin = {
@@ -1358,49 +1358,3 @@ def view_heatmap(id):
     evaluation = Evaluation.query.get_or_404(id)
     
     return render_template('heatmaps.html', evaluation=evaluation, user=user, id=id)
-    
-    # # Obter Token de administrador para mudar a role
-    # uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
-
-    # resposta_admin = requests.post(uxt_admin_login_url, json=credenciais_admin)
-    # if resposta_admin.status_code == 200:
-    #     token = resposta_admin.json().get("access_token")
-        
-    #     url_gethm = 'https://uxt-stage.liis.com.br/view/heatmap/code/{id}'
-    
-    #     headers_admin = {
-    #                 'Authorization': f'Bearer {token}'
-    #             }
-        
-    #     resposta_heatmap = requests.get(url_gethm.format(id=evaluation.evaluation_id), headers=headers_admin)
-        
-    #     if resposta_heatmap.status_code == 200:
-    #         heatmap_data = resposta_heatmap.json()
-    #         # print(f"[UXT] Heatmap data for evaluation {evaluation.evaluation_id}: {type(jsonhm)}")
-
-    #         heat_maps = []
-    #         # print(type(jsonhm))
-
-    #         # Se heatmap_data for um dicionário com a chave "page_images"
-    #         for item in heatmap_data:
-    #             page_images = item.get("page_images", [])
-    #             for i in page_images:
-    #                 if isinstance(i, dict):
-    #                     heat_maps.append({
-    #                         "height": i.get("height"),
-    #                         "image": i.get("image"),
-    #                         "points": i.get("points"),
-    #                         "scroll_positions": i.get("scroll_positions"),
-    #                         "url": i.get("url"),
-    #                         "width": i.get("width")
-    #                     })
-    #                     print(f"Heatmap data: {i['height']}, {i['width']}, {i['points']}, {i['scroll_positions']}, {i['url']}")
-    #             else:
-    #                 heat_maps.append(i)
-                
-    #             print('teste')
-            
-    #         return render_template('heatmaps.html',heat_maps=heat_maps)
-    #     else:
-    #         print(f"[UXT] Error fetching heatmap data: {resposta_heatmap.text}")
-    #         return jsonify({"error": "Failed to fetch heatmap data"}), 500

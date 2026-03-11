@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
@@ -22,8 +23,6 @@ from services.heatmap_service import (
     normalize_timestamp,
 )
 from services.uxt_token_manager import get_uxt_token
-
-from collections import Counter
 
 
 def _token_error_response(details: str = "Session expired"):
@@ -427,146 +426,6 @@ def api_heatmap_tasks(evaluation_id):
             "details": str(exc),
         }), 500
 
-
-@app.route('/api/debug-ufpa/<int:evaluation_id>')
-def debug_ufpa_raw(evaluation_id):
-    if not isLogged():
-        return jsonify({"error": "User not authenticated"}), 401
-    
-    try:
-        def _fetch(token):
-            response = requests.get(
-                f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}',
-                headers={'Authorization': f'Bearer {token}'},
-                timeout=120,
-            )
-            response.raise_for_status()
-            return response
-
-        response, token_error = _execute_with_token(_fetch)
-        if token_error:
-            return token_error
-
-        debug_info = {
-            "url": response.url,
-            "status_code": response.status_code,
-            "content_type": response.headers.get('content-type'),
-            "content_length": len(response.content),
-            "raw_data": response.json(),
-        }
-        return jsonify(debug_info)
-    except Exception as exc:  # noqa: BLE001
-        return jsonify({"error": str(exc)}), 500
-        
-
-@app.route('/api/debug-all-navigation')
-def debug_all_navigation():
-    if not isLogged():
-        return jsonify({"error": "User not authenticated"}), 401
-    
-    try:
-        all_navigation = Navigation.query.order_by(Navigation.timestamp.desc()).limit(20).all()
-        navigation_data: List[Dict[str, Any]] = []
-        for nav in all_navigation:
-            navigation_data.append({
-                "action": nav.action.value if hasattr(nav.action, "value") else nav.action,
-                "url": nav.url,
-                "title": nav.title,
-                "timestamp": nav.timestamp.isoformat(),
-                "task_id": nav.task_id,
-                "collected_data_id": nav.collected_data_id,
-            })
-        return jsonify({
-            "total_navigation_records": len(navigation_data),
-            "navigation_data": navigation_data,
-            "message": f"Found {len(navigation_data)} navigation records in system",
-        })
-    except Exception as exc:  # noqa: BLE001
-        return jsonify({"error": str(exc)}), 500
-        
-
-@app.route('/api/create-test-evaluation')
-def create_test_evaluation():
-    if not isLogged():
-        return jsonify({"error": "User not authenticated"}), 401
-    
-    try:
-        test_evaluation = Evaluation(
-            evaluation_id=999999,
-            portal_name="Test Portal",
-            start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(hours=1),
-            status="active",
-        )
-        existing = Evaluation.query.filter_by(evaluation_id=999999).first()
-        if existing:
-            return jsonify({
-                "message": "Test evaluation already exists",
-                "evaluation_id": 999999,
-                "status": "ready",
-            })
-        db.session.add(test_evaluation)
-        db.session.commit()
-        return jsonify({
-            "message": "Test evaluation created successfully",
-            "evaluation_id": 999999,
-            "status": "created",
-        })
-    except Exception as exc:  # noqa: BLE001
-        db.session.rollback()
-        return jsonify({"error": str(exc)}), 500
-        
-
-@app.route('/api/debug-evaluation/<int:evaluation_id>')
-def debug_evaluation_data(evaluation_id):
-    if not isLogged():
-        return jsonify({"error": "User not authenticated"}), 401
-    
-    try:
-        evaluation = Evaluation.query.get_or_404(evaluation_id)
-        collected_data_dump: List[Dict[str, Any]] = []
-        for col_data in evaluation.collected_data:
-            col_dict: Dict[str, Any] = {
-                "collected_data_id": col_data.collected_data_id,
-                "start_time": col_data.start_time.isoformat() if col_data.start_time else None,
-                "end_time": col_data.end_time.isoformat() if col_data.end_time else None,
-                "performed_tasks": [],
-                "navigation": [],
-            }
-            for pt in col_data.performed_tasks:
-                col_dict["performed_tasks"].append({
-                    "performed_task_id": pt.performed_task_id,
-                    "task_id": pt.task_id,
-                    "task_title": pt.task.title,
-                    "status": pt.status.value if hasattr(pt.status, 'value') else str(pt.status),
-                    "initial_timestamp": pt.initial_timestamp.isoformat() if pt.initial_timestamp else None,
-                    "final_timestamp": pt.final_timestamp.isoformat() if pt.final_timestamp else None,
-                })
-            for nav in col_data.navigation:
-                col_dict["navigation"].append({
-                    "action": nav.action.value if hasattr(nav.action, 'value') else str(nav.action),
-                    "url": nav.url,
-                    "title": nav.title,
-                    "timestamp": nav.timestamp.isoformat(),
-                    "task_id": nav.task_id,
-                })
-            collected_data_dump.append(col_dict)
-            
-        return jsonify({
-            "evaluation_id": evaluation_id,
-            "evaluation_found": True,
-            "collected_data_count": len(collected_data_dump),
-            "total_performed_tasks": sum(len(cd["performed_tasks"]) for cd in collected_data_dump),
-            "total_navigation_events": sum(len(cd["navigation"]) for cd in collected_data_dump),
-            "collected_data": collected_data_dump,
-        })
-    except Exception as exc:  # noqa: BLE001
-        return jsonify({
-            "error": str(exc),
-            "evaluation_found": False,
-        }), 500
-        
-        
 @app.route('/api/get_pksc')
 def get_pksc():
     """
