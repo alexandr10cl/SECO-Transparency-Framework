@@ -9,8 +9,8 @@ from flask import render_template, request, redirect, session, url_for, jsonify,
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload, selectinload, contains_eager
 
-from functions import isLogged, isAdmin, login_required
 from index import app, db
+from functions import isLogged, isAdmin, login_required
 from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
     DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor,
