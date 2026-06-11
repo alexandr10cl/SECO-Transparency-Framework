@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload, selectinload, contains_eager
 
 from index import app, db
+from config_flags import UXT_INTEGRATION
 from functions import isLogged, isAdmin, login_required
 from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
@@ -351,9 +352,12 @@ def add_evaluation():
         print(f"LOG: Resposta da API UXT - Conteúdo: {response.text}")
         return response
 
-    access_token = get_uxt_token()
-    print(f"=== LOG: Iniciando geração de código de avaliação ===")
-    print(f"LOG: Access token disponível: {bool(access_token)}")
+    if UXT_INTEGRATION:
+        access_token = get_uxt_token()
+        print(f"=== LOG: Iniciando geração de código de avaliação ===")
+        print(f"LOG: Access token disponível: {bool(access_token)}")
+    else:
+        access_token = None
 
     if access_token:
         try:
@@ -404,7 +408,10 @@ def add_evaluation():
             # Extremely unlikely, but handle it
             abort(500, description="Failed to generate unique evaluation code. Please try again.")
 
-    if r and r.status_code == 201 and evaluation_id:
+    # Persist the evaluation whenever we have a code - whether it came from
+    # the UXT API or from the local random fallback. (The old check
+    # `r and r.status_code == 201` silently discarded fallback evaluations.)
+    if evaluation_id:
 
         # map selected processes
         seco_processes = []

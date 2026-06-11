@@ -128,6 +128,13 @@
             document.getElementById('loading').style.display = 'none';
             document.getElementById('content').style.display = 'block';
 
+            if (data.uxt_disabled) {
+                document.getElementById('tasks-container').innerHTML =
+                    '<div class="no-data"><strong>Integração UX-Tracking desativada.</strong><br>' +
+                    'Heatmaps não estão disponíveis neste ambiente (UXT_INTEGRATION=False).</div>';
+                return;
+            }
+
             // Display metadata
             const stats = document.getElementById('stats');
             if (data.metadata) {

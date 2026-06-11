@@ -8,6 +8,8 @@ from typing import Optional, Tuple
 import requests
 from flask import current_app, has_request_context, session
 
+from config_flags import UXT_INTEGRATION
+
 LOGIN_URL = os.getenv("UXT_LOGIN_URL", "https://uxt-stage.liis.com.br/auth/login")
 TOKEN_SESSION_KEY = "uxt_access_token"
 TOKEN_EXPIRY_KEY = "uxt_token_expires_at"
@@ -87,6 +89,9 @@ def _get_service_credentials() -> Tuple[Optional[str], Optional[str]]:
 
 
 def _refresh_service_token(force: bool = False) -> Optional[str]:
+    if not UXT_INTEGRATION:
+        return None
+
     with _service_lock:
         if (
             not force
@@ -136,7 +141,12 @@ def get_uxt_token(force_refresh: bool = False) -> Optional[str]:
         1. Session token (if available and still valid)
         2. Cached service token (shared across sessions)
         3. Fresh service token (using configured credentials)
+
+    Returns None immediately when UXT_INTEGRATION is disabled.
     """
+    if not UXT_INTEGRATION:
+        return None
+
     token = None
 
     if not force_refresh:

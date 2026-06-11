@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       root.innerHTML = '';
 
+      if (data.uxt_disabled) {
+        root.innerHTML = '<div class="heatmap-disabled-notice" style="padding: 24px; text-align: center; background: #f8f9fa; border: 1px dashed #ccc; border-radius: 8px; color: #555;">' +
+          '<strong>Integração UX-Tracking desativada.</strong><br>' +
+          'Heatmaps não estão disponíveis neste ambiente (UXT_INTEGRATION=False).' +
+          '</div>';
+        filtersContainer.innerHTML = '';
+        return;
+      }
+
       const heatmapsByUrl = data.heatmaps_by_url || [];
       availableScenarios = data.available_scenarios || [];
       const metadata = data.metadata || {};

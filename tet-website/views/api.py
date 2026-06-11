@@ -6,6 +6,7 @@ import pytz
 import requests
 from flask import jsonify, request
 
+from config_flags import UXT_INTEGRATION
 from functions import isLogged
 from index import app, db
 from models import (
@@ -23,6 +24,9 @@ from services.heatmap_service import (
     normalize_timestamp,
 )
 from services.uxt_token_manager import get_uxt_token
+
+
+UXT_DISABLED_MESSAGE = "Integração UX-Tracking desativada"
 
 
 def _token_error_response(details: str = "Session expired"):
@@ -57,6 +61,14 @@ def api_heatmap_scenarios(evaluation_id: int):
     """Return aggregated heatmap insights by URL (hotspots)."""
     if not isLogged():
         return jsonify({"error": "User not authenticated", "details": "Login required"}), 401
+
+    if not UXT_INTEGRATION:
+        return jsonify({
+            "heatmaps_by_url": [],
+            "available_scenarios": [],
+            "uxt_disabled": True,
+            "metadata": {"uxt_disabled": True, "message": UXT_DISABLED_MESSAGE},
+        })
 
     # 1) Try cache first (prefetch or previous requests)
     cached_payload = get_cached_payload(evaluation_id, 'scenarios')
@@ -267,7 +279,11 @@ def api_wordcloud_task(evaluation_id, task_id):
 def api_view_heatmap(id):
     if not isLogged():
         return jsonify({"error": "User not authenticated"}), 401
-    
+
+    if not UXT_INTEGRATION:
+        # Consumer (static/js/heatmaps.js) expects a list payload.
+        return jsonify([])
+
     evaluation = Evaluation.query.get_or_404(id)
     try:
         def _fetch(token):
@@ -295,7 +311,16 @@ def api_view_heatmap(id):
 def api_heatmap_tasks(evaluation_id):
     if not isLogged():
         return jsonify({"error": "User not authenticated", "details": "Login required"}), 401
-    
+
+    if not UXT_INTEGRATION:
+        return jsonify({
+            "segmented_heatmaps": {},
+            "available_tasks": [],
+            "uxt_disabled": True,
+            "metadata": {"uxt_disabled": True, "message": UXT_DISABLED_MESSAGE},
+            "message": UXT_DISABLED_MESSAGE,
+        })
+
     try:
         evaluation = Evaluation.query.get_or_404(evaluation_id)
 
