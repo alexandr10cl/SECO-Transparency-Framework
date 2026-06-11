@@ -129,7 +129,7 @@ tet-website/
 ### Pré-requisitos
 
 - Python 3.10 ou superior
-- MySQL 8.0 ou superior
+- Docker e Docker Compose (para banco local)
 - Git
 
 ### Passo a Passo
@@ -137,13 +137,23 @@ tet-website/
 #### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/SECO-Transparency-Framework.git
-cd SECO-Transparency-Framework/tet-website
+git clone https://github.com/alexandr10cl/SECO-Transparency-Framework.git
+cd SECO-Transparency-Framework
 ```
 
-#### 2. Crie um ambiente virtual Python
+#### 2. Suba o banco de dados local
 
 ```bash
+docker-compose up -d
+```
+
+Isso cria um MySQL 8 local na porta 3306, com o banco `tool_portal` pronto.
+
+#### 3. Crie um ambiente virtual Python
+
+```bash
+cd tet-website
+
 # Windows
 python -m venv venv
 venv\Scripts\activate
@@ -159,72 +169,37 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 3.1. (Opcional) Instale spaCy para Word Clouds Melhorados
+#### 5. Configure as variáveis de ambiente
 
-Para filtrar automaticamente stopwoorden (como "the", "de", "het") na word cloud:
-
-**Windows:**
 ```bash
-install_spacy.bat
+cp .env.example .env
 ```
 
-**Linux/Mac:**
+O `.env.example` já vem com as credenciais do banco Docker local. Para email e outras configs, edite o `.env` conforme necessário.
+
+#### 6. Crie as tabelas e popule os dados de referência
+
 ```bash
-chmod +x install_spacy.sh
-./install_spacy.sh
-```
+# Windows
+set FLASK_APP=index.py
 
-**Manual:**
-```bash
-pip install spacy
-python -m spacy download en_core_web_sm
-```
+# Linux/Mac
+export FLASK_APP=index.py
 
-> ⚠️ **Nota:** Se spaCy não estiver instalado, o sistema usa fallback automático com stopwoorden básicas.
+# Cria as tabelas no banco
+flask db upgrade
 
-Veja [INSTALL_SPACY.md](INSTALL_SPACY.md) para mais detalhes.
-
-#### 4. Configure as variáveis de ambiente
-
-Crie um arquivo `.env` na raiz do diretório `tet-website` com as seguintes variáveis:
-
-```env
-# Configuração do Banco de Dados
-SGBD=mysql+mysqlconnector
-USER=seu_usuario_mysql
-PASSW=sua_senha_mysql
-SERVER=localhost
-DATABASE=tet_database
-
-# Chave Secreta da Aplicação
-SECRET_KEY=sua_chave_secreta_aqui
-
-# Credenciais do Administrador
-ADMIN_EMAIL=admin@exemplo.com
-ADMIN_PASSWORD=senha_admin_segura
-
-# Modo de Desenvolvimento (True para desenvolvimento, False para produção)
-DEV_MODE=True
-
-# Configuração de Email (para verificação e recuperação de senha)
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USE_TLS=True
-MAIL_USERNAME=seu_email@gmail.com
-MAIL_PASSWORD=sua_senha_app_gmail
+# Popula guidelines, processos, dimensões, etc.
+flask seed
 ```
 
 #### 7. Execute o servidor Flask
 
 ```bash
-# Modo desenvolvimento (com debug)
-python app.py
+python index.py
 
 # Ou usando Flask CLI
 flask run --debug
-
-# Para produção (sem debug)
-flask run --host=0.0.0.0 --port=5000
 ```
 
 O servidor estará disponível em `http://localhost:5000`

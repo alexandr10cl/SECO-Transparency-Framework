@@ -5,28 +5,28 @@ tet-website/__pycache__/
 # Python
 __pycache__/
 *.py[cod]
+*.db
 
-# Virtual environment (optioneel)
+# Virtual environment
 venv/
 .venv/
 env/
 
-# VSCode / PyCharm
+# IDE
 .vscode/
 .idea/
 
-
-# Logs en tijdelijke bestanden
+# Logs and temp files
 *.log
 *.tmp
 *.temp
 
-# OS bestanden
+# OS files
 .DS_Store
 Thumbs.db
 
-# Git repo binnen project
-.git/
+# Flask instance folder
+instance/
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 

@@ -46,6 +46,10 @@ from models import *
 from models.database import init_db
 init_db()
 
+# Register CLI commands (e.g. flask seed)
+from commands import register_commands
+register_commands(app)
+
 # Context processor to make video URLs available to all templates
 @app.context_processor
 def inject_video_urls():

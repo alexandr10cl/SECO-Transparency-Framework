@@ -1,0 +1,1108 @@
+{
+  "seco_dimension": [
+    {
+      "seco_dimension_id": 1,
+      "name": "Technical"
+    },
+    {
+      "seco_dimension_id": 2,
+      "name": "Business"
+    },
+    {
+      "seco_dimension_id": 3,
+      "name": "Social"
+    }
+  ],
+  "seco_process": [
+    {
+      "seco_process_id": 1,
+      "description": "Access to documentation, source code, and tools."
+    },
+    {
+      "seco_process_id": 2,
+      "description": "Access to information about the code in repositories."
+    },
+    {
+      "seco_process_id": 3,
+      "description": "Communication channels between actors and keystone."
+    },
+    {
+      "seco_process_id": 4,
+      "description": "Processes related to SECO governance."
+    },
+    {
+      "seco_process_id": 5,
+      "description": "Access to information about requirements flow."
+    },
+    {
+      "seco_process_id": 6,
+      "description": "Processes related to data collection, processing, and sharing."
+    },
+    {
+      "seco_process_id": 7,
+      "description": "Access to information about SECO architecture."
+    }
+  ],
+  "guideline": [
+    {
+      "guidelineID": 1,
+      "title": "Provide Access to Documentation, Source Code, and Development Tools",
+      "description": "Software ecosystems portals must centralize and keep up to date all developer resources (e.g., documentation, source code, and tools) through a unified and consistent access point. These materials should be easy to locate, well-structured, and regularly maintained to avoid fragmentation or outdated content. In hybrid or proprietary software ecosystems, some resources cannot be public due to intellectual property or security restrictions. Yet, transparency remains essential: portals should indicate what exists, how it can be accessed under authorization, and how it is maintained. Clear organization, explicit access policies, and reliable search features sustain trust and reduce onboarding time.",
+      "notes": "Transparent and well-organized access to documentation, code, and tools is essential for an effective and equitable developer experience. Portals should provide centralized and discoverable resources, ensuring accurate, versioned, and multilingual information. Even in PSECO, transparency can be maintained through traceable and authorized access mechanisms. Ecosystems strengthen trust, lower barriers to entry, and support global collaboration by promoting clarity, inclusiveness, and proportional openness."
+    },
+    {
+      "guidelineID": 2,
+      "title": "Ensure Access to Repository History and Code Evolution",
+      "description": "Software ecosystem portals must provide developers with clear and traceable information about repository activity and evolution. Transparency goes beyond access to source code and requires visibility into who contributed what, when, and why, supported by metadata, logs, and contribution records. Portals should also expose indicators of repository vitality, including activity and popularity metrics such as update frequency, contributor engagement, number of stars or forks, and release history. In proprietary or hybrid software ecosystems, this visibility can be maintained through summaries, dashboards, or changelogs that communicate progress without exposing sensitive code or internal components.",
+      "notes": "Transparent access to repository history and evolution strengthens trust, accountability, and collaborative learning within software ecosystems. Beyond exposing code, effective transparency involves providing interpretable metadata, contribution records, and activity indicators that reveal how the platform evolves over time. Indicators of vitality and popularity help developers assess the ecosystem’s health and openness."
+    },
+    {
+      "guidelineID": 3,
+      "title": "Establish Communication Channels Between Developers and the Keystone",
+      "description": "Software ecosystem portals must ensure transparent, reliable, and responsive communication channels between developers and the keystone. These channels should be official and visible through the portal, enabling traceable and accountable interactions that allow developers to follow discussions and outcomes. Portals should offer diverse and moderated spaces for questions, feedback, and announcements, ensuring responsiveness and clarity about who communicates on behalf of the keystone. In hybrid or proprietary software ecosystems, communication must also prevent unintended disclosure of corporate or strategic information by adopting secure and auditable channels that preserve trust and confidentiality.",
+      "notes": "Transparent communication strengthens trust, accountability, and collaboration between the keystone and external developers. Official and moderated channels ensure that interactions are visible, traceable, and reliable, allowing developers to follow discussions and outcomes with confidence. Maintaining multiple but consistently managed channels supports openness and adaptability while preventing information loss or disclosure of sensitive content."
+    },
+    {
+      "guidelineID": 4,
+      "title": "Publish Participation Rules, Contribution Guidelines, and Compliance Requirements",
+      "description": "Software ecosystem portals must publish clear and accessible participation rules, contribution guidelines, and developer involvement compliance requirements. These policies should define expectations, acceptance criteria, and technical, legal, and security contribution requirements. Transparent publication of such rules strengthens trust, accountability, and predictability in developer participation. In hybrid or proprietary software ecosystems, only non-confidential compliance information should be disclosed, while ensuring that participation criteria remain visible and understandable to external contributors.",
+      "notes": "Transparent publication of participation and compliance rules builds confidence and fairness in software ecosystems. Developers must be able to locate, understand, and anticipate the requirements that govern their participation. Maintaining clear and up-to-date guidelines reduces uncertainty, strengthens trust, and ensures accountability in the relationship between the keystone and the developer community."
+    },
+    {
+      "guidelineID": 5,
+      "title": "Document the Flow of Requirements, Feature Requests, and Roadmap Decisions",
+      "description": "Developers need visibility into how platform requirements, feature requests, and roadmap decisions are handled. When submission and decision processes are unclear, developers cannot align their work with the platform’s evolution. The portal should describe how requests are submitted, reviewed, prioritized, and transformed into roadmap updates, ensuring coordination and accountability. Transparency must balance openness with security and privacy concerns, avoiding exposure of confidential information. In hybrid or proprietary software ecosystems, summarized or aggregated decision records may replace full disclosure, as long as external developers can still understand the platform’s rationale and direction.",
+      "notes": "Transparency in how requirements and roadmap decisions are managed strengthens collaboration, trust, and shared understanding among developers. Making submissions, reviews, and decisions visible allows contributors to see how their input influences the platform’s direction. Clear documentation of changes and rationales ensures accountability, autonomy, and continuity in the ecosystem’s evolution. In hybrid or proprietary contexts, even partial visibility through summaries or progress indicators can meaningfully enhance understanding and predictability for external developers."
+    },
+    {
+      "guidelineID": 6,
+      "title": "Clarify Data Collection, Processing, and Sharing Practices",
+      "description": "Software ecosystem portals must clearly describe how data from developers and their applications is collected, processed, and shared. Transparency in data practices builds trust and ensures informed participation. The portal should identify what information is gathered through analytics, authentication, or submission tools, and explain its purpose using clear language and visual means. Data visibility must balance openness with privacy and security, employing anonymization, aggregation, and explicit consent where needed. In hybrid or proprietary software ecosystems, summarized dashboards or simplified explanations may replace full disclosure, provided the rationale and impact of data use remain understandable to developers.",
+      "notes": "Transparency in data collection and sharing reinforces ethical responsibility, legal compliance, and trust among ecosystem actors. Clear, visual, and verifiable explanations help developers understand how their information is used and empower them to make informed decisions. In hybrid or proprietary contexts, summarized or anonymized disclosures can still sustain fairness and predictability in platform–developer relations."
+    },
+    {
+      "guidelineID": 7,
+      "title": "Present the Architecture and Structural Composition of the Software Ecosystem",
+      "description": "Understanding the architecture of a software ecosystem is essential for developers to integrate, contribute, and make technical decisions. The portal should present clear, visual, and up-to-date representations of the ecosystem’s structure, showing components, modules, services, and their relationships. Transparency in architectural information improves alignment and confidence, but must respect confidentiality and intellectual property boundaries. In hybrid or proprietary software ecosystems, functional overviews or summarized diagrams may replace detailed views to balance openness and protection. This proportional approach enables understanding without compromising strategic or sensitive information.",
+      "notes": "Transparent architectural information enables developers to make informed integration and design choices while building trust in the platform’s maturity. In open ecosystems, this transparency fosters collective understanding and reuse. In hybrid or proprietary contexts, functional overviews or abstracted diagrams can maintain this trust without compromising confidentiality or intellectual property. Keeping diagrams current and accessible signals organizational reliability and technical coherence."
+    }
+  ],
+  "conditioning_factor_transp": [
+    {
+      "conditioning_factor_transp_id": 1,
+      "description": "The existence of communication channels between actors and keystone."
+    },
+    {
+      "conditioning_factor_transp_id": 2,
+      "description": "Information about platform made available in an accessible way."
+    },
+    {
+      "conditioning_factor_transp_id": 3,
+      "description": "The actors' understanding of SECO information."
+    },
+    {
+      "conditioning_factor_transp_id": 4,
+      "description": "The quality of platform information provided by a keystone."
+    },
+    {
+      "conditioning_factor_transp_id": 5,
+      "description": "The usability of interfaces with platform documentation."
+    },
+    {
+      "conditioning_factor_transp_id": 6,
+      "description": "The auditability of platform processes and information."
+    },
+    {
+      "conditioning_factor_transp_id": 7,
+      "description": "Visualization of the evolution of projects in SECO."
+    },
+    {
+      "conditioning_factor_transp_id": 8,
+      "description": "Reliability of information provided by a keystone."
+    }
+  ],
+  "dx_factor": [
+    {
+      "dx_factor_id": 1,
+      "description": "Desired technical resources for development."
+    },
+    {
+      "dx_factor_id": 2,
+      "description": "Easy to configure platform."
+    },
+    {
+      "dx_factor_id": 3,
+      "description": "Financial costs for using the platform."
+    },
+    {
+      "dx_factor_id": 4,
+      "description": "Diversity of services provided by the platform."
+    },
+    {
+      "dx_factor_id": 5,
+      "description": "Platform transparency."
+    },
+    {
+      "dx_factor_id": 6,
+      "description": "Documentation quality."
+    },
+    {
+      "dx_factor_id": 7,
+      "description": "Existence of communication channels."
+    },
+    {
+      "dx_factor_id": 8,
+      "description": "Platform openness level."
+    },
+    {
+      "dx_factor_id": 9,
+      "description": "More clients/users for applications."
+    },
+    {
+      "dx_factor_id": 10,
+      "description": "Application distribution methods."
+    },
+    {
+      "dx_factor_id": 11,
+      "description": "Application interface and appearance standards."
+    },
+    {
+      "dx_factor_id": 12,
+      "description": "Requirements for developing applications over a platform."
+    },
+    {
+      "dx_factor_id": 13,
+      "description": "Ease of learning about technology."
+    },
+    {
+      "dx_factor_id": 14,
+      "description": "Low barriers to entry into the applications market."
+    },
+    {
+      "dx_factor_id": 15,
+      "description": "Obtaining community recognition."
+    },
+    {
+      "dx_factor_id": 16,
+      "description": "Commitment to the community."
+    },
+    {
+      "dx_factor_id": 17,
+      "description": "A good relationship with the community."
+    },
+    {
+      "dx_factor_id": 18,
+      "description": "Knowledge exchange between community developers."
+    },
+    {
+      "dx_factor_id": 19,
+      "description": "A good developer relations program."
+    },
+    {
+      "dx_factor_id": 20,
+      "description": "Community size and scalability."
+    },
+    {
+      "dx_factor_id": 21,
+      "description": "Emergence of new market and job opportunities."
+    },
+    {
+      "dx_factor_id": 22,
+      "description": "More financial gains."
+    },
+    {
+      "dx_factor_id": 23,
+      "description": "Fun while developing."
+    },
+    {
+      "dx_factor_id": 24,
+      "description": "Improvement of developer skills and intellect."
+    },
+    {
+      "dx_factor_id": 25,
+      "description": "Autonomy and self-control of workflow."
+    },
+    {
+      "dx_factor_id": 26,
+      "description": "Qualities and characteristics of the software ecosystem platform."
+    },
+    {
+      "dx_factor_id": 27,
+      "description": "Engagement and rewards for work."
+    }
+  ],
+  "key_success_criterion": [
+    {
+      "key_success_criterion_id": 1,
+      "title": "Centralized and Navigable Documentation",
+      "description": "Documentation must be centralized and accessible from the portal, with stable links, minimal barriers, and clear navigation. It should include search tools and cross-references to ensure quick access to accurate information. In proprietary software ecosystems (PSECO), summaries or indexed views should indicate what exists and how it can be requested.",
+      "guideline_id": 1
+    },
+    {
+      "key_success_criterion_id": 2,
+      "title": "Public Access to Source Code Repositories",
+      "description": "Repositories must be clearly identified and accessible through the portal, including information about location, structure, and version history. Visibility should allow developers to understand the codebase and the contribution workflow. In PSECO, public summaries or changelogs should indicate repository existence and evolution without exposing sensitive code.",
+      "guideline_id": 1
+    },
+    {
+      "key_success_criterion_id": 3,
+      "title": "Availability and Versioning of Development Tools",
+      "description": "Development tools such as SDKs, APIs, and CLIs must be accessible through the portal with clear version information, changelogs, and compatibility details. Updates should be traceable so developers can maintain stable environments and avoid integration issues.",
+      "guideline_id": 1
+    },
+    {
+      "key_success_criterion_id": 4,
+      "title": "Equitable and Multilingual Documentation",
+      "description": "Documentation must be available in multiple languages, accurate, and kept up to date to ensure equal access to technical information. Equitable documentation practices promote shared understanding, collaboration, and trust among developers in different contexts.",
+      "guideline_id": 1
+    },
+    {
+      "key_success_criterion_id": 5,
+      "title": "Availability of Repository Location and Visibility Information",
+      "description": "Repositories must be clearly listed and accessible from the portal, with visible information about their purpose, location, and maintenance status. The portal should ensure consistent visibility of all repositories, avoiding broken links or hidden components. In hybrid or proprietary software ecosystems, summaries or indexed views should indicate restricted repositories and access conditions.",
+      "guideline_id": 2
+    },
+    {
+      "key_success_criterion_id": 6,
+      "title": "Presence of Repository Metadata and Contribution Documentation",
+      "description": "Each repository must include clear metadata describing its purpose, maintainers, update history, and contribution process. Documentation should specify how to contribute, review changes, and track decision rationales. In hybrid or proprietary software ecosystems, anonymized or summarized contribution logs should maintain traceability without exposing sensitive details.",
+      "guideline_id": 2
+    },
+    {
+      "key_success_criterion_id": 7,
+      "title": "Traceability of Code Contributions and Changes",
+      "description": "Repositories must provide traceable records of code contributions and modifications, including authorship, timestamps, and references to related issues or reviews. Traceability should enable developers to understand how and why changes occurred. In hybrid or proprietary sofwtare ecosystems, summarized changelogs or dashboards can ensure visibility without disclosing restricted content.",
+      "guideline_id": 2
+    },
+    {
+      "key_success_criterion_id": 8,
+      "title": "Availability of Official Contact Channels",
+      "description": "Portals must provide official, visible, and accessible communication channels between the keystone and external developers, clearly listing options such as support emails, helpdesk forms, chat groups, or issue trackers. These channels should be moderated, reliable, and consistently maintained, allowing multiple forms of communication to coexist as long as they remain easy to locate and officially recognized through the portal.",
+      "guideline_id": 3
+    },
+    {
+      "key_success_criterion_id": 9,
+      "title": "Responsiveness and Traceability of Interactions",
+      "description": "Communication channels must ensure responsive and traceable interactions between external developers and the keystone. Developers should be able to track discussions, decisions, and response times, knowing who provided the answer and when. In hybrid or proprietary software ecosystems, summarized or anonymized records may preserve accountability while protecting sensitive or strategic information.",
+      "guideline_id": 3
+    },
+    {
+      "key_success_criterion_id": 10,
+      "title": "Clarity of Roles and Communication Responsibilities",
+      "description": "Communication channels must clearly identify who communicates on behalf of the keystone and their specific roles in the ecosystem. Developers should be able to distinguish official statements, announcements, or decisions from personal opinions. The portal must ensure visible ownership of posts or messages, maintaining institutional accountability and preventing misinformation.",
+      "guideline_id": 3
+    },
+    {
+      "key_success_criterion_id": 12,
+      "title": "Publication and Accessibility of Participation Rules",
+      "description": "Portals must clearly publish and maintain official participation, contribution, and compliance rules, including technical, legal, and security requirements. These rules should be visible, up to date, and easy to understand, ensuring that developers know how to join, contribute, and comply with ecosystem standards.\r\n",
+      "guideline_id": 4
+    },
+    {
+      "key_success_criterion_id": 13,
+      "title": "Clarity of Acceptance and Compliance Criteria",
+      "description": "Portals must clearly describe the acceptance and compliance criteria applied to contributions, explaining how they are reviewed, approved, or rejected, and under which technical, legal, or security conditions. These criteria should be public, consistent, and easy to interpret, ensuring fairness, predictability, and trust in the contribution process.",
+      "guideline_id": 4
+    },
+    {
+      "key_success_criterion_id": 14,
+      "title": " Visibility of Governance and Policy Updates",
+      "description": "Portals must make governance and policy updates visible and traceable, clearly indicating what has changed, when, and why. Developers should be promptly informed of modifications to participation, compliance, or contribution requirements through public changelogs or update dashboards, ensuring predictability and accountability in the evolution of ecosystem policies.",
+      "guideline_id": 4
+    },
+    {
+      "key_success_criterion_id": 15,
+      "title": "Clear Channels for Submitting Requirements or Feedback",
+      "description": "Portals must clearly indicate where and how developers can submit feature requests, bug reports, or improvement proposals. The submission process should distinguish between different types of requirements (e.g., related to the portal, the platform, or hosted products), ensuring clarity and proper routing of feedback. It must also be intuitive and consistent across tools, allowing contributors to participate without ambiguity or excessive effort.",
+      "guideline_id": 5
+    },
+    {
+      "key_success_criterion_id": 16,
+      "title": "Transparent Review and Prioritization Process",
+      "description": "Portals must describe how submitted items are reviewed and prioritized, specifying the criteria, responsible actors, and expected response times. Both strategic and emerging requirements should be considered, with transparent criteria for handling immediate community demands versus long-term roadmap goals. The decision workflow should be traceable and applied consistently, showing how requests move from evaluation to implementation or rejection.",
+      "guideline_id": 5
+    },
+    {
+      "key_success_criterion_id": 17,
+      "title": "Public Access to Roadmaps and Change Plans",
+      "description": "Portals must provide public and continuously updated roadmaps or changelogs that show planned features, improvements, and deprecated elements. Each update should be traceable to prior discussions or documented decisions, illustrating how feedback and requirements shape the platform’s evolution. In sensitive contexts, roadmaps may highlight goals and progress without revealing confidential or security-critical information.",
+      "guideline_id": 5
+    },
+    {
+      "key_success_criterion_id": 18,
+      "title": "Clarity About Data Collected and Its Purpose",
+      "description": "Portals must clearly state what data is collected from developers and their applications, through analytics, authentication, or submission tools, and explain why. Information must be communicated in simple language and, when possible, supported by visual summaries to make collection practices understandable and verifiable.",
+      "guideline_id": 6
+    },
+    {
+      "key_success_criterion_id": 19,
+      "title": "Transparent Processing and Consent Mechanisms",
+      "description": "Portals must describe how collected data are processed, stored, and secured, clarifying who has access and under what legal or operational basis. Explicit consent, anonymization, and aggregation practices should be applied to preserve developer privacy while keeping information auditable.",
+      "guideline_id": 6
+    },
+    {
+      "key_success_criterion_id": 20,
+      "title": "Visibility into Data Sharing and Third-Party Access",
+      "description": "Portals must make visible how and when data are shared with third parties, APIs, or analytics providers, and for what purpose. Disclosures should use clear text or visual indicators rather than legal jargon, helping developers understand risks and accountability chains.",
+      "guideline_id": 6
+    },
+    {
+      "key_success_criterion_id": 21,
+      "title": "Visual or Descriptive Representation of Ecosystem Architecture",
+      "description": "Portals must provide visual or textual representations that describe the ecosystem’s main components, modules, and interaction flows. These representations should offer a functional overview that helps developers understand integration points and dependencies without revealing proprietary or sensitive design details.",
+      "guideline_id": 7
+    },
+    {
+      "key_success_criterion_id": 22,
+      "title": "Clarity About Component Responsibilities and Relationships",
+      "description": "Portals must describe what each major component, service, or API is responsible for and how they interact with the core platform and external systems. Explanations should be concise, avoiding low-level technical exposure that could compromise intellectual property.",
+      "guideline_id": 7
+    },
+    {
+      "key_success_criterion_id": 23,
+      "title": "Updated and Versioned Architectural Information",
+      "description": "Architectural documentation must be regularly reviewed and updated to reflect the current ecosystem structure. Versioning or change logs should indicate what has evolved, helping developers track the platform’s growth and evolution over time.",
+      "guideline_id": 7
+    }
+  ],
+  "example": [
+    {
+      "example_id": 1,
+      "description": "Map all existing documentation and restructure it into a single, coherent information architecture. Implement or enhance a search function and clear hierarchy for topics. Identify duplicated or outdated content for removal. In SECOP, define visibility levels and provide standardized request channels for restricted materials. For instance, GitHub Docs and Android Developers centralize all documentation under a unified entry point with integrated search and cross-links, offering a clear reference for structure and usability.",
+      "key_success_criterion_id": 1
+    },
+    {
+      "example_id": 2,
+      "description": "List all repositories in a dedicated section of the portal, with direct links, contribution guidelines, and version details. Include visible metadata such as last update, maintainers, and repository purpose. In PSECO, publish summarized logs or release reports that communicate evolution transparently. For instance, the Eclipse Foundation presents repository directories with metadata, recent activity, and contribution paths, ensuring clarity and traceability.",
+      "key_success_criterion_id": 2
+    },
+    {
+      "example_id": 3,
+      "description": "Provide a dedicated section for SDK, API, and CLI downloads, including version history, compatibility matrix, and support lifecycle. Highlight deprecated tools and link to their replacements. For instance, the Android Developers portal maintains versioned tool pages with changelogs and support policies that ensure predictable updates and long-term reliability.",
+      "key_success_criterion_id": 3
+    },
+    {
+      "example_id": 4,
+      "description": "Develop translation and review workflows that guarantee parity between all language versions whenever updates occur. Clearly show last update dates and revision notes in each version. For instance, Mozilla Developer Network (MDN) maintains multilingual parity through community translation pipelines and automated synchronization.",
+      "key_success_criterion_id": 4
+    },
+    {
+      "example_id": 5,
+      "description": "Create a dedicated repository directory within the portal, displaying each repository’s name, purpose, link, and last update. Use filters and metadata to distinguish public, partner, or internal repositories. For instance, Eclipse Foundation and Apache Software Foundation portals organize repositories in structured indexes with update indicators and access labels, ensuring transparency even in complex ecosystems.",
+      "key_success_criterion_id": 5
+    },
+    {
+      "example_id": 6,
+      "description": "Ensure that every repository includes a metadata file and a contribution guide describing roles, workflow, and update frequency. Add maintainers’ contact information, last revision dates, and change documentation. For instance, GitLab and OpenStack portals provide detailed metadata and contribution guidelines that document ownership, participation, and project evolution transparently.",
+      "key_success_criterion_id": 6
+    },
+    {
+      "example_id": 7,
+      "description": "Integrate automated tools that track commits, pull requests, and issue links, displaying this data in a clear timeline or dashboard. Ensure that each change references its rationale and responsible contributor. For instance, GitHub Insights and Eclipse Project Dash visualize commits, contributors, and code reviews to communicate project evolution transparently.",
+      "key_success_criterion_id": 7
+    },
+    {
+      "example_id": 8,
+      "description": "Identify all official communication channels and ensure their visibility through the portal, regardless of where they are hosted. Maintain coherence and consistent updates across multiple channels, marking each as official and moderated. Periodically review inactive or redundant spaces to preserve clarity and trust in the ecosystem’s communication network. For instance, the Eclipse Foundation Portal centralizes links to its forums, Slack workspaces, and GitLab issue trackers, each labeled as official and actively moderated to ensure consistent visibility across tools.",
+      "key_success_criterion_id": 8
+    },
+    {
+      "example_id": 9,
+      "description": "Adopt mechanisms to monitor and display response times, responsible actors, and discussion outcomes within official channels. Provide summaries or logs of relevant interactions, ensuring follow-up and closure visibility without exposing confidential content. For instance, the Mozilla Developer Portal displays labeled discussions and issue threads showing responsible teams, timestamps, and resolution status, maintaining responsiveness and accountability.",
+      "key_success_criterion_id": 9
+    },
+    {
+      "example_id": 10,
+      "description": "Display the names or roles of official representatives in each communication channel, and label verified or keystone-issued messages. Establish moderation policies to prevent impersonation or confusion about authority. For instance, the Kubernetes Portal identifies maintainers and SIG (Special Interest Group) leads as verified responders in public discussions, ensuring clarity about roles and communication authority.",
+      "key_success_criterion_id": 10
+    },
+    {
+      "example_id": 12,
+      "description": "Create a dedicated section within the portal for participation and compliance policies, organizing them by contribution type and keeping version history visible. Periodically review the clarity and accessibility of these documents with community feedback. For instance, the Android Developers Portal provides a “Policy Center” with explicit participation rules, contribution steps, and licensing terms, ensuring consistent communication of expectations and compliance.",
+      "key_success_criterion_id": 12
+    },
+    {
+      "example_id": 13,
+      "description": "Publish detailed contribution workflows and acceptance criteria within the portal, linking each stage to the responsible reviewers or governance roles. Include examples of accepted and rejected submissions to illustrate compliance expectations. For instance, the Eclipse Foundation Portal documents its contribution and IP review process, specifying technical and legal checks before approval and showing examples of rejected contributions for transparency.\r\n",
+      "key_success_criterion_id": 13
+    },
+    {
+      "example_id": 14,
+      "description": "Create a dedicated section or changelog within the portal that lists and timestamps all modifications to participation and compliance rules. Provide concise summaries explaining each change and maintain an accessible archive of previous versions for reference. For instance, the Apple Developer Portal publishes policy changelogs that specify dates, affected sections, and rationale for updates, allowing developers to track governance evolution transparently.",
+      "key_success_criterion_id": 14
+    },
+    {
+      "example_id": 15,
+      "description": "Create visible and standardized submission entry points (buttons, forms, or issue trackers) linked from the portal’s main navigation. Integrate these channels with feedback tools or public spaces where developers can discuss or refine proposals. For instance, GitLab and GitHub provide accessible issue tracking systems that allow developers to create, label, and discuss feature requests and bug reports collaboratively.\r\n",
+      "key_success_criterion_id": 15
+    },
+    {
+      "example_id": 16,
+      "description": "Publish a structured review workflow that defines evaluation steps, responsible maintainers, prioritization rules, and response timelines. Provide access to decision logs or summaries that explain how and why each request was addressed. For instance, the Django project maintains detailed triage and prioritization policies that clarify reviewer roles, criteria, and decision outcomes for all community proposals.\r\n",
+      "key_success_criterion_id": 16
+    },
+    {
+      "example_id": 17,
+      "description": "Maintain a roadmap or update dashboard linking planned features to their corresponding discussions or requests. Complement this with release notes, summary reports, or governance updates that explain key changes and their motivations. For instance, the Node.js ecosystem maintains a public roadmap and change dashboard linking each planned feature to its related issues and community discussions.",
+      "key_success_criterion_id": 17
+    },
+    {
+      "example_id": 18,
+      "description": "Publish a dedicated “Data Use Overview” page with visual summaries of collected data categories, purposes, and retention periods. Include real examples of consent prompts or tracking preferences available to developers. For instance, the Microsoft Partner Center presents data collection purposes through a structured dashboard and contextual explanations during tool usage.",
+      "key_success_criterion_id": 18
+    },
+    {
+      "example_id": 19,
+      "description": "Document processing pipelines and access levels, and implement consent dashboards where developers can manage their data-sharing preferences. Provide audit trails or public compliance statements verifying data-handling integrity. For instance, the Eclipse Foundation publishes detailed privacy and consent management procedures, specifying roles, retention periods, and anonymization techniques.",
+      "key_success_criterion_id": 19
+    },
+    {
+      "example_id": 20,
+      "description": "Provide a table or interactive view listing partner organizations, shared data types, and access frequency. In hybrid or proprietary ecosystems, use aggregated summaries that indicate data categories and sharing rationale without revealing sensitive details. For instance, the Google Cloud Console offers a “Data Access Transparency” dashboard showing which partners accessed what data and for what purpose.",
+      "key_success_criterion_id": 20
+    },
+    {
+      "example_id": 21,
+      "description": "Create a dedicated “Architecture Overview” section with layered diagrams, conceptual models, or structured descriptions showing the ecosystem’s organization. Ensure that diagrams highlight relationships between core services, APIs, and external modules. For instance, the Kubernetes Documentation Portal provides an interactive layered diagram of control plane and node components, explaining each layer’s purpose without exposing internal configurations.",
+      "key_success_criterion_id": 21
+    },
+    {
+      "example_id": 22,
+      "description": "Use tables or labeled diagrams summarizing the function, interfaces, and dependencies of each component. Provide links to API references or documentation sections explaining how developers can interact safely with each part of the system. For instance, the Eclipse Platform Architecture page lists subsystems and clarifies their interactions with the IDE core, using role-based and dependency diagrams.",
+      "key_success_criterion_id": 22
+    },
+    {
+      "example_id": 23,
+      "description": "Include version tags, update timestamps, and historical diagrams that illustrate structural changes. Integrate architecture documentation with repositories or dashboards that update automatically when core components change. For instance, the GitLab Docs site maintains versioned architecture diagrams that link to historical releases, showing how core services and integrations evolved across versions.",
+      "key_success_criterion_id": 23
+    }
+  ],
+  "task": [
+    {
+      "task_id": 1,
+      "title": "Exploring Resources to Start Development",
+      "description": "Imagine that you have just joined a project within this software ecosystem and need to start a new integration with the platform. Your goal is to quickly find the materials you need, such as technical documentation, code repositories, and development tools (e.g., SDK, API, CLI), so that you can prepare your environment and understand where to start. Explore the portal freely, as you would in a real situation, until you feel you have found the information you need to begin your development work.",
+      "summary": "Represents developers’ first interaction with the ecosystem portal. Clear and accessible documentation here directly impacts onboarding speed and confidence."
+    },
+    {
+      "task_id": 2,
+      "title": "Exploring Repository History and Code Evolution",
+      "description": "Imagine that you are contributing to a software ecosystem project and want to understand how the platform’s codebase has evolved over time. Your goal is to find clear and traceable information about repository activity, such as contribution history, metadata, or change logs (e.g., commits, pull requests, release notes), so that you can understand who contributed what, when, and why. Explore the portal freely, as you would in a real situation, until you feel you have found enough information to comprehend the repository’s evolution and vitality.",
+      "summary": "Represents how developers explore repositories to understand the platform’s evolution. Traceable and well-documented code changes increase trust and ease of contribution."
+    },
+    {
+      "task_id": 3,
+      "title": "Exploring Communication Channels with the Keystone",
+      "description": "Imagine that you are developing or maintaining a project within this software ecosystem and need to contact the keystone (organization that manages the platform) team to ask a question, report an issue, or provide feedback. Your goal is to identify and access the official communication channels available through the portal, such as support emails, discussion forums, or chat platforms (e.g., Slack, Discord, or GitHub Discussions), to understand how communication with the keystone occurs and how responses are managed. Explore the portal freely, as you would in a real situation, until you feel you have found the channels and information necessary to contact or follow discussions with the keystone team.",
+      "summary": "Represents how developers connect with ecosystem actors to clarify doubts or propose changes. Transparent and responsive communication fosters collaboration and knowledge flow."
+    },
+    {
+      "task_id": 4,
+      "title": "Exploring Participation Rules and Contribution Guidelines",
+      "description": "Imagine that you are planning to contribute to the platform and need to understand the rules and requirements that guide participation in this software ecosystem. Your goal is to locate and review information about participation policies, such as contribution guidelines, compliance requirements, and governance rules (e.g., legal terms, security standards, or acceptance criteria), so that you can understand what is expected from contributors. Explore the portal freely, as you would in a real situation, until you feel you have found the information needed to understand how participation and compliance are managed.",
+      "summary": "Represents how developers learn the rules, processes, and compliance requirements for contributing. Clear guidance reduces cognitive effort and prevents frustration or missteps."
+    },
+    {
+      "task_id": 5,
+      "title": "Exploring the Flow of Requirements and Roadmap Decisions",
+      "description": "Imagine that you are a developer who wants to understand how new ideas, feature requests, or improvement proposals are handled in this software ecosystem. Your goal is to find information about how requirements are submitted, reviewed, and prioritized, such as channels for feedback, evaluation criteria, and roadmap updates (e.g., feature requests, bug reports, or policy changes), so that you can understand how decisions evolve within the platform. Explore the portal freely, as you would in a real situation, until you feel you have found enough information to understand how requirements and roadmap decisions are managed.",
+      "summary": "Represents how developers track how new ideas, feature requests, and improvements are evaluated and prioritized. Visible decision flows increase predictability and engagement."
+    },
+    {
+      "task_id": 6,
+      "title": "Exploring Data Collection and Sharing Practices",
+      "description": "Imagine that you are a developer using this software ecosystem and want to understand how your data, or the data from your applications, is collected, processed, and shared. Your goal is to find information about data management practices, such as what is collected, how it is used, and who has access (e.g., analytics data, authentication details, or usage statistics), so that you can understand how the platform handles privacy, security, and transparency. Explore the portal freely, as you would in a real situation, until you feel you have found enough information to understand how data collection and sharing are managed.",
+      "summary": "Represents how developers seek clarity about what data is collected, processed, and shared within the platform. Transparent practices build reliability and ethical trust."
+    },
+    {
+      "task_id": 7,
+      "title": "Exploring the Architecture and Structure of the Ecosystem",
+      "description": "Imagine that you are a developer who needs to understand how the platform is organized to integrate or build new components within this software ecosystem. Your goal is to find clear and up-to-date information about the ecosystem’s architecture, such as diagrams, component descriptions, and interaction flows (e.g., modules, services, API, or external integrations), so that you can understand how the platform is structured and how its parts connect. Explore the portal freely, as you would in a real situation, until you feel you have found enough information to understand the ecosystem’s architecture and organization.",
+      "summary": "Represents how developers understand the overall architecture of the ecosystem. Clear technical maps and dependencies reduce mental load and improve comprehension of how components interact."
+    }
+  ],
+  "question": [
+    {
+      "question_id": 1,
+      "question": "How much did you perceive that the portal offered centralized and easily navigable documentation to support your work?",
+      "key_success_criterion_id": 1
+    },
+    {
+      "question_id": 2,
+      "question": "How much did you perceive that the portal made repositories clearly visible and accessible from a unified entry point?",
+      "key_success_criterion_id": 2
+    },
+    {
+      "question_id": 3,
+      "question": "How much did you perceive that the portal provided access to development tools (e.g., SDK, API, CLI) with clear version information and update history?",
+      "key_success_criterion_id": 3
+    },
+    {
+      "question_id": 4,
+      "question": "How much did you perceive that the portal offered documentation in multiple languages with consistent and up-to-date content?",
+      "key_success_criterion_id": 4
+    },
+    {
+      "question_id": 5,
+      "question": "How much did you perceive that the portal made repositories easily identifiable, with visible information about their purpose, location, and maintenance status?",
+      "key_success_criterion_id": 5
+    },
+    {
+      "question_id": 6,
+      "question": "How much did you perceive that the portal provided repository metadata and contribution documentation describing maintainers, update history, and participation workflow?",
+      "key_success_criterion_id": 6
+    },
+    {
+      "question_id": 7,
+      "question": "How much did you perceive that the portal enabled traceability of code contributions and modifications through visible records of commits, issues, or change logs?",
+      "key_success_criterion_id": 7
+    },
+    {
+      "question_id": 8,
+      "question": "How much did you perceive that the portal provided visible and official communication channels to contact the keystone or support team?",
+      "key_success_criterion_id": 8
+    },
+    {
+      "question_id": 9,
+      "question": "How much did you perceive that the portal ensured responsiveness and traceability of interactions, allowing visibility into discussions or outcomes?",
+      "key_success_criterion_id": 9
+    },
+    {
+      "question_id": 10,
+      "question": "How much did you perceive that the portal clearly identified who communicates on behalf of the keystone, distinguishing official responses from personal opinions?",
+      "key_success_criterion_id": 10
+    },
+    {
+      "question_id": 12,
+      "question": "How much did you perceive that the portal published and made accessible the official participation, contribution, and compliance rules of the ecosystem?",
+      "key_success_criterion_id": 12
+    },
+    {
+      "question_id": 13,
+      "question": "How much did you perceive that the portal clearly described the acceptance and compliance criteria used to review and approve contributions?",
+      "key_success_criterion_id": 13
+    },
+    {
+      "question_id": 14,
+      "question": "How much did you perceive that the portal made governance and policy updates visible and traceable, showing what has changed, when, and why?",
+      "key_success_criterion_id": 14
+    },
+    {
+      "question_id": 15,
+      "question": "How much did you perceive that the portal made clear where and how developers can submit requirements, feature requests, or improvement proposals?",
+      "key_success_criterion_id": 15
+    },
+    {
+      "question_id": 16,
+      "question": "How much did you perceive that the portal provided visibility into how submitted items are reviewed and prioritized, including criteria, responsible actors, and response timelines?",
+      "key_success_criterion_id": 16
+    },
+    {
+      "question_id": 17,
+      "question": "How much did you perceive that the portal offered public access to roadmaps or changelogs showing planned features, improvements, and rationale for decisions?",
+      "key_success_criterion_id": 17
+    },
+    {
+      "question_id": 18,
+      "question": "How much did you perceive that the portal clearly presented what data is collected from developers and their applications, along with its purpose?",
+      "key_success_criterion_id": 18
+    },
+    {
+      "question_id": 19,
+      "question": "How much did you perceive that the portal described how collected data is processed, stored, and secured, clarifying consent and access mechanisms?",
+      "key_success_criterion_id": 19
+    },
+    {
+      "question_id": 20,
+      "question": "How much did you perceive that the portal made visible how and when data is shared with third parties or external services, including the purpose of sharing?",
+      "key_success_criterion_id": 20
+    },
+    {
+      "question_id": 21,
+      "question": "How much did you perceive that the portal provided visual or descriptive representations showing the ecosystem’s main components, modules, and interaction flows?",
+      "key_success_criterion_id": 21
+    },
+    {
+      "question_id": 22,
+      "question": "How much did you perceive that the portal clearly described each component’s responsibilities and relationships with other parts of the system?",
+      "key_success_criterion_id": 22
+    },
+    {
+      "question_id": 23,
+      "question": "How much did you perceive that the portal kept architectural information updated and versioned, showing when and how structural changes occurred?",
+      "key_success_criterion_id": 23
+    }
+  ],
+  "guideline_conditioning_factor": [
+    {
+      "guideline_id": 1,
+      "conditioning_factor_transp_id": 4
+    },
+    {
+      "guideline_id": 1,
+      "conditioning_factor_transp_id": 2
+    },
+    {
+      "guideline_id": 1,
+      "conditioning_factor_transp_id": 5
+    },
+    {
+      "guideline_id": 2,
+      "conditioning_factor_transp_id": 3
+    },
+    {
+      "guideline_id": 3,
+      "conditioning_factor_transp_id": 8
+    },
+    {
+      "guideline_id": 4,
+      "conditioning_factor_transp_id": 2
+    },
+    {
+      "guideline_id": 4,
+      "conditioning_factor_transp_id": 4
+    },
+    {
+      "guideline_id": 5,
+      "conditioning_factor_transp_id": 3
+    },
+    {
+      "guideline_id": 5,
+      "conditioning_factor_transp_id": 2
+    },
+    {
+      "guideline_id": 6,
+      "conditioning_factor_transp_id": 8
+    },
+    {
+      "guideline_id": 6,
+      "conditioning_factor_transp_id": 2
+    },
+    {
+      "guideline_id": 6,
+      "conditioning_factor_transp_id": 4
+    },
+    {
+      "guideline_id": 7,
+      "conditioning_factor_transp_id": 2
+    },
+    {
+      "guideline_id": 7,
+      "conditioning_factor_transp_id": 4
+    },
+    {
+      "guideline_id": 7,
+      "conditioning_factor_transp_id": 8
+    },
+    {
+      "guideline_id": 7,
+      "conditioning_factor_transp_id": 7
+    },
+    {
+      "guideline_id": 2,
+      "conditioning_factor_transp_id": 7
+    },
+    {
+      "guideline_id": 2,
+      "conditioning_factor_transp_id": 6
+    },
+    {
+      "guideline_id": 3,
+      "conditioning_factor_transp_id": 1
+    },
+    {
+      "guideline_id": 4,
+      "conditioning_factor_transp_id": 8
+    },
+    {
+      "guideline_id": 5,
+      "conditioning_factor_transp_id": 6
+    },
+    {
+      "guideline_id": 5,
+      "conditioning_factor_transp_id": 7
+    },
+    {
+      "guideline_id": 6,
+      "conditioning_factor_transp_id": 6
+    },
+    {
+      "guideline_id": 7,
+      "conditioning_factor_transp_id": 3
+    },
+    {
+      "guideline_id": 3,
+      "conditioning_factor_transp_id": 3
+    },
+    {
+      "guideline_id": 4,
+      "conditioning_factor_transp_id": 3
+    }
+  ],
+  "guideline_dx_factor": [
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 1
+    },
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 2
+    },
+    {
+      "guideline_id": 2,
+      "dx_factor_id": 6
+    },
+    {
+      "guideline_id": 2,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 3,
+      "dx_factor_id": 18
+    },
+    {
+      "guideline_id": 3,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 6,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 18
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 14
+    },
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 6
+    },
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 13
+    },
+    {
+      "guideline_id": 2,
+      "dx_factor_id": 13
+    },
+    {
+      "guideline_id": 2,
+      "dx_factor_id": 18
+    },
+    {
+      "guideline_id": 3,
+      "dx_factor_id": 7
+    },
+    {
+      "guideline_id": 3,
+      "dx_factor_id": 17
+    },
+    {
+      "guideline_id": 4,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 4,
+      "dx_factor_id": 10
+    },
+    {
+      "guideline_id": 4,
+      "dx_factor_id": 12
+    },
+    {
+      "guideline_id": 5,
+      "dx_factor_id": 26
+    },
+    {
+      "guideline_id": 5,
+      "dx_factor_id": 12
+    },
+    {
+      "guideline_id": 5,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 6,
+      "dx_factor_id": 24
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 26
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 13
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 6
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 7,
+      "dx_factor_id": 18
+    },
+    {
+      "guideline_id": 6,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 6,
+      "dx_factor_id": 26
+    },
+    {
+      "guideline_id": 5,
+      "dx_factor_id": 18
+    },
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 5
+    },
+    {
+      "guideline_id": 1,
+      "dx_factor_id": 26
+    },
+    {
+      "guideline_id": 3,
+      "dx_factor_id": 26
+    },
+    {
+      "guideline_id": 4,
+      "dx_factor_id": 26
+    },
+    {
+      "guideline_id": 4,
+      "dx_factor_id": 14
+    },
+    {
+      "guideline_id": 5,
+      "dx_factor_id": 25
+    },
+    {
+      "guideline_id": 6,
+      "dx_factor_id": 25
+    }
+  ],
+  "guideline_seco_process": [
+    {
+      "guideline_id": 1,
+      "seco_process_id": 1
+    },
+    {
+      "guideline_id": 5,
+      "seco_process_id": 5
+    },
+    {
+      "guideline_id": 7,
+      "seco_process_id": 7
+    },
+    {
+      "guideline_id": 2,
+      "seco_process_id": 2
+    },
+    {
+      "guideline_id": 3,
+      "seco_process_id": 3
+    },
+    {
+      "guideline_id": 4,
+      "seco_process_id": 4
+    },
+    {
+      "guideline_id": 6,
+      "seco_process_id": 6
+    }
+  ],
+  "guideline_seco_dimension": [
+    {
+      "guideline_id": 1,
+      "seco_dimension_id": 1
+    },
+    {
+      "guideline_id": 1,
+      "seco_dimension_id": 2
+    },
+    {
+      "guideline_id": 2,
+      "seco_dimension_id": 3
+    },
+    {
+      "guideline_id": 3,
+      "seco_dimension_id": 2
+    },
+    {
+      "guideline_id": 4,
+      "seco_dimension_id": 2
+    },
+    {
+      "guideline_id": 4,
+      "seco_dimension_id": 3
+    },
+    {
+      "guideline_id": 5,
+      "seco_dimension_id": 2
+    },
+    {
+      "guideline_id": 5,
+      "seco_dimension_id": 3
+    },
+    {
+      "guideline_id": 6,
+      "seco_dimension_id": 1
+    },
+    {
+      "guideline_id": 6,
+      "seco_dimension_id": 2
+    },
+    {
+      "guideline_id": 7,
+      "seco_dimension_id": 1
+    },
+    {
+      "guideline_id": 7,
+      "seco_dimension_id": 2
+    },
+    {
+      "guideline_id": 2,
+      "seco_dimension_id": 1
+    },
+    {
+      "guideline_id": 3,
+      "seco_dimension_id": 3
+    },
+    {
+      "guideline_id": 4,
+      "seco_dimension_id": 1
+    },
+    {
+      "guideline_id": 6,
+      "seco_dimension_id": 3
+    }
+  ],
+  "process_task": [
+    {
+      "seco_process_id": 1,
+      "task_id": 1
+    },
+    {
+      "seco_process_id": 2,
+      "task_id": 2
+    },
+    {
+      "seco_process_id": 3,
+      "task_id": 3
+    },
+    {
+      "seco_process_id": 4,
+      "task_id": 4
+    },
+    {
+      "seco_process_id": 5,
+      "task_id": 5
+    },
+    {
+      "seco_process_id": 6,
+      "task_id": 6
+    },
+    {
+      "seco_process_id": 7,
+      "task_id": 7
+    }
+  ],
+  "task_seco_type": [
+    {
+      "task_id": 1,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 2,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 3,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 4,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 5,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 6,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 7,
+      "seco_type": "OPEN_SOURCE"
+    },
+    {
+      "task_id": 1,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 2,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 3,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 4,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 5,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 6,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 7,
+      "seco_type": "HYBRID"
+    },
+    {
+      "task_id": 1,
+      "seco_type": "PROPRIETARY"
+    },
+    {
+      "task_id": 2,
+      "seco_type": "PROPRIETARY"
+    },
+    {
+      "task_id": 3,
+      "seco_type": "PROPRIETARY"
+    },
+    {
+      "task_id": 4,
+      "seco_type": "PROPRIETARY"
+    },
+    {
+      "task_id": 5,
+      "seco_type": "PROPRIETARY"
+    },
+    {
+      "task_id": 6,
+      "seco_type": "PROPRIETARY"
+    },
+    {
+      "task_id": 7,
+      "seco_type": "PROPRIETARY"
+    }
+  ]
+}
