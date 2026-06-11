@@ -28,7 +28,13 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # CSRF protection
 db = SQLAlchemy(app)
 
 # Initialize the migration
-migrate = Migrate(app, db) 
+migrate = Migrate(app, db)
+
+# Feature flags (see config_flags.py and .env.example)
+from config_flags import DEV_MODE, UXT_INTEGRATION
+app.logger.warning(
+    "Startup flags: DEV_MODE=%s | UXT_INTEGRATION=%s", DEV_MODE, UXT_INTEGRATION
+)
 
 # Importing views
 from views.index import *
