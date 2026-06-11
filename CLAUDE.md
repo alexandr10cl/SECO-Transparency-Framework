@@ -4,11 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SECO-TransP is a transparency evaluation framework for software ecosystem portals. It consists of three main components:
+SECO-TransP is a transparency evaluation framework for software ecosystem portals. It consists of two main components:
 
-1. **Flask Backend** (`tet-website/`) - Web application with REST API, authentication, and analytics dashboards
-2. **React Dashboard** (`secodashboard/`) - Standalone React app compiled into Flask static assets for data visualization
-3. **Chrome Extension** (`tet-extension/`) - Manifest V3 extension for developers to complete evaluation tasks
+1. **Flask Backend** (`tet-website/`) - Web application with REST API, authentication, and analytics dashboards (server-rendered Jinja2 + static JS)
+2. **Chrome Extension** (`tet-extension/`) - Manifest V3 extension for developers to complete evaluation tasks
 
 ## Quick Start
 
@@ -44,15 +43,6 @@ flask db upgrade               # Apply migrations
 flask seed                     # Seed reference data from seed_data.json
 ```
 
-### React Dashboard (secodashboard/)
-```bash
-npm install
-npm start                      # Dev server (proxies to Flask at localhost:5000)
-npm run build-for-flask        # Build & deploy to Flask static/dashboard (Linux/Mac)
-npm run build-for-flask-win    # Build & deploy to Flask static/dashboard (Windows)
-npm test                       # Run tests
-```
-
 ### Chrome Extension
 Load unpacked extension in Chrome (chrome://extensions/) from `tet-extension/` folder.
 
@@ -67,15 +57,8 @@ Load unpacked extension in Chrome (chrome://extensions/) from `tet-extension/` f
 - `functions.py` - Auth helpers (`isLogged`, `isAdmin`, `login_required` decorator)
 - `commands.py` - Custom Flask CLI commands (`flask seed`)
 - `external/tasks.py` - Task integration logic
-- `templates/` - Jinja2 HTML templates
-- `static/` - CSS, JS, images. `static/dashboard/` contains the compiled React build
-
-### React Dashboard (`secodashboard/`)
-- Single-page app using React 18, Tailwind CSS, Recharts
-- Main component: `SECODashboard.jsx` (loaded via `App.jsx`)
-- API calls in `src/api/` (evaluation data fetching)
-- Built output goes to `tet-website/static/dashboard/` and is served by Flask at `/static/dashboard`
-- `homepage` in package.json set to `/static/dashboard` so asset paths work when embedded in Flask
+- `templates/` - Jinja2 HTML templates (all dashboards are server-rendered: `dashboard.html`, `dashboardv2.html`, `heatmaps.html`, `heatmap_tasks.html`)
+- `static/` - CSS, JS, images
 
 ### Chrome Extension (`tet-extension/`)
 - Manifest V3 with `popup.js` and `background.js`

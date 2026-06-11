@@ -95,11 +95,8 @@ tet-website/
 │   │   ├── nav.js
 │   │   └── sign_up.js
 │   │
-│   ├── images/                 # Imagens e ícones
-│   │   └── [diversos arquivos de imagem]
-│   │
-│   └── dashboard/              # Dashboard React compilado
-│       └── [arquivos do build]
+│   └── images/                 # Imagens e ícones
+│       └── [diversos arquivos de imagem]
 │
 ├── templates/                  # Templates Jinja2 (HTML)
 │   ├── base.html               # Template base
