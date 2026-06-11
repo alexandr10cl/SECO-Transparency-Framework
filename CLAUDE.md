@@ -11,9 +11,19 @@ SECO-TransP is a transparency evaluation framework for software ecosystem portal
 
 ## Quick Start
 
+### Option A — everything in Docker (backend + MySQL)
+
 ```bash
-# 1. Start MySQL via Docker (port 3307)
-docker-compose up -d
+cd tet-website && cp .env.example .env && cd ..
+docker compose up -d --build   # builds backend image, runs migrations + seed automatically
+# App at http://localhost:5000 (code hot-reloads via volume mount)
+```
+
+### Option B — MySQL in Docker, Flask in venv (better for debugging)
+
+```bash
+# 1. Start MySQL only (port 3307)
+docker compose up -d db
 
 # 2. Setup Flask backend
 cd tet-website
@@ -31,6 +41,17 @@ flask seed                     # Populate reference data (guidelines, processes,
 # 4. Run
 python index.py                # or: flask run --debug
 ```
+
+## Environment Flags
+
+Two independent flags in `.env` (read via `tet-website/config_flags.py`):
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `DEV_MODE` | `False` | `True`: accounts are born verified (no SMTP needed), unverified users can sign in. `False`: email verification required. |
+| `UXT_INTEGRATION` | `True` | `False`: fully local — signup/signin skip the UX-Tracking API, heatmap endpoints return empty payloads with `uxt_disabled: true` and the UI shows a disabled notice, password reset is unavailable, evaluation codes are generated locally. `True`: production behavior (calls `uxt-stage.liis.com.br`). |
+
+All four combinations are valid. For fully local development use `DEV_MODE=True` + `UXT_INTEGRATION=False`.
 
 ## Common Commands
 
@@ -86,7 +107,8 @@ Copy `.env.example` for Docker defaults. Key variables:
 | `SGBD`, `USER`, `PASSW`, `SERVER`, `DATABASE` | DB connection (builds SQLAlchemy URI) |
 | `SECRET_KEY` | Flask session signing |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Initial admin account |
-| `DEV_MODE` | Enables dev features |
+| `DEV_MODE` | Dev vs production behavior (see Environment Flags) |
+| `UXT_INTEGRATION` | UX-Tracking integration on/off (see Environment Flags) |
 | `SMTP_SERVER`, `SMTP_PORT`, `SENDER_EMAIL`, `SENDER_PASSWORD` | Email service |
 
 ## Optional Dependencies

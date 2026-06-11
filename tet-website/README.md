@@ -46,7 +46,7 @@ O **TET Website** é uma aplicação web desenvolvida em Flask que faz parte do 
 
 ```
 tet-website/
-├── app.py                      # Inicialização da aplicação Flask
+├── index.py                    # Inicialização da aplicação Flask (entry point)
 ├── database.py                 # Configuração do banco de dados
 ├── functions.py                # Funções auxiliares
 ├── requirements.txt            # Dependências Python
@@ -129,7 +129,16 @@ tet-website/
 - Docker e Docker Compose (para banco local)
 - Git
 
-### Passo a Passo
+### Opção A — Tudo no Docker (backend + banco)
+
+```bash
+cd tet-website && cp .env.example .env && cd ..
+docker compose up -d --build
+```
+
+Um único comando sobe o MySQL 8 (porta 3307) e o backend Flask (porta 5000). As migrations (`flask db upgrade`) e o seed (`flask seed`) rodam automaticamente na inicialização do container, e o código tem hot-reload (volume montado). App em `http://localhost:5000`.
+
+### Opção B — Banco no Docker, Flask no venv (melhor para debug)
 
 #### 1. Clone o repositório
 
@@ -141,10 +150,10 @@ cd SECO-Transparency-Framework
 #### 2. Suba o banco de dados local
 
 ```bash
-docker-compose up -d
+docker compose up -d db
 ```
 
-Isso cria um MySQL 8 local na porta 3306, com o banco `tool_portal` pronto.
+Isso cria um MySQL 8 local na porta 3307, com o banco `tool_portal` pronto.
 
 #### 3. Crie um ambiente virtual Python
 
@@ -174,6 +183,17 @@ cp .env.example .env
 
 O `.env.example` já vem com as credenciais do banco Docker local. Para email e outras configs, edite o `.env` conforme necessário.
 
+##### Flags de ambiente
+
+Duas flags independentes controlam o comportamento (lidas por `config_flags.py`):
+
+| Flag | Default | Efeito |
+|------|---------|--------|
+| `DEV_MODE` | `False` | `True`: contas nascem verificadas (não precisa de SMTP). `False`: verificação por email obrigatória. |
+| `UXT_INTEGRATION` | `True` | `False`: modo 100% local — signup/login não chamam a API do UX-Tracking, heatmaps mostram aviso de "integração desativada", reset de senha fica indisponível e os códigos de avaliação são gerados localmente. `True`: comportamento de produção. |
+
+Para desenvolvimento local completo use `DEV_MODE=True` + `UXT_INTEGRATION=False`.
+
 #### 6. Crie as tabelas e popule os dados de referência
 
 ```bash
@@ -189,6 +209,8 @@ flask db upgrade
 # Popula guidelines, processos, dimensões, etc.
 flask seed
 ```
+
+> **Nota (bancos antigos):** o histórico de migrations foi consolidado numa única baseline (`4ef2e61f029a`). Se você tem um banco criado com a cadeia antiga de migrations, o `flask db upgrade` vai falhar com "Can't locate revision". Remédio: confirme que o schema está atualizado e rode `flask db stamp 4ef2e61f029a`. Bancos novos (Docker) não são afetados.
 
 #### 7. Execute o servidor Flask
 
