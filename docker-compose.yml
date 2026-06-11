@@ -15,6 +15,32 @@ services:
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./tet-website
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./tet-website:/app # hot reload (flask --debug watches the mounted code)
+    env_file:
+      - ./tet-website/.env
+    environment:
+      # Inside the compose network the DB is reached via the service name.
+      # `environment` wins over env_file, and load_dotenv() never overrides
+      # already-set vars - so the same .env keeps working for the venv flow
+      # on the host (localhost:3307).
+      SERVER: db:3306
+      USER: seco_dev
+      PASSW: seco_dev_123
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "flask db upgrade && flask seed && flask run --host=0.0.0.0 --port=5000 --debug"
 
 volumes:
   mysql_data:
