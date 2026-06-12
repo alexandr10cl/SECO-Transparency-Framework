@@ -4,6 +4,8 @@
 
 O **TET Website** é uma aplicação web desenvolvida em Flask que faz parte do framework SECO-TransP. Este sistema permite que gestores de ecossistemas de software avaliem e monitorem a transparência de seus portais através de uma interface intuitiva, coletando dados multimodais e gerando dashboards analíticos para tomada de decisão.
 
+> 📐 A documentação arquitetural completa (diagramas de componentes, ER do banco, diagramas de sequência e o inventário das 81 rotas) está em [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md).
+
 ## 🚀 Principais Funcionalidades
 
 ### Para Gestores de SECO
@@ -232,6 +234,18 @@ Para utilizar a extensão Chrome com o sistema:
 3. Clique em "Carregar sem compactação"
 4. Selecione a pasta `tet-extension` do projeto
 5. A extensão será instalada e estará pronta para uso
+
+## 🔍 Troubleshooting
+
+| Sintoma | Causa provável | Solução |
+|---------|----------------|---------|
+| `Can't connect to MySQL server` na porta 3307 | Container do banco não está rodando | `docker compose up -d db` (e aguarde o healthcheck) |
+| Porta 3307 ou 5000 já em uso | Outro serviço/instância ocupando a porta | Pare o serviço conflitante ou ajuste a porta no `docker-compose.yml` |
+| `Error: Can't locate revision identified by '...'` no `flask db upgrade` | Banco criado com a cadeia antiga de migrations | Confira se o schema está atualizado e rode `flask db stamp 4ef2e61f029a` |
+| `flask: command not found` ou comando não acha o app | `FLASK_APP` não definido | `set FLASK_APP=index.py` (Windows) / `export FLASK_APP=index.py` (Linux/Mac) |
+| Banco em estado estranho / quero recomeçar do zero | Volume com dados antigos | `docker compose down -v && docker compose up -d --build` (apaga os dados!) |
+| Cadastro falha reclamando do UX-Tracking | `UXT_INTEGRATION=True` sem o serviço acessível | Use `UXT_INTEGRATION=False` no `.env` para desenvolvimento local |
+| Heatmaps mostram "Integração UX-Tracking desativada" | Comportamento esperado com `UXT_INTEGRATION=False` | Ative a flag se precisar de heatmaps reais |
 
 ## 🔐 Segurança
 
