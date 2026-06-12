@@ -33,7 +33,8 @@ class Guideline(db.Model):
     # Main Rows
     guidelineID = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(500), nullable=False)
+    # 1000: seed reference data has descriptions longer than 500 chars
+    description = db.Column(db.String(1000), nullable=False)
     notes = db.Column(db.String(1000), nullable=True)
     
     # Relationship with Key_success_criterion
@@ -131,7 +132,8 @@ class Example(db.Model):
 
     # Main Rows
     example_id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(500), nullable=False)
+    # 1000: seed reference data has descriptions longer than 500 chars
+    description = db.Column(db.String(1000), nullable=False)
 
     # Foreign key to the key_success_criterion table
     key_success_criterion_id = db.Column(db.Integer, db.ForeignKey('key_success_criterion.key_success_criterion_id'), nullable=False)

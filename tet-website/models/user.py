@@ -1,3 +1,5 @@
+from sqlalchemy.dialects.mysql import TINYBLOB
+
 from .enums import UserType
 from index import db
 import bcrypt
@@ -9,7 +11,9 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(100), nullable=False)
-    passw = db.Column(db.LargeBinary(60), nullable=False) # Password hash
+    # bcrypt hash (60 bytes). TINYBLOB is what LargeBinary(60) renders to on
+    # MySQL - declaring it explicitly keeps `flask db check` drift-free.
+    passw = db.Column(TINYBLOB, nullable=False)
 
     # Discriminator to identify the user type
     type = db.Column(db.Enum(UserType), nullable=False)
