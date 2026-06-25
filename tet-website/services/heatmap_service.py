@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import pytz
-import requests
 
 from index import app
 from models import Evaluation, PerformedTask
+from services.uxt_service import fetch_heatmap_from_uxt
 
 
 def normalize_timestamp(timestamp_str: str) -> Optional[datetime]:
@@ -363,22 +362,6 @@ def aggregate_heatmaps_by_url(
         'scenarios_with_navigation': len(unique_scenarios_with_navigation),
     }
     return aggregated_list, aggregation_stats, scenario_lookup
-
-
-def fetch_heatmap_from_uxt(evaluation_id: int, token: str, timeout: int = 300) -> List[Dict[str, Any]]:
-    url_get_heatmap = f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}'
-    headers = {'Authorization': f'Bearer {token}'}
-    response = requests.get(url_get_heatmap, headers=headers, timeout=timeout)
-    if response.status_code != 200:
-        raise requests.HTTPError(
-            f"Failed to retrieve heatmap data (status {response.status_code})",
-            response=response,
-        )
-    try:
-        data = response.json()
-    except json.JSONDecodeError as exc:
-        raise ValueError("Invalid JSON response from UX Tracking API") from exc
-    return data if isinstance(data, list) else [data]
 
 
 def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:

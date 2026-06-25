@@ -74,7 +74,7 @@ Load unpacked extension in Chrome (chrome://extensions/) from `tet-extension/` f
 - **Config**: `database.py` - Builds `SQLALCHEMY_DATABASE_URI` from env vars
 - `models/` - SQLAlchemy ORM models. All models exported via `models/__init__.py`
 - `views/` - Route handlers: `index.py` (main), `api.py` (REST/heatmap endpoints), `auth.py` (login/signup/password reset), `admin.py`, `pages.py`
-- `services/` - Business logic: heatmap generation/caching (`heatmap_service.py`, `heatmap_cache.py`, `heatmap_prefetch.py`), email (`email_service.py`), UX-Tracking token management (`uxt_token_manager.py`)
+- `services/` - Business logic: heatmap generation/caching (`heatmap_service.py`, `heatmap_cache.py`, `heatmap_prefetch.py`), email (`email_service.py`), and **all** UX-Tracking integration (`uxt_service.py` - the single gateway for every call to the external UXT API: auth/token, password reset, evaluation-code generation, heatmap fetch)
 - `functions.py` - Auth helpers (`isLogged`, `isAdmin`, `login_required` decorator)
 - `commands.py` - Custom Flask CLI commands (`flask seed`)
 - `external/tasks.py` - Task integration logic
