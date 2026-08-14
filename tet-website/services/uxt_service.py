@@ -1,6 +1,7 @@
 """Single gateway for ALL UX-Tracking (UXT) external integration.
 
-Every call to the external UX-Tracking API (https://uxt-stage.liis.com.br) lives in
+Every call to the external UX-Tracking API (https://uxt.liis.com.br, docs at
+/api/docs) lives in
 this module. The rest of the backend depends on the local functions exported here
 (login, register, password reset, evaluation-code generation, heatmap fetch and token
 management) instead of importing ``requests`` or hardcoding UXT URLs.
@@ -30,7 +31,7 @@ from config_flags import UXT_INTEGRATION
 # ---------------------------------------------------------------------------
 # Configuration / constants
 # ---------------------------------------------------------------------------
-BASE_URL = "https://uxt-stage.liis.com.br"
+BASE_URL = "https://uxt.liis.com.br"
 
 # Auth endpoints
 AUTH_LOGIN_URL = f"{BASE_URL}/auth/login"

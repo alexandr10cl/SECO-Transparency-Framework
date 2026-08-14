@@ -31,7 +31,7 @@ flowchart TB
     end
 
     DB[("MySQL 8<br/>tool_portal")]
-    UXT["UX-Tracking API<br/>uxt-stage.liis.com.br"]
+    UXT["UX-Tracking API<br/>uxt.liis.com.br"]
     SMTP["Servidor SMTP"]
     BROWSER["Navegador do gestor<br/>dashboards Jinja2 + JS estático"]
 

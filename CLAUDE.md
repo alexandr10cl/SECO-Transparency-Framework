@@ -49,7 +49,7 @@ Two independent flags in `.env` (read via `tet-website/config_flags.py`):
 | Flag | Default | Effect |
 |------|---------|--------|
 | `DEV_MODE` | `False` | `True`: accounts are born verified (no SMTP needed), unverified users can sign in. `False`: email verification required. |
-| `UXT_INTEGRATION` | `True` | `False`: fully local — signup/signin skip the UX-Tracking API, heatmap endpoints return empty payloads with `uxt_disabled: true` and the UI shows a disabled notice, password reset is unavailable, evaluation codes are generated locally. `True`: production behavior (calls `uxt-stage.liis.com.br`). |
+| `UXT_INTEGRATION` | `True` | `False`: fully local — signup/signin skip the UX-Tracking API, heatmap endpoints return empty payloads with `uxt_disabled: true` and the UI shows a disabled notice, password reset is unavailable, evaluation codes are generated locally. `True`: production behavior (calls `uxt.liis.com.br`). |
 
 All four combinations are valid. For fully local development use `DEV_MODE=True` + `UXT_INTEGRATION=False`.
 

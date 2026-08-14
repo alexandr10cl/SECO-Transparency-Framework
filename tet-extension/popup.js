@@ -294,7 +294,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
   let uxt_mode = false; // Opção de fazer a avaliação com UX-Tracking o não
 
   if (uxt_mode) {
-    fetch("https://uxt-stage.liis.com.br/data/syncsession", {
+    fetch("https://uxt.liis.com.br/data/syncsession", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
