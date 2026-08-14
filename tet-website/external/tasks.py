@@ -220,10 +220,12 @@ def submit_tasks():
             print(f"⚠️ Unknown navigation action: {action_value}")
             continue
             
+        # Trunca para os limites da coluna: URLs de busca/redirect e títulos
+        # de página estouram facilmente o tamanho declarado no modelo.
         nav_entry = Navigation(
             action              = action_enum,
-            title               = nav.get("title"),
-            url                 = nav.get("url"),
+            title               = (nav.get("title") or "")[:512],
+            url                 = (nav.get("url") or "")[:2048],
             timestamp           = datetime.fromisoformat(nav.get("timestamp")),
             task_id             = nav.get("taskId"),
             collected_data_id   = collected.collected_data_id

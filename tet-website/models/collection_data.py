@@ -52,8 +52,8 @@ class Navigation(db.Model):
 
     # Main Rows
     action = db.Column(db.Enum(NavigationType), nullable=False)
-    title = db.Column(db.String(100), nullable=False)
-    url = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(512), nullable=False)
+    url = db.Column(db.String(2048), nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False)
 
     # Foreign key to the task table
