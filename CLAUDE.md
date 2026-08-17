@@ -104,7 +104,7 @@ Copy `.env.example` for Docker defaults. Key variables:
 
 | Variable | Purpose |
 |----------|---------|
-| `SGBD`, `USER`, `PASSW`, `SERVER`, `DATABASE` | DB connection (builds SQLAlchemy URI) |
+| `SGBD`, `DB_USER`, `PASSW`, `SERVER`, `DATABASE` | DB connection (builds SQLAlchemy URI). `DB_USER`, never `USER` — on Linux/Mac the shell exports `USER` and it wins over `.env`. A legacy `USER` fallback still works but is deprecated. |
 | `SECRET_KEY` | Flask session signing |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Initial admin account |
 | `DEV_MODE` | Dev vs production behavior (see Environment Flags) |
