@@ -23,10 +23,8 @@ from services.heatmap_service import (
     aggregate_heatmaps_by_url,
     normalize_timestamp,
 )
-from services.uxt_token_manager import get_uxt_token
-
-
-UXT_DISABLED_MESSAGE = "Integração UX-Tracking desativada"
+from services import uxt_service
+from services.uxt_service import get_uxt_token, UXT_DISABLED_MESSAGE
 
 
 def _token_error_response(details: str = "Session expired"):
@@ -287,13 +285,7 @@ def api_view_heatmap(id):
     evaluation = Evaluation.query.get_or_404(id)
     try:
         def _fetch(token):
-            response = requests.get(
-                f'https://uxt-stage.liis.com.br/view/heatmap/code/{id}',
-                headers={'Authorization': f'Bearer {token}'},
-                timeout=120,
-            )
-            response.raise_for_status()
-            return response.json()
+            return uxt_service.fetch_heatmap_via_api(id, token, timeout=120)
 
         payload, token_error = _execute_with_token(_fetch)
         if token_error:
@@ -325,13 +317,7 @@ def api_heatmap_tasks(evaluation_id):
         evaluation = Evaluation.query.get_or_404(evaluation_id)
 
         def _fetch(token):
-            response = requests.get(
-                f'https://uxt-stage.liis.com.br/view/heatmap/code/{evaluation_id}',
-                headers={'Authorization': f'Bearer {token}'},
-                timeout=120,
-            )
-            response.raise_for_status()
-            return response.json()
+            return uxt_service.fetch_heatmap_via_api(evaluation_id, token, timeout=120)
 
         payload, token_error = _execute_with_token(_fetch)
         if token_error:

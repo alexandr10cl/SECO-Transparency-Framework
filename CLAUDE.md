@@ -49,7 +49,7 @@ Two independent flags in `.env` (read via `tet-website/config_flags.py`):
 | Flag | Default | Effect |
 |------|---------|--------|
 | `DEV_MODE` | `False` | `True`: accounts are born verified (no SMTP needed), unverified users can sign in. `False`: email verification required. |
-| `UXT_INTEGRATION` | `True` | `False`: fully local — signup/signin skip the UX-Tracking API, heatmap endpoints return empty payloads with `uxt_disabled: true` and the UI shows a disabled notice, password reset is unavailable, evaluation codes are generated locally. `True`: production behavior (calls `uxt-stage.liis.com.br`). |
+| `UXT_INTEGRATION` | `True` | `False`: fully local — signup/signin skip the UX-Tracking API, heatmap endpoints return empty payloads with `uxt_disabled: true` and the UI shows a disabled notice, password reset is unavailable, evaluation codes are generated locally. `True`: production behavior (calls `uxt.liis.com.br`). |
 
 All four combinations are valid. For fully local development use `DEV_MODE=True` + `UXT_INTEGRATION=False`.
 
@@ -74,7 +74,7 @@ Load unpacked extension in Chrome (chrome://extensions/) from `tet-extension/` f
 - **Config**: `database.py` - Builds `SQLALCHEMY_DATABASE_URI` from env vars
 - `models/` - SQLAlchemy ORM models. All models exported via `models/__init__.py`
 - `views/` - Route handlers: `index.py` (main), `api.py` (REST/heatmap endpoints), `auth.py` (login/signup/password reset), `admin.py`, `pages.py`
-- `services/` - Business logic: heatmap generation/caching (`heatmap_service.py`, `heatmap_cache.py`, `heatmap_prefetch.py`), email (`email_service.py`), UX-Tracking token management (`uxt_token_manager.py`)
+- `services/` - Business logic: heatmap generation/caching (`heatmap_service.py`, `heatmap_cache.py`, `heatmap_prefetch.py`), email (`email_service.py`), and **all** UX-Tracking integration (`uxt_service.py` - the single gateway for every call to the external UXT API: auth/token, password reset, evaluation-code generation, heatmap fetch)
 - `functions.py` - Auth helpers (`isLogged`, `isAdmin`, `login_required` decorator)
 - `commands.py` - Custom Flask CLI commands (`flask seed`)
 - `external/tasks.py` - Task integration logic
@@ -104,7 +104,7 @@ Copy `.env.example` for Docker defaults. Key variables:
 
 | Variable | Purpose |
 |----------|---------|
-| `SGBD`, `USER`, `PASSW`, `SERVER`, `DATABASE` | DB connection (builds SQLAlchemy URI) |
+| `SGBD`, `DB_USER`, `PASSW`, `SERVER`, `DATABASE` | DB connection (builds SQLAlchemy URI). `DB_USER`, never `USER` — on Linux/Mac the shell exports `USER` and it wins over `.env`. A legacy `USER` fallback still works but is deprecated. |
 | `SECRET_KEY` | Flask session signing |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Initial admin account |
 | `DEV_MODE` | Dev vs production behavior (see Environment Flags) |

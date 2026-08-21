@@ -33,9 +33,10 @@ services:
       # Inside the compose network the DB is reached via the service name.
       # `environment` wins over env_file, and load_dotenv() never overrides
       # already-set vars - so the same .env keeps working for the venv flow
-      # on the host (localhost:3307).
+      # on the host (localhost:3307). Do NOT switch to load_dotenv(override=True):
+      # it would push SERVER=localhost:3307 back over the value set here.
       SERVER: db:3306
-      USER: seco_dev
+      DB_USER: seco_dev
       PASSW: seco_dev_123
     depends_on:
       db:

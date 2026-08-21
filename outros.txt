@@ -1,0 +1,23 @@
+1. Timeouts ausentes em 3 funções
+
+register(), request_password_reset() e reset_password() fazem chamadas requests.post sem timeout=. Se a API UXT travar, essas requisições ficam pendentes indefinidamente, bloqueando a thread do Flask. O login() tem timeout=60 e o generate_evaluation_code() tem timeout=10 — inconsistência dentro do próprio módulo.
+
+2. Retry-on-401 duplicado com implementações diferentes
+
+A lógica de "token expirou, renova e tenta de novo" existe em dois lugares com mecânicas distintas:
+
+generate_evaluation_code() — retry manual via closure _request_code (migrado para uxt_service.py)
+api.py — _execute_with_token() helper que envolve qualquer chamada de heatmap
+Comportamentos divergem: um loga, o outro não; um limpa o token em cache, o outro não.
+
+3. forgot-password e reset-password não têm fallback offline
+
+Quando UXT_INTEGRATION=False, reset de senha fica completamente indisponível (mostra erro e redireciona). Já o login degrada graciosamente (entra sem token UXT) e o generate_evaluation_code usa fallback aleatório local. Inconsistência de contrato: usuário não consegue recuperar senha mesmo com conta local válida.
+
+4. admin_credentials lido de env na hora do registro, não no boot
+
+O dict com ADMIN_EMAIL / ADMIN_PASSWORD é construído a cada chamada de register() (era módulo-level em auth.py, agora está dentro da função em uxt_service.py). Se as variáveis de ambiente não estiverem definidas, o erro ocorre em tempo de execução, não de inicialização — difícil de detectar antecipadamente.
+
+Fora de escopo (registrado só para referência):
+
+5. Código morto na extensão Chrome — popup.js tem uxt_mode=false que faz o bloco /data/syncsession nunca executar. Não foi tocado (escopo: só backend).

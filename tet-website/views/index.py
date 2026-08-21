@@ -10,7 +10,6 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload, selectinload, contains_eager
 
 from index import app, db
-from config_flags import UXT_INTEGRATION
 from functions import isLogged, isAdmin, login_required
 from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
@@ -19,7 +18,7 @@ from models import (
     Navigation, Task
 )
 from services.heatmap_prefetch import schedule_heatmap_prefetch
-from services.uxt_token_manager import get_uxt_token
+from services.uxt_service import get_uxt_token, generate_evaluation_code
 
 # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
 credenciais_admin = {
@@ -338,54 +337,7 @@ def add_evaluation():
         return redirect(url_for('evaluations'))
 
     # generate evaluation_id via UXT API, fallback to unique 6-digit
-    evaluation_id = None
-    r = None
-
-    def _request_code(token_value: str):
-        print("LOG: Fazendo chamada para API UXT...")
-        response = requests.post(
-            'https://uxt-stage.liis.com.br/generate-code?horas=730',
-            headers={'Authorization': f'Bearer {token_value}'},
-            timeout=10
-        )
-        print(f"LOG: Resposta da API UXT - Status: {response.status_code}")
-        print(f"LOG: Resposta da API UXT - Conteúdo: {response.text}")
-        return response
-
-    if UXT_INTEGRATION:
-        access_token = get_uxt_token()
-        print(f"=== LOG: Iniciando geração de código de avaliação ===")
-        print(f"LOG: Access token disponível: {bool(access_token)}")
-    else:
-        access_token = None
-
-    if access_token:
-        try:
-            r = _request_code(access_token)
-            if r.status_code == 201:
-                data = r.json() or {}
-                evaluation_id = data.get('cod')
-                print(f"LOG: Código gerado pela API UXT: {evaluation_id}")
-            elif r.status_code == 401:
-                print("LOG: Token expirado ao gerar código. Tentando renovar token.")
-                refreshed = get_uxt_token(force_refresh=True)
-                if refreshed:
-                    r = _request_code(refreshed)
-                    if r.status_code == 201:
-                        data = r.json() or {}
-                        evaluation_id = data.get('cod')
-                        print(f"LOG: Código gerado após renovação: {evaluation_id}")
-                    else:
-                        print(f"LOG: Segunda tentativa também falhou: {r.status_code}")
-                else:
-                    print("LOG: Não foi possível renovar o token UXT.")
-            else:
-                print(f"LOG: API UXT não retornou status 201. Status: {r.status_code}")
-        except Exception as e:
-            print(f"LOG: ERRO ao chamar API UXT: {str(e)}")
-            evaluation_id = None
-    else:
-        print("LOG: Sem access token disponível, usando fallback")
+    evaluation_id = generate_evaluation_code()
 
     # Fix #5: Generate unique evaluation_id with race condition protection
     if not evaluation_id:

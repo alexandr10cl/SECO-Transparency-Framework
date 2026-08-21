@@ -1,23 +1,17 @@
 from flask import render_template, request, redirect, session, url_for, flash
-import requests
 from index import app, db
 from models import User, UserType, Evaluation
 from functions import isLogged, isAdmin, send_verification_email, send_password_reset_email
 import secrets
 import os
 from services.heatmap_prefetch import schedule_heatmap_prefetch
-from services.uxt_token_manager import (
+from services import uxt_service
+from services.uxt_service import (
     clear_session_uxt_token,
     get_uxt_token,
-    set_session_uxt_token,
 )
 
 from config_flags import DEV_MODE, UXT_INTEGRATION
-
-admin_credentials = {
-    "email": os.getenv("ADMIN_EMAIL"),
-    "password": os.getenv("ADMIN_PASSWORD")
-}
 
 messageType = ''
 message = '' # Error sign in message
@@ -60,44 +54,7 @@ def auth():
             # Fix #2: UXT API fallback - don't block login if UXT is down
             # Try to get UXT token, but allow login even if it fails
             if UXT_INTEGRATION:
-                uxt_url = 'https://uxt-stage.liis.com.br/auth/login'
-                uxt_dados = {
-                    "email": user.email,
-                    "password": request.form.get('passw')
-                }
-
-                try:
-                    # Set timeout to prevent hanging (increased to 15s for slower UXT API responses)
-                    resposta = requests.post(uxt_url, json=uxt_dados, timeout=60)
-
-                    if resposta.status_code == 200:
-                        data = resposta.json()
-                        access_token = data.get('access_token')
-                        if access_token:
-                            set_session_uxt_token(access_token, data.get('expires_in'))
-                            print(f"[UXT] Token de acesso obtido com sucesso para '{user.email}'.")
-                        else:
-                            print("[UXT] Nenhum token de acesso retornado.")
-                            clear_session_uxt_token()
-                    else:
-                        print(f"[UXT] Erro ao autenticar na API UXT (status {resposta.status_code}).")
-                        print(f"[UXT] Resposta: {resposta.text}")
-                        clear_session_uxt_token()
-
-                except requests.exceptions.Timeout:
-                    # UXT API timeout - allow login anyway
-                    print("[UXT] Timeout ao conectar com API UXT. Continuando login sem UXT token.")
-                    clear_session_uxt_token()
-
-                except requests.exceptions.ConnectionError:
-                    # UXT API not reachable - allow login anyway
-                    print("[UXT] Erro de conexão com API UXT. Continuando login sem UXT token.")
-                    clear_session_uxt_token()
-
-                except requests.exceptions.RequestException as e:
-                    # Any other request error - allow login anyway
-                    print(f"[UXT] Erro ao conectar com API UXT: {str(e)}. Continuando login sem UXT token.")
-                    clear_session_uxt_token()
+                uxt_service.login(user.email, request.form.get('passw'))
             else:
                 clear_session_uxt_token()
 
@@ -162,108 +119,43 @@ def register():
     # First, try to register the user in the UXTracking API
     # (skipped entirely when UXT_INTEGRATION is disabled - local account only)
     if UXT_INTEGRATION:
-        uxt_url = 'https://uxt-stage.liis.com.br/auth/register'
-        uxt_dados = {
-            "email": email,
-            "username": name,
-            "password": passw,
-            "role": 1
-        }
-        try:
-            resposta = requests.post(uxt_url, json=uxt_dados)
-            if resposta.status_code != 201:
-                print(f"[UXT] Registration failed at UXT API (status {resposta.status_code}).")
-                print(f"[UXT] Response: {resposta.text}")
-
+        result = uxt_service.register(email, name, passw)
+        if not result["ok"]:
+            reason = result["reason"]
+            if reason == "register_http":
+                status_code = result["status_code"]
                 # Provide specific error messages based on status code
-                if resposta.status_code == 502:
+                if status_code == 502:
                     messageType = 'error'
                     message = 'UXTracking service is temporarily unavailable. Please try again in a few minutes.'
-                elif resposta.status_code == 409:
+                elif status_code == 409:
                     messageType = 'error'
                     message = 'This email or username is already registered in our tracking system. Please use a different email address.'
-                elif resposta.status_code == 400:
+                elif status_code == 400:
                     messageType = 'error'
                     message = 'Invalid registration data. Please check your information and try again.'
-                elif resposta.status_code == 500:
+                elif status_code == 500:
                     messageType = 'error'
                     message = 'UX-Tracking service is experiencing technical difficulties. Please try again later.'
-                elif resposta.status_code >= 500:
+                elif status_code >= 500:
                     messageType = 'error'
                     message = 'UX-Tracking service is temporarily unavailable. Please try again in a few minutes.'
                 else:
                     messageType = 'error'
-                    message = f'Registration failed (Error {resposta.status_code}). Please try again later.'
-
-                messageReg = ''
-                messageEA = ''
-                return redirect(url_for('signin'))
-            print(f"[UXT] Account successfully registered at UXT API for '{email}'.")
-            access_token = resposta.json().get('access_token')
-            me_data = None
-            if access_token:
-                headers = {
-                    'Authorization': f'Bearer {access_token}'
-                }
-                me_url = 'https://uxt-stage.liis.com.br/auth/me'
-                me_resp = requests.get(me_url, headers=headers)
-                if me_resp.status_code == 200:
-                    me_data = me_resp.json()
-                    print(f"[UXT] Logged in user data: {me_data}")
-                else:
-                    print(f"[UXT] Failed to access /auth/me: {me_resp.status_code}")
-                    print(f"[UXT] Response: {me_resp.text}")
-            else:
-                print("[UXT] No access token returned.")
-            # Get admin token to change role
-            uxt_admin_login_url = 'https://uxt-stage.liis.com.br/auth/login'
-            resposta_admin = requests.post(uxt_admin_login_url, json=admin_credentials)
-            if resposta_admin.status_code == 200 and me_data:
-                token = resposta_admin.json().get("access_token")
-                managerId = me_data.get("idUser")
-                uxt_changeRole_url = 'https://uxt-stage.liis.com.br/auth/change-role'
-                changeRole_data = {
-                    "userId": managerId,
-                    "newRole": 2 # SECO Manager
-                }
-                headers_admin = {
-                    'Authorization': f'Bearer {token}'
-                }
-                resposta_changeRole = requests.post(uxt_changeRole_url, json=changeRole_data, headers=headers_admin)
-                if resposta_changeRole.status_code == 200:
-                    print(f"[UXT] User role for '{email}' changed to SECO Manager successfully.")
-                else:
-                    print(f"[UXT] Error changing user role: {resposta_changeRole.text}")
-                    messageType = 'error'
-                    message = 'Account created but role assignment failed. Please contact support.'
-                    messageReg = ''
-                    messageEA = ''
-                    return redirect(url_for('signin'))
-            else:
-                print(f"[UXT] Error obtaining admin token or user data: {resposta_admin.text if resposta_admin.status_code != 200 else 'No user data'}")
+                    message = f'Registration failed (Error {status_code}). Please try again later.'
+            elif reason == "role_assignment":
                 messageType = 'error'
                 message = 'Account created but role assignment failed. Please contact support.'
-                messageReg = ''
-                messageEA = ''
-                return redirect(url_for('signin'))
-        except requests.exceptions.ConnectionError:
-            print("[UXT] Connection error: Could not connect to UXTracking API")
-            messageType = 'error'
-            message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
-            messageReg = ''
-            messageEA = ''
-            return redirect(url_for('signin'))
-        except requests.exceptions.Timeout:
-            print("[UXT] Timeout error: UXTracking API request timed out")
-            messageType = 'error'
-            message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
-            messageReg = ''
-            messageEA = ''
-            return redirect(url_for('signin'))
-        except requests.exceptions.RequestException as e:
-            print(f"[UXT] Request error with UXT API: {str(e)}")
-            messageType = 'error'
-            message = 'UXTracking service is temporarily unavailable. Please try again later.'
+            elif reason == "connection":
+                messageType = 'error'
+                message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
+            elif reason == "timeout":
+                messageType = 'error'
+                message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
+            else:  # request
+                messageType = 'error'
+                message = 'UXTracking service is temporarily unavailable. Please try again later.'
+
             messageReg = ''
             messageEA = ''
             return redirect(url_for('signin'))
@@ -372,39 +264,20 @@ def forgot_password():
         user = User.query.filter_by(email=email).first()
         
         if user:
-            
-            uxt_url = 'https://uxt-stage.liis.com.br/auth/forgot-password'
-            
-            uxt_dados = {
-                "email": email
-            }
-            
-            try:
-                resposta = requests.post(uxt_url, json=uxt_dados)
-                if resposta.status_code == 200:
-                    print(f"[UXT] Password reset email sent successfully to '{email}'.")
-                    messageType = 'success'
-                    message = 'If an account with that email exists, a password reset code has been sent.'
-                    return redirect(url_for('reset_password', id=user.user_id))
-                else:
-                    print(f"[UXT] Error sending password reset email (status {resposta.status_code}).")
-                    messageType = 'error'
+            result = uxt_service.request_password_reset(email)
+            if result["ok"]:
+                messageType = 'success'
+                message = 'If an account with that email exists, a password reset code has been sent.'
+                return redirect(url_for('reset_password', id=user.user_id))
+            else:
+                reason = result["reason"]
+                if reason == "connection":
+                    message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
+                elif reason == "timeout":
+                    message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
+                else:  # http or request
                     message = 'Error sending password reset email. Please try again later.'
-                    return render_template('forgot_password.html', message=message, messageType=messageType)
-            except requests.exceptions.ConnectionError:
-                print("[UXT] Connection error: Could not connect to UXTracking API")
                 messageType = 'error'
-                message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
-                return render_template('forgot_password.html', message=message, messageType=messageType)
-            except requests.exceptions.Timeout:
-                print("[UXT] Timeout error: UXTracking API request timed out")
-                messageType = 'error'
-                message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
-                return render_template('forgot_password.html', message=message, messageType=messageType)
-            except requests.exceptions.RequestException as e:
-                print(f"[UXT] Error sending password reset email: {str(e)}")
-                messageType = 'error'
-                message = 'Error sending password reset email. Please try again later.'
                 return render_template('forgot_password.html', message=message, messageType=messageType)
         else:
             messageType = 'success'
@@ -440,44 +313,31 @@ def reset_password(id):
         print(f"[UXT] User: {user.email if user else 'None'}")
         
         if user and newPassword and code:
-            uxt_url = 'https://uxt-stage.liis.com.br/auth/reset-password'
-            
-            uxt_dados = {
-                "email": user.email,
-                "code": code,
-                "newPassword":newPassword,
-                "confirmNewPassword": newPassword
-            }
-            
-            try:
-                resposta = requests.post(uxt_url, json=uxt_dados)
-                if resposta.status_code == 200:
-                    print(f"[UXT] Password reset successfully for '{user.email}'.")
-                    user.set_password(newPassword)
-                    db.session.commit()
-                    messageType = 'success'
-                    message = 'Your password has been reset successfully. You can now sign in.'
-                    return redirect(url_for('signin'))
-                else:
-                    print(f"[UXT] Error resetting password (status {resposta.status_code}).")
+            result = uxt_service.reset_password(user.email, code, newPassword)
+            if result["ok"]:
+                user.set_password(newPassword)
+                db.session.commit()
+                messageType = 'success'
+                message = 'Your password has been reset successfully. You can now sign in.'
+                return redirect(url_for('signin'))
+            else:
+                reason = result["reason"]
+                if reason == "http":
                     messageType = 'error'
                     message = 'Error resetting password. Please check the code and try again.'
                     return render_template('reset_password.html', message=message, id=id)
-            except requests.exceptions.ConnectionError:
-                print("[UXT] Connection error: Could not connect to UXTracking API")
-                messageType = 'error'
-                message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
-                return render_template('reset_password.html', message=message, id=id)
-            except requests.exceptions.Timeout:
-                print("[UXT] Timeout error: UXTracking API request timed out")
-                messageType = 'error'
-                message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
-                return render_template('reset_password.html', message=message, id=id)
-            except requests.exceptions.RequestException as e:
-                print(f"[UXT] Error resetting password: {str(e)}")
-                messageType = 'error'
-                message = 'Error resetting password. Please try again later.'
-                return render_template('reset_password.html', message=message, id=id, messageType=messageType)
+                elif reason == "connection":
+                    messageType = 'error'
+                    message = 'Unable to connect to UXTracking service. Please check your internet connection and try again.'
+                    return render_template('reset_password.html', message=message, id=id)
+                elif reason == "timeout":
+                    messageType = 'error'
+                    message = 'UXTracking service is taking too long to respond. Please try again in a few minutes.'
+                    return render_template('reset_password.html', message=message, id=id)
+                else:  # request
+                    messageType = 'error'
+                    message = 'Error resetting password. Please try again later.'
+                    return render_template('reset_password.html', message=message, id=id, messageType=messageType)
         else:
             messageType = 'error'
             message = 'Invalid request. Please try again.'

@@ -34,10 +34,10 @@ As integrações tracejadas são **opcionais e controladas por flags** — o fra
 
 ## Componentes
 
-| Componente | Pasta | Descrição |
-|------------|-------|-----------|
-| **Backend Flask** | [`tet-website/`](tet-website/) | Aplicação web (MVC) com API REST, autenticação, gestão de avaliações e dashboards analíticos server-rendered (Jinja2 + JS estático) |
-| **Extensão Chrome** | [`tet-extension/`](tet-extension/) | Extensão Manifest V3 usada pelos desenvolvedores para executar as tarefas da avaliação, com tracking de navegação e questionários |
+| Componente                 | Pasta                               | Descrição                                                                                                                                  |
+| -------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Backend Flask**    | [`tet-website/`](tet-website/)     | Aplicação web (MVC) com API REST, autenticação, gestão de avaliações e dashboards analíticos server-rendered (Jinja2 + JS estático) |
+| **Extensão Chrome** | [`tet-extension/`](tet-extension/) | Extensão Manifest V3 usada pelos desenvolvedores para executar as tarefas da avaliação, com tracking de navegação e questionários      |
 
 ## Início rápido
 
@@ -80,17 +80,17 @@ Instruções detalhadas e troubleshooting: [`tet-website/README.md`](tet-website
 
 Duas flags independentes no `.env` (lidas por [`tet-website/config_flags.py`](tet-website/config_flags.py)):
 
-| Flag | Default | Efeito |
-|------|---------|--------|
-| `DEV_MODE` | `False` | `True`: contas nascem verificadas (não precisa de SMTP). `False`: verificação por email obrigatória. |
-| `UXT_INTEGRATION` | `True` | `True`: integra com a API externa do UX-Tracking (contas, heatmaps, códigos de avaliação). `False`: modo 100% local — signup/login não chamam a API, heatmaps mostram aviso de "integração desativada", reset de senha fica indisponível e os códigos são gerados localmente. |
+| Flag                | Default   | Efeito                                                                                                                                                                                                                                                                                      |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEV_MODE`        | `False` | `True`: contas nascem verificadas (não precisa de SMTP). `False`: verificação por email obrigatória.                                                                                                                                                                                |
+| `UXT_INTEGRATION` | `True`  | `True`: integra com a API externa do UX-Tracking (contas, heatmaps, códigos de avaliação). `False`: modo 100% local — signup/login não chamam a API, heatmaps mostram aviso de "integração desativada", reset de senha fica indisponível e os códigos são gerados localmente. |
 
-| Combinação | Uso típico |
-|------------|-----------|
-| `DEV_MODE=True` + `UXT_INTEGRATION=False` | **Desenvolvimento local completo** (zero dependências externas) |
-| `DEV_MODE=True` + `UXT_INTEGRATION=True` | Dev com heatmaps reais do UX-Tracking |
-| `DEV_MODE=False` + `UXT_INTEGRATION=True` | **Produção** |
-| `DEV_MODE=False` + `UXT_INTEGRATION=False` | Produção sem UX-Tracking (heatmaps desativados) |
+| Combinação                                   | Uso típico                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `DEV_MODE=True` + `UXT_INTEGRATION=False`  | **Desenvolvimento local completo** (zero dependências externas) |
+| `DEV_MODE=True` + `UXT_INTEGRATION=True`   | Dev com heatmaps reais do UX-Tracking                                  |
+| `DEV_MODE=False` + `UXT_INTEGRATION=True`  | **Produção**                                                   |
+| `DEV_MODE=False` + `UXT_INTEGRATION=False` | Produção sem UX-Tracking (heatmaps desativados)                      |
 
 ## Fluxo de avaliação
 
