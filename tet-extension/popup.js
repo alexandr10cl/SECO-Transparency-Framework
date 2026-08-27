@@ -28,6 +28,9 @@ let data_collection = {
   "navigation" : [] // Store all navigation events
 }
 let tasks_data = [];   // Armazena as respostas para envio
+let question_data = []; // usa let porque pode ser que eu tenha que reatribuir a variaveldepois, 
+// array armanzena as duvidas recebidas, entao quando comeca a avaliacao ta como null = nenhim,a registrada
+let nextQuestionId = 1 // variavel guarda qual vai ser o id da proxima duvida criada
 let todo_tasks = [];   // Armazena as tasks recebidas em formato de objeto para serem feitas
 let processes = []; // Cada processo tem tarefas e perguntas do review
 let currentProcessIndex = 0;
@@ -71,6 +74,43 @@ function resolveCurrentTaskId() {
   }
 
   return null;
+}
+
+function addQuestion(text) { // o parametro text indica que pra executar a funcao, eh necessario receber o texto da duvida
+  const taskId = resolveCurrentTaskId(); // cria a constante task puxando o valor que indica a task atual com a funcao criada no codigo
+  const process = processes[currentProcessIndex]; // queremos registrar na pergunta process_id e task_id e nao um so, pra saber a rota certinha feita pelo usuario
+  if (!taskId || !process) { // traducao: se nao existir id de tarefa ou processo
+    console.error("n existe tarefa ou processo atuaç") // imprime mensagem de erro no console
+    return; // como nao tem nenhum valor (nem null), a funcao so eh encerrada, entao nao vamo registrar dados incompletos/sujos
+  }
+  const question = {
+    id: nextQuestionId,
+    task_id: taskId,
+    process_id: process.process_id,
+    text: text,
+    status: "open"
+  };
+
+  questions_data.push(question); // push serve p adicionar a duvida
+  nextQuestionId++; // aumenta a contagem da variavel pra que a proxima duvida seja enumerada corretamente
+}
+
+function getCurrentTaskQuestions() { // funcao pra puxar as duvidas da task atual do usuario
+  const taskId = resolveCurrentTaskId();
+  if (!taskId) {
+    return []; // array em vez de nada porque a intencao eh devolver lista de duvidas, o array vazio mostra que a lista ta vazua
+  } // mesmos acontecimentos da anterior, mas sem puxar processo atual dessa vez, ja que nao precisamos do id dele
+
+  const currentQuestions = []; // armazena temporariamente as duvdas da tarefa atual
+
+  for (let i = 0; i < questions_data.lenght; // enquanro a variavel criada for menor que o tamanho do array de perguntas
+    i++) { // incrementa
+    if (questions_data[i].task_id === taskId) { // pega o objeto da duvida na posicao indicada e acessa o task_id 
+    // depois compara se o id da tarefa da duvida eh exatamente igual ao id da tarefa atual ou nao
+      currentQuestions.push(questions_data[i]); // adiciona a duvida que passou na comparacao ao final do array currentQuestions
+    }
+  }
+  return currentQuestions; // devolve o array ja filtrado com as duvidas da tarefa atual só
 }
 
 function recordNavigationEvent({
@@ -480,6 +520,16 @@ function renderAll() {
             </div>
             <p id="pendingText${task.task_id}" class="pending-tasks-text" style="margin-bottom:10px;">You still have pending scenarios. Click the button to get started.</p>
             <button id="startTask${task.task_id}Button">Start Scenario</button>
+            
+            <p id="questionsText${task.task_id}" style="display:none; color: #1E3A8A">
+            Post any questions regarding the scenario here: 
+            </p>
+
+            <button class="task-btn" id="questionsTask${task.task_id}Button" style="display:none;" type="button">
+            <span class="material-symbols-outlined icon-botao">help</span>
+            Your Questions
+            </button>
+
             <p id="taskInstructions${task.task_id}" style="display:none; color: #1E3A8A;">Do you believe you have achieved the goal of this scenario?</p>
             <button class="task-btn" id="finishTask${task.task_id}Button" style="display:none">
               <span class="material-symbols-outlined icon-botao">check</span>
@@ -606,6 +656,9 @@ function attachListenersAll() {
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
         document.getElementById(`taskInstructions${task.task_id}`).style.display = "block";
 
+        document.getElementById(`questionsText${task.task_id}`).style.display = "block";
+        document.getElementById(`questionsTask${task.task_id}Button`).style.display = "flex";
+
         // Esconde o texto de pendentes e o botão Start
         document.getElementById(`pendingText${task.task_id}`).style.display = "none";
         document.getElementById(`startTask${task.task_id}Button`).style.display = "none";
@@ -614,7 +667,7 @@ function attachListenersAll() {
           `finishTask${task.task_id}Button`,
           `notSureTask${task.task_id}Button`,
           `couldntSolveTask${task.task_id}Button`
-        ].forEach(id => document.getElementById(id).style.display = "inline-block");
+        ].forEach(id => document.getElementById(id).style.display = "flex");
 
         currentPhase = "task";
         updateDisplay();

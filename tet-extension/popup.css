@@ -824,6 +824,11 @@ button:disabled {
   color: #2563EB;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   transition: color 0.2s ease;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* Muda a cor do ícone quando o botão está em hover */
@@ -1391,4 +1396,9 @@ button:disabled {
   font-size: 0.75rem;
   color: #6b7280;
   line-height: 1.4;
+}
+
+.questions-text {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
 }
