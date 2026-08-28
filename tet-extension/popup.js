@@ -113,6 +113,13 @@ function getCurrentTaskQuestions() { // funcao pra puxar as duvidas da task atua
   return currentQuestions; // devolve o array ja filtrado com as duvidas da tarefa atual só
 }
 
+function openQuestionsPage() { // funcao pra abrir a pagina de my questions apos o clique no botao
+  const tasksContainer = document.getElementById("taskscontainer"); // declara a variavel e procura o elemento do container do html
+  const questionsPage = document.getElementById("questionsPage"); // mesma coisa mas com o questionsPage do html
+  tasksContainer.style.display = "none";  //  esconde o container de tarefas
+  questionsPage.styel.display = "block"; // faz a pagina de duvs aparecer
+}
+
 function recordNavigationEvent({
   action = "pageNavigation",
   url,
@@ -656,6 +663,7 @@ function attachListenersAll() {
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
         document.getElementById(`taskInstructions${task.task_id}`).style.display = "block";
 
+        // mostr a texto de duvidas e o botao "my questions"
         document.getElementById(`questionsText${task.task_id}`).style.display = "block";
         document.getElementById(`questionsTask${task.task_id}Button`).style.display = "flex";
 
