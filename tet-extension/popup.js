@@ -5,6 +5,7 @@ let final_questionnaire_page = document.querySelector(".final_questionnaire_page
 let login_page = document.querySelector(".login_page");
 let sync_page = document.querySelector(".sync_page");
 let overlay = document.getElementById('overlay');
+let duvidas_botao = document.getElementsByName("duvidas-botao");
 
 // API Configuration
 // Change isDevelopment to false for production deployment
@@ -117,7 +118,7 @@ function openQuestionsPage() { // funcao pra abrir a pagina de my questions apos
   const tasksContainer = document.getElementById("taskscontainer"); // declara a variavel e procura o elemento do container do html
   const questionsPage = document.getElementById("questionsPage"); // mesma coisa mas com o questionsPage do html
   tasksContainer.style.display = "none";  //  esconde o container de tarefas
-  questionsPage.styel.display = "block"; // faz a pagina de duvs aparecer
+  questionsPage.style.display = "block"; // faz a pagina de duvs aparecer
 }
 
 function recordNavigationEvent({
@@ -532,7 +533,7 @@ function renderAll() {
             Post any questions regarding the scenario here: 
             </p>
 
-            <button class="task-btn" id="questionsTask${task.task_id}Button" style="display:none;" type="button">
+            <button class="task-btn" name="duvidas-botao" id="questionsTask${task.task_id}Button" style="display:none;" type="button">
             <span class="material-symbols-outlined icon-botao">help</span>
             Your Questions
             </button>
@@ -714,6 +715,17 @@ function attachListenersAll() {
         });
       });
 
+      const questionsButton = document.getElementById(
+        `questionsTask${task.task_id}Button`
+      );
+
+      if (questionsButton) {
+        questionsButton.addEventListener("click", function () {
+          openQuestionsPage();
+        });
+      }
+
+
       // Next: salvar resposta e avançar
       document.getElementById(`task${task.task_id}ReviewButton`).addEventListener("click", () => {
         saveTaskAnswer(proc.process_id, task.task_id);
@@ -853,6 +865,10 @@ function updateDisplay() {
         updateProgressBar();
         document.getElementById("progressBarContainer").style.display = "block";
       }
+    break;
+
+    case "questions": 
+      openQuestionsPage()
     break;
 
     case "review":
