@@ -5,7 +5,7 @@ let final_questionnaire_page = document.querySelector(".final_questionnaire_page
 let login_page = document.querySelector(".login_page");
 let sync_page = document.querySelector(".sync_page");
 let overlay = document.getElementById('overlay');
-let duvidas_botao = document.getElementsByName("duvidas-botao");
+let questions_page = document.getElementById("questionsPage");
 
 // API Configuration
 // Change isDevelopment to false for production deployment
@@ -721,7 +721,8 @@ function attachListenersAll() {
 
       if (questionsButton) {
         questionsButton.addEventListener("click", function () {
-          openQuestionsPage();
+          currentPhase = "questions";
+          updateDisplay();
         });
       }
 
@@ -826,6 +827,7 @@ function updateDisplay() {
   sync_page.style.display = "none";
   final_questionnaire_page.style.display = "none";
   finalpage.style.display = "none";
+  questions_page.style.display = "none";
   document.getElementById("progressBarContainer").style.display = "none";
   document.querySelectorAll(".taskbox-container").forEach(el => el.style.display = "none");
 
