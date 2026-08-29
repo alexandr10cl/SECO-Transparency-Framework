@@ -31,9 +31,10 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Feature flags (see config_flags.py and .env.example)
-from config_flags import DEV_MODE, UXT_INTEGRATION
+from config_flags import DEV_MODE, UXT_INTEGRATION, AI_ANALYSIS, AI_ALLOW_REGENERATE
 app.logger.warning(
-    "Startup flags: DEV_MODE=%s | UXT_INTEGRATION=%s", DEV_MODE, UXT_INTEGRATION
+    "Startup flags: DEV_MODE=%s | UXT_INTEGRATION=%s | AI_ANALYSIS=%s (regenerate=%s)",
+    DEV_MODE, UXT_INTEGRATION, AI_ANALYSIS, AI_ALLOW_REGENERATE
 )
 
 # Importing views
@@ -42,6 +43,7 @@ from views.pages import *
 from views.auth import *
 from views.admin import *
 from views.api import *
+from views.ai_analysis import *
 from external.tasks import *
 from views import pages, auth  # We gebruiken pages.py voor de API endpoints
 
