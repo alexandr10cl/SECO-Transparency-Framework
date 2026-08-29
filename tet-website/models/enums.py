@@ -35,3 +35,19 @@ class SECOType(Enum):
     OPEN_SOURCE = "OPEN_SOURCE"
     HYBRID = "HYBRID"
     PROPRIETARY = "PROPRIETARY"
+
+class AIAnalysisStatus(Enum):
+    """Estado da analise da IA de uma avaliacao. RUNNING funciona como lock:
+    enquanto ele estiver posto, schedule() nao submete outra execucao."""
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    DONE = "DONE"
+    ERROR = "ERROR"
+
+class AIReviewStatus(Enum):
+    """Decisao do gestor sobre um finding ou uma action.
+
+    """
+    NEW = "NEW"
+    ACCEPTED = "ACCEPTED"
+    DISMISSED = "DISMISSED"
