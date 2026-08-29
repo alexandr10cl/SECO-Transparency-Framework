@@ -3,6 +3,9 @@
 {% block head %}
  {# <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/static/css/main.6328a2c2.css') }}"> #}
  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+ {% if ai_analysis_enabled %}
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/ai_analysis.css') }}">
+ {% endif %}
  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 {% endblock %}
 
@@ -34,34 +37,38 @@
     <div class="evaluation-info">
         <div class="evaluation-info-card">
             <h3>Evaluated portal</h3>
-            <h2>{{ ePortal }}</h2>
+            {# id: gancho estavel para o portalName() da camada de IA (ai_analysis.js) #}
+            <h2 id="evaluation-portal-name">{{ ePortal }}</h2>
         </div>
-        <!-- <div class="evaluation-info-card">
-            <h3>Evaluation Date</h3>
-            <h2>23/10/2025 - 23/11/2025</h2>
-        </div> -->
         <div class="evaluation-info-card">
             <h3>Participants</h3>
             <h2>{{ count_collected_data }}</h2>
         </div>
-        <div class="evaluation-info-card objective-card">
-            <h3>Initial Objective</h3>
-            {% if eManagerObjective %}
-                <h2 class="objective-content">{{ eManagerObjective }}</h2>
+        <div class="evaluation-info-card">
+            <h3>Evaluation Period</h3>
+            {% if eEvaluationPeriod %}
+                <h2 class="period-value">{{ eEvaluationPeriod }}</h2>
             {% else %}
-                <h2 class="objective-content no-objective">No objective defined</h2>
+                <h2 class="period-value is-empty">No data collected yet</h2>
             {% endif %}
         </div>
-        <!-- <div class="evaluation-info-card">
-            <h3>Transparency Score</h3>
-            <h2>82%</h2>
-        </div> -->
+    </div>
+
+    <div class="eval-objective">
+        <p class="eval-eyebrow">Objective</p>
+        {% if eManagerObjective %}
+            <p class="eval-objective-text">{{ eManagerObjective }}</p>
+        {% else %}
+            <p class="eval-objective-text is-empty">No objective was set for this evaluation.</p>
+        {% endif %}
     </div>
 
     <div class="dashboard-navbar">
         <ul>
             <li class="active">Overview</li>
+            {% if ai_analysis_enabled %}<li>Findings</li>{% endif %}
             <li>Evaluated Scenarios</li>
+            {% if ai_analysis_enabled %}<li>Action Plan</li>{% endif %}
             <li>Hotspots</li>
         </ul>
     </div>
@@ -482,7 +489,8 @@
                                             </thead>
                                             <tbody>
                                                 {% for ksc in g_result.key_success_criteria %}
-                                                <tr>
+                                                {# data-ksc-id: alvo do link "View in Evaluated Scenarios" vindo da aba Findings #}
+                                                <tr data-ksc-id="{{ ksc.ksc_id }}">
                                                     <td class="ksc-name">
                                                         <span class="ksc-name-clickable"
                                                               onclick="openKscModal('{{ ksc.title|replace("'", "\\'") }}', '{{ ksc.description|replace("'", "\\'")|replace("\n", " ")|replace("\r", "") }}', {{ ksc.porcentagem|round|int }}, {{ ksc.weight }}, '{{ ksc.insight|replace("'", "\\'")|replace("\n", " ")|replace("\r", "") }}')">
@@ -742,6 +750,73 @@
         </div>
     </div>
 
+    {% if ai_analysis_enabled %}
+    <!-- Modal: diretriz/KSC completa por tras da tag de ancora de um finding -->
+    <div id="aiKscAnchorModal" class="modal">
+        <div class="modal-content ksc-modal-content">
+            <div class="modal-header">
+                <h2 id="aiKscAnchorModalTitle">Success Criterion Details</h2>
+                <span class="close-modal" onclick="closeAiKscAnchorModal()">&times;</span>
+            </div>
+            <div class="modal-body ksc-modal-body">
+                <div class="ksc-detail-section">
+                    <h3>Guideline</h3>
+                    <p id="aiKscAnchorModalGuideline" class="ksc-detail-value"></p>
+                </div>
+                <div class="ksc-detail-section">
+                    <h3>Key Success Criterion</h3>
+                    <p id="aiKscAnchorModalName" class="ksc-detail-value"></p>
+                </div>
+                <div class="ksc-detail-section">
+                    <h3>Description</h3>
+                    <p id="aiKscAnchorModalDescription" class="ksc-detail-description"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FINDINGS (AI analytical layer) ==================== -->
+    <div class="findings-container">
+        <div class="ai-card">
+            <div class="ai-header">
+                <div>
+                    <h2>Findings</h2>
+                    <p>Transparency problems identified from the collected data. Every finding is
+                       anchored to a Key Success Criterion of the framework and carries the evidence
+                       that supports it — open "Evidence" on any card to reach the original records.</p>
+                </div>
+                <div class="ai-controls" data-ai-controls></div>
+            </div>
+            <hr class="task-heatmap-divider">
+            <div class="ai-state" data-ai-state></div>
+            <div class="ai-findings-layout">
+                <div class="ai-finding-list" id="findingList"></div>
+                <div class="ai-finding-detail" id="findingDetail"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ACTION PLAN (AI analytical layer) ==================== -->
+    <div class="actionplan-container">
+        <div class="ai-card">
+            <div class="ai-header">
+                <div>
+                    <h2>Action Plan</h2>
+                    <p>What to do about the findings, ordered by a priority the system computes from
+                       the evidence — not estimated by the model. One action can resolve several
+                       findings at once.</p>
+                </div>
+                <div class="ai-controls" data-ai-controls></div>
+            </div>
+            <hr class="task-heatmap-divider">
+            <div class="ai-state" data-ai-state></div>
+            <div class="ai-actions-layout">
+                <div class="ai-action-queue" id="actionsRoot"></div>
+                <aside class="ai-plan-panel" id="planPanel"></aside>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 </div>
 
@@ -753,6 +828,9 @@
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
     <script src="{{ url_for('static', filename='js/hotspots_heatmaps.js') }}"></script>
+    {% if ai_analysis_enabled %}
+    <script src="{{ url_for('static', filename='js/ai_analysis.js') }}"></script>
+    {% endif %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.percentage-bar .bar-fill').forEach(function (el) {
@@ -778,6 +856,19 @@
             document.getElementById('scenarioModal').style.display = 'none';
         }
 
+        // AI Finding — KSC Anchor Modal Functions
+        function openAiKscAnchorModal(guidelineId, guidelineTitle, kscId, kscTitle, description) {
+            var guidelineText = 'G' + guidelineId + (guidelineTitle ? ' — ' + guidelineTitle : '');
+            document.getElementById('aiKscAnchorModalGuideline').textContent = guidelineText;
+            document.getElementById('aiKscAnchorModalName').textContent = 'KSC ' + kscId + ' — ' + kscTitle;
+            document.getElementById('aiKscAnchorModalDescription').textContent = description || 'No description available.';
+            document.getElementById('aiKscAnchorModal').style.display = 'block';
+        }
+
+        function closeAiKscAnchorModal() {
+            document.getElementById('aiKscAnchorModal').style.display = 'none';
+        }
+
         // Add click handlers to scenario cards
         document.querySelectorAll('.scenario-card').forEach(function(card) {
             card.addEventListener('click', function() {
@@ -794,6 +885,10 @@
             if (event.target == modal) {
                 modal.style.display = 'none';
             }
+            var kscAnchorModal = document.getElementById('aiKscAnchorModal');
+            if (kscAnchorModal && event.target == kscAnchorModal) {
+                kscAnchorModal.style.display = 'none';
+            }
         });
 
         // Close modal with ESC key
@@ -802,6 +897,10 @@
                 var modal = document.getElementById('scenarioModal');
                 if (modal.style.display === 'block') {
                     closeScenarioModal();
+                }
+                var kscAnchorModal = document.getElementById('aiKscAnchorModal');
+                if (kscAnchorModal && kscAnchorModal.style.display === 'block') {
+                    closeAiKscAnchorModal();
                 }
             }
         });

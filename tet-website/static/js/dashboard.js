@@ -32,9 +32,13 @@ setTimeout(function() {
 }, 10000);
 
 const navItems = document.querySelectorAll(".dashboard-navbar ul li");
+  // A chave é o texto exato do <li> na navbar. Abas da camada de IA só existem no DOM
+  // quando AI_ANALYSIS=True; querySelector devolve null e o loop abaixo já trata isso.
   const containers = {
     "Overview": document.querySelector(".overview-container"),
+    "Findings": document.querySelector(".findings-container"),
     "Evaluated Scenarios": document.querySelector(".evaluated-scenarios-container"),
+    "Action Plan": document.querySelector(".actionplan-container"),
     "Hotspots": document.querySelector(".hotspots-container"),
 };
 

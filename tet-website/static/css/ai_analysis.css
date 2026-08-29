@@ -1,0 +1,1092 @@
+/* ==========================================
+   CAMADA ANALITICA DE IA — abas Findings e Action Plan
+   ==========================================
+   Arquivo separado do dashboard.css de proposito: aquele ja tem 4.500 linhas. Aqui
+   reusamos os mesmos tokens (--border, --card, --muted) e a mesma receita de card, entao
+   as abas novas pertencem visualmente ao dashboard sem herdar o arquivo.
+
+   So carrega quando AI_ANALYSIS=True (ver dashboard.html), entao a sobrescrita da navbar
+   logo abaixo — que so faz sentido com as duas abas extras — mora aqui em vez de mexer
+   no dashboard.css.
+*/
+
+/* O layout original da navbar supunha 3 abas (dashboard.css:161, max-width:600px). Com
+   Findings e Action Plan somados, os itens espremem e "Action Plan" quebra em duas
+   linhas dentro do <li>. */
+.dashboard-navbar {
+    max-width: 100%;
+    width: fit-content;
+}
+
+.dashboard-navbar ul {
+    flex-wrap: nowrap;
+}
+
+.dashboard-navbar li {
+    flex: none;
+    white-space: nowrap;
+}
+
+/* As duas abas entram no mesmo esquema de exibicao das outras (dashboard.css:201). */
+.findings-container,
+.actionplan-container {
+    display: none;
+}
+
+.findings-container.active-container,
+.actionplan-container.active-container {
+    display: block;
+}
+
+.ai-card {
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.08),
+        0 8px 16px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    background-color: hsl(var(--card));
+}
+
+/* ---------- cabecalho da aba ---------- */
+
+.ai-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.ai-header h2 {
+    margin: 0 0 6px;
+}
+
+.ai-header p {
+    margin: 0;
+    max-width: 70ch;
+    color: hsl(var(--muted-foreground));
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.ai-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    flex: none;
+}
+
+.ai-meta {
+    font-size: 12.5px;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+}
+
+.ai-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-model-select {
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 12.5px;
+    color: hsl(var(--foreground));
+    background: #fff;
+    cursor: pointer;
+}
+
+.ai-btn {
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--foreground));
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ai-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+/* ---------- avisos de estado ---------- */
+
+.ai-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted));
+    border-left: 3px solid hsl(var(--border));
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.ai-note-busy {
+    border-left-color: #2563eb;
+    background: #eff6ff;
+}
+
+.ai-note-error {
+    border-left-color: var(--critical-alert);
+    background: #fef2f2;
+}
+
+.ai-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #bfdbfe;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: ai-spin 0.8s linear infinite;
+    flex: none;
+}
+
+@keyframes ai-spin {
+    to { transform: rotate(360deg); }
+}
+
+.ai-empty {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+    border: 1px dashed hsl(var(--border));
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    max-width: 70ch;
+    margin: 0 auto;
+}
+
+/* ---------- badges de faixa ---------- */
+/* Classes semanticas por finalidade (confianca vs prioridade), nao por ancestral: elas
+   aparecem tanto dentro dos cards quanto nos itens da lista/backlog, contextos que nao
+   compartilham um container comum. A mesma faixa "HIGH" tem cores opostas nas duas
+   escalas de proposito: confianca alta e boa (verde), prioridade alta e urgente
+   (vermelho) — sao coisas diferentes que so coincidem no nome. */
+
+.ai-badge {
+    flex: none;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: 999px;
+    padding: 4px 11px;
+    white-space: nowrap;
+}
+
+.ai-conf-high   { background: #dcfce7; color: #166534; }
+.ai-conf-medium { background: #fef3c7; color: #92400e; }
+.ai-conf-low    { background: #f3f4f6; color: #4b5563; }
+
+.ai-prio-high    { background: var(--critical-alert); color: #fff; }
+.ai-prio-medium  { background: var(--warning-alert); color: #fff; }
+.ai-prio-low     { background: #e5e7eb; color: #4b5563; }
+
+.ai-highlight {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+}
+
+/* ---------- texto comum a finding e action ---------- */
+
+.ai-code {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #2563eb;
+    flex: none;
+}
+
+.ai-observation {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: #374151;
+}
+
+.ai-anchor {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ai-anchor:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+.ai-anchor .material-symbols-outlined {
+    font-size: 16px !important;
+}
+
+.ai-anchor-expand {
+    margin-left: 2px;
+    font-size: 14px !important;
+    opacity: 0.6;
+}
+
+.ai-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: 12.5px;
+    color: hsl(var(--muted-foreground));
+    padding-top: 12px;
+    border-top: 1px solid hsl(var(--border));
+}
+
+.ai-stats strong {
+    color: hsl(var(--foreground));
+}
+
+/* Metrica que precisa de glossario: o icone e o que torna o tooltip descobrivel — sem
+   ele ninguem passa o mouse por cima de um numero solto.
+   Tooltip proprio em vez do atributo `title` nativo: o nativo so aparece depois de ~1s
+   de mouse parado e nao responde a foco de teclado. */
+.ai-stat-help {
+    position: relative;
+    cursor: help;
+}
+
+.ai-stat-help::after {
+    content: attr(data-help);
+    position: absolute;
+    /* Acima do gatilho de proposito: .ai-card-item tem overflow:hidden e .ai-modal tem
+       overflow-y:auto, entao o tooltip fica preso a caixa. Para cima sobra espaco nos
+       dois casos (descricao da acao / campo Where); para baixo bate no rodape. */
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    width: max-content;
+    max-width: 240px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #1f2937;
+    color: #fff;
+    /* .ai-stats e o cabecalho do modal aplicam caixa-alta e tracking; o tooltip e prosa. */
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: normal;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+.ai-stat-help:hover::after,
+.ai-stat-help:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ai-stat-help:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ai-stat-help::after { transition: none; }
+}
+
+.ai-stat-info {
+    /* !important para vencer o .material-symbols-outlined global de 50px (dashboard.css). */
+    font-size: 14px !important;
+    color: hsl(var(--muted-foreground)) !important;
+    vertical-align: -3px;
+    margin-left: 3px;
+}
+
+.ai-link {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: #2563eb;
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
+
+.ai-link:hover {
+    text-decoration: underline solid;
+}
+
+/* =====================================================================
+   FINDINGS — master-detail (lista clicavel a esquerda, detalhe a direita)
+   Mesmo padrao de interacao da aba "Evaluated Scenarios" (dashboard.css:2476,
+   .scenarios-layout), com a linguagem visual do card branco + barra azul ativa.
+   ===================================================================== */
+
+.ai-findings-layout {
+    display: grid;
+    /* minmax(0, 1fr), nao 1fr puro: uma trilha 1fr nao encolhe abaixo do min-content dos
+       filhos, entao um token longo sem quebra dentro do detalhe (uma URL de evidencia,
+       por exemplo) podia forcar a grid inteira a estourar a largura da pagina. */
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.ai-finding-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 720px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ai-finding-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    border: 1px solid hsl(var(--border));
+    background: #fafbfc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+}
+
+.ai-finding-item:hover {
+    border-color: #2563eb;
+}
+
+.ai-finding-item.active {
+    background: #fff;
+    border-left: 3px solid #2563eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ai-finding-item .fi-code {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+}
+
+.ai-finding-item h4 {
+    margin: 0 0 8px;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    color: hsl(var(--foreground));
+}
+
+.fi-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+}
+
+.fi-meta > span:first-child {
+    background: #fff;
+    border: 1px solid hsl(var(--border));
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+
+.ai-finding-detail {
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px;
+    background: #fff;
+    padding: 26px 28px;
+    min-height: 100%;
+}
+
+.fd-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.fd-head h2 {
+    margin: 0;
+    flex: 1 1 280px;
+    font-size: 1.2rem;
+    line-height: 1.35;
+    color: hsl(var(--foreground));
+}
+
+.ai-finding-detail .ai-stats {
+    margin-bottom: 14px;
+}
+
+/* Os dois atalhos do finding lado a lado: a tag da diretriz (abre o modal do criterio) e
+   o chip que leva ate a linha desse KSC na aba Evaluated Scenarios. */
+.fd-anchors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.fd-anchors .ai-anchor {
+    margin-bottom: 0;
+}
+
+.fd-evidence {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid hsl(var(--border));
+}
+
+.fd-evidence-head {
+    margin-bottom: 4px;
+}
+
+.fd-evidence-head h5 {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+}
+
+.fd-evidence-count {
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* Metadado secundario: triangulacao (participantes/ocorrencias/itens + fontes), fora
+   das stats principais para nao competir visualmente com confidence/recurrence. */
+.fd-evidence-summary {
+    margin: 0 0 14px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+}
+
+/* Um bloco por tipo de evidencia agrupado (Task experience / Success criterion
+   assessment / Participant profile) — reduz a leitura "log de banco de dados" ao deixar
+   explicito como sinais heterogeneos convergem para o mesmo finding. */
+.ev-group {
+    margin-bottom: 18px;
+}
+
+.ev-group:last-of-type {
+    margin-bottom: 0;
+}
+
+.ev-group-title {
+    margin: 0 0 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+}
+
+.ev-group-count {
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+}
+
+/* Uma linha por evidencia — icone colorido por tipo de sinal, quem/onde, texto, e o ID
+   tecnico reduzido a um detalhe de rastreabilidade em vez de competir com o conteudo. */
+
+.ev-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f7;
+}
+
+.ev-row:last-of-type {
+    border-bottom: none;
+}
+
+.ev-icon {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ev-icon .material-symbols-outlined {
+    font-size: 16px !important;
+}
+
+.ev-task .ev-icon    { background: #eff6ff; color: #2563eb; }
+.ev-nav .ev-icon     { background: #f5f3ff; color: #7c3aed; }
+.ev-answer .ev-icon  { background: #fffbeb; color: #d97706; }
+.ev-profile .ev-icon,
+.ev-generic .ev-icon { background: #f0fdfa; color: #0d9488; }
+
+.ev-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+    row-gap: 2px;
+}
+
+.ev-who {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+}
+
+.ev-lead {
+    font-size: 12.5px;
+    color: #374151;
+}
+
+.ev-text {
+    flex: 1 1 100%;
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
+}
+
+/* So rastreabilidade — nao deve pesar mais que o conteudo da evidencia. */
+.ev-id {
+    flex: none;
+    align-self: flex-start;
+    font-family: Consolas, monospace;
+    font-size: 10px;
+    color: #b7bdc7;
+}
+
+/* Caminho inverso do "resolves F-01" do card de action: fecha o ciclo levando do problema
+   para a acao que o mitiga. Mesma receita visual do bloco de evidencias acima. */
+.fd-actions {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid hsl(var(--border));
+}
+
+.fd-actions h5 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+}
+
+.fd-action-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    font: inherit;
+    text-align: left;
+    background: #f9fafb;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.fd-action-link:last-child {
+    margin-bottom: 0;
+}
+
+.fd-action-link:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.fd-action-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: hsl(var(--foreground));
+}
+
+.fd-action-go {
+    flex: none;
+    font-size: 16px !important;
+    color: #2563eb;
+}
+
+/* Action descartada continua listada — o gestor precisa saber que ela existiu e foi
+   recusada, em vez de o finding parecer orfao de acao. */
+.fd-action-dismissed {
+    opacity: 0.55;
+}
+
+.fd-action-dismissed .fd-action-title {
+    text-decoration: line-through;
+}
+
+.fd-actions-empty {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+}
+
+/* Realce da linha do KSC na aba Evaluated Scenarios, disparado pelo chip do finding.
+   Nao reusa .ai-highlight: outline em <tr> nao renderiza de forma consistente entre
+   navegadores, entao o realce vai nas celulas. */
+.ksc-table tbody tr.ksc-row-highlight > td {
+    background-color: #eff6ff;
+    transition: background-color 0.3s ease;
+}
+
+.ksc-table tbody tr.ksc-row-highlight > td:first-child {
+    box-shadow: inset 3px 0 0 #2563eb;
+}
+
+@media (max-width: 1024px) {
+    .ai-findings-layout { grid-template-columns: 1fr; }
+    .ai-finding-list { max-height: none; }
+}
+
+/* =====================================================================
+   ACTION PLAN — fila de actions (compacta) + backlog a direita
+   ===================================================================== */
+
+.ai-actions-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 32px;
+    align-items: start;
+}
+
+.ai-card-item {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 12px;
+    background: #fff;
+    padding: 18px 20px 18px 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: opacity 0.2s ease;
+}
+
+.ai-card-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--success-alert);
+}
+
+/* Uma action descartada continua na fila, so esmaecida — nada some da tela. */
+.ai-action-dismissed {
+    opacity: 0.55;
+}
+
+.ai-action-dismissed::before {
+    background: hsl(var(--muted-foreground));
+}
+
+.ai-move-col {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding-left: 8px;
+}
+
+.ai-move-btn {
+    border: 1px solid hsl(var(--border));
+    background: #fafbfc;
+    border-radius: 6px;
+    width: 26px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground));
+}
+
+.ai-move-btn:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.ai-move-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.ai-move-btn .material-symbols-outlined {
+    font-size: 20px !important;
+}
+
+.ai-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.ai-card-head h3 {
+    margin: 0;
+    flex: 1 1 260px;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    color: hsl(var(--foreground));
+}
+
+.ai-action .ai-observation {
+    margin-bottom: 16px;
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+.ai-where {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 12px;
+    margin-bottom: 16px;
+}
+
+.ai-where strong {
+    color: hsl(var(--foreground));
+    margin-right: 2px;
+}
+
+.ai-where code {
+    font-family: Consolas, monospace;
+    font-size: 11px;
+    background: #f3f4f6;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    padding: 2px 8px;
+    color: #374151;
+    /* action.where pode trazer uma URL sem espacos; sem isso um token assim forcaria
+       a grid a estourar a largura da pagina mesmo com minmax(0, 1fr) na trilha. */
+    overflow-wrap: anywhere;
+}
+
+.ai-action .ai-stats {
+    padding-top: 14px;
+    margin-bottom: 16px;
+    gap: 8px 16px;
+}
+
+/* ---------- badges de decisao + rodape de acoes (Aprovar/Editar/Descartar) ---------- */
+
+.ai-decision-accepted { background: #dcfce7; color: #166534; }
+.ai-decision-dismissed { background: #f3f4f6; color: #6b7280; }
+
+.ai-action-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid hsl(var(--border));
+}
+
+.ai-btn-outline {
+    background: #fff;
+    color: hsl(var(--foreground));
+}
+
+.ai-btn-outline:hover {
+    background: #f9fafb;
+}
+
+.ai-btn-danger {
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.ai-btn-danger:hover {
+    background: #fef2f2;
+}
+
+.ai-btn-success {
+    background: var(--success-alert);
+    border-color: var(--success-alert);
+    color: #fff;
+}
+
+.ai-btn-success:hover {
+    filter: brightness(0.95);
+}
+
+/* backlog: painel fixo com o ranking por prioridade */
+
+.ai-plan-panel {
+    position: sticky;
+    top: 16px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 14px;
+    background: #fafbff;
+    padding: 20px;
+}
+
+.ai-plan-panel h3 {
+    margin: 0 0 2px;
+    font-size: 1.02rem;
+    color: hsl(var(--foreground));
+}
+
+.plan-portal {
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 10px;
+}
+
+.plan-meta {
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.plan-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    background: #fff;
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.plan-item:hover {
+    border-color: #2563eb;
+}
+
+.plan-rank {
+    flex: none;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    min-width: 14px;
+}
+
+.plan-item-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.plan-item-title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    line-height: 1.35;
+}
+
+.plan-item-chips {
+    font-size: 10.5px;
+    color: hsl(var(--muted-foreground));
+}
+
+.ai-export-btn {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.plan-note {
+    font-size: 11px;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+}
+
+/* Mesmo breakpoint da aba Findings (1024px) — as duas seguem o padrao de
+   .scenarios-layout (dashboard.css:2556) e nao ha motivo para empilhar em pontos
+   diferentes dentro do mesmo recurso. */
+@media (max-width: 1024px) {
+    .ai-actions-layout { grid-template-columns: 1fr; }
+    .ai-plan-panel { position: static; }
+}
+
+@media (max-width: 768px) {
+    .ai-card { padding: 24px 20px; }
+    .ai-controls { align-items: flex-start; width: 100%; }
+}
+
+/* =====================================================================
+   MODAL DE EDICAO — titulo/descricao/where de uma action. Card quadrado,
+   mesma linguagem visual do mockup (badge de prioridade, Impacto/Esforco,
+   Resolves, barra de botoes).
+   ===================================================================== */
+
+.ai-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+}
+
+.ai-modal-overlay.active {
+    display: flex;
+}
+
+.ai-modal {
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px;
+}
+
+.ai-modal .ai-card-head {
+    margin-bottom: 18px;
+}
+
+.ai-modal-icon {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: hsl(var(--muted-foreground));
+}
+
+.ai-modal-icon .material-symbols-outlined {
+    font-size: 16px !important;
+}
+
+.ai-field {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 16px;
+}
+
+.ai-field input,
+.ai-field textarea {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 9px 12px;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: hsl(var(--foreground));
+    resize: vertical;
+}
+
+.ai-field input:focus,
+.ai-field textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.ai-modal-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ai-modal-stat {
+    flex: 1;
+    border: 1px solid hsl(var(--border));
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-align: center;
+}
+
+.ai-modal-stat span {
+    display: block;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 4px;
+}
+
+.ai-modal-stat strong {
+    font-size: 15px;
+    color: hsl(var(--foreground));
+}
+
+.ai-modal-resolves {
+    font-size: 12.5px;
+    color: hsl(var(--muted-foreground));
+    margin-bottom: 16px;
+}
+
+.ai-modal-resolves strong {
+    color: hsl(var(--foreground));
+}
