@@ -121,6 +121,88 @@ function openQuestionsPage() { // funcao pra abrir a pagina de my questions apos
   questionsPage.style.display = "block"; // faz a pagina de duvs aparecer
 }
 
+//--------------------------------------------------------------------------------------------
+
+// PLACEHOLDER:Botão de voltar da página de duvidas para a tarefa
+document.getElementById("questionsBackButton").addEventListener("click", function () {
+    document.getElementById("taskscontainer").style.display = "block";    // exibe novamente o container da tarefa anterios que foi escondido 
+    currentPhase = "task";     // volta a currentPhase para a tarefa atual
+    updateDisplay(); // chama a função que atualiza a exibição da interface
+});
+
+//calcula o tempo decorrido desde o início da tarefa atual e retorna em formato mm:ss
+function getTaskElapsedTime() {
+  if (!taskStartTime) return "00:00";
+  
+  const elapsedMs = new Date() - new Date(taskStartTime);
+  const totalSeconds = Math.floor(elapsedMs / 1000);
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  
+  return `${minutes}:${seconds}`;
+}
+
+//listener para o botão de sendQuestionButton 
+document.addEventListener("DOMContentLoaded", function () {
+	//document é a pagina do HTML
+	//addEventListener é um "ouvinte de eventos"
+	//DOMContentLoaded faz o listener esperar o HTML ser totalmente carregado
+	//function() uma função que não recebe nenhum parametro para executar o que tem dentro
+
+    const sendButton = document.getElementById("sendQuestionButton");
+	    //const Cria uma variável fixa
+	    //getElementById("...") Ppocura e seleciona no HTML um elemento específico através do seu id
+	
+
+    if (sendButton) { //SE o botão sendButton existir 
+        sendButton.addEventListener("click", function () {//adiciona um Listener para quando o botão é clicado que executa uma função
+          
+            const input = document.getElementById("newQuestionInput"); //pega no HTML o elemento do textarea 
+            if (!input) return; //SE o elemento não existir, a função é encerrada
+
+            const questionText = input.value.trim(); //Limpa os espaços em branco extras do início e do fim do texto para evitar mensagens vazias
+            if (!questionText) return; //SE o texto da pergunta estiver vazio, a função é encerrada
+
+            const progressElement = document.getElementById("progressText"); //busca o texto do progresso de scenario
+            const progressText = progressElement ? progressElement.textContent : ""; //lê o conteúdo. Se ele não existir, retorna uma string vazia
+            const match = progressText.match(/\d+/); //pega o primeiro número do texto do cabeçalho
+            const scenarioNum = match ? match[0] : 1; //se encontra um numero usa esse valor, se não usa 1 como padrão
+
+            const questionData = { //agrupar as informações da dúvida
+                scenarioNumber: scenarioNum, //numero do scenario
+                text: questionText, //texto inserido pelo usuario
+                time: typeof getTaskElapsedTime === "function" ? getTaskElapsedTime() : "00:00" // usa o tempo decorrido do timer
+            };
+
+            displayQuestionOnScreen(questionData); //chama a função que renderiza a dúvida na tela
+
+            input.value = "";
+        });
+    }
+
+});
+
+//carrega a duvida na tela 
+function displayQuestionOnScreen(data) {
+    const container = document.getElementById("questionsList"); //pega no HTML a área da lista de duvidas
+    if (!container) return; //se não achar, para a função
+
+    const card = document.createElement("div"); //cria uma nova div 
+    card.className = "question-card"; //adiciona a classe no css question-card
+    //adiciona esse trexo de html com a nova duvida 
+    card.innerHTML = `
+        <div class="question-header">
+            <h4>Scenario #${data.scenarioNumber}</h4>
+            <span class="question-time">${data.time}</span>
+        </div>
+        <p class="question-text">${data.text}</p>
+    `;
+
+    container.appendChild(card);
+}
+
+//--------------------------------------------------------------------------------------------
+
 function recordNavigationEvent({
   action = "pageNavigation",
   url,
