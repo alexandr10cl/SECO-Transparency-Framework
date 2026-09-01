@@ -26,7 +26,8 @@ let data_collection = {
   "performed_tasks" : [],
   "profile_questionnaire" : {},
   "final_questionnaire" : {},
-  "navigation" : [] // Store all navigation events
+  "navigation" : [], // Store all navigation events
+  "questions" : [] // Guarda as duvidas do usuario
 }
 let tasks_data = [];   // Armazena as respostas para envio
 let question_data = []; // usa let porque pode ser que eu tenha que reatribuir a variaveldepois, 
@@ -119,11 +120,37 @@ function openQuestionsPage() { // funcao pra abrir a pagina de my questions apos
   const questionsPage = document.getElementById("questionsPage"); // mesma coisa mas com o questionsPage do html
   tasksContainer.style.display = "none";  //  esconde o container de tarefas
   questionsPage.style.display = "block"; // faz a pagina de duvs aparecer
+
+  renderCurrentScenarioQuestions(); //exibe apenas as duvidas do scenario atual
+}
+
+function renderCurrentScenarioQuestions() {
+  const container = document.getElementById("questionsList");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const currentQuestions = data_collection.questions.filter(
+    q => String(q.scenarioNumber) === String(getCurrentScenarioNumber())
+  );
+
+  currentQuestions.forEach(questionData => {
+    displayQuestionOnScreen(questionData);
+  });
+}
+
+function getCurrentScenarioNumber() {
+  //Identifica o número do cenário atual
+  const progressElement = document.getElementById("progressText");
+  const progressText = progressElement ? progressElement.textContent : "";
+  const match = progressText.match(/\d+/);
+
+  return match ? match[0] : 1;
 }
 
 //--------------------------------------------------------------------------------------------
 
-// PLACEHOLDER:Botão de voltar da página de duvidas para a tarefa
+//PLACEHOLDER:Botão de voltar da página de duvidas para a tarefa
 document.getElementById("questionsBackButton").addEventListener("click", function () {
     document.getElementById("taskscontainer").style.display = "block";    // exibe novamente o container da tarefa anterios que foi escondido 
     currentPhase = "task";     // volta a currentPhase para a tarefa atual
@@ -163,17 +190,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const questionText = input.value.trim(); //Limpa os espaços em branco extras do início e do fim do texto para evitar mensagens vazias
             if (!questionText) return; //SE o texto da pergunta estiver vazio, a função é encerrada
 
-            const progressElement = document.getElementById("progressText"); //busca o texto do progresso de scenario
-            const progressText = progressElement ? progressElement.textContent : ""; //lê o conteúdo. Se ele não existir, retorna uma string vazia
-            const match = progressText.match(/\d+/); //pega o primeiro número do texto do cabeçalho
-            const scenarioNum = match ? match[0] : 1; //se encontra um numero usa esse valor, se não usa 1 como padrão
-
             const questionData = { //agrupar as informações da dúvida
-                scenarioNumber: scenarioNum, //numero do scenario
+                scenarioNumber: getCurrentScenarioNumber(), //numero do scenario
                 text: questionText, //texto inserido pelo usuario
                 time: typeof getTaskElapsedTime === "function" ? getTaskElapsedTime() : "00:00" // usa o tempo decorrido do timer
             };
 
+            data_collection.questions.push(questionData); //salva a duvida no array de dados 
             displayQuestionOnScreen(questionData); //chama a função que renderiza a dúvida na tela
 
             input.value = "";
