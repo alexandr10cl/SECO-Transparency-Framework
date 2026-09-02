@@ -78,150 +78,240 @@ function resolveCurrentTaskId() {
   return null;
 }
 
-function addQuestion(text) { // o parametro text indica que pra executar a funcao, eh necessario receber o texto da duvida
-  const taskId = resolveCurrentTaskId(); // cria a constante task puxando o valor que indica a task atual com a funcao criada no codigo
-  const process = processes[currentProcessIndex]; // queremos registrar na pergunta process_id e task_id e nao um so, pra saber a rota certinha feita pelo usuario
-  if (!taskId || !process) { // traducao: se nao existir id de tarefa ou processo
-    console.error("n existe tarefa ou processo atuaç") // imprime mensagem de erro no console
-    return; // como nao tem nenhum valor (nem null), a funcao so eh encerrada, entao nao vamo registrar dados incompletos/sujos
+//---------------------------------------------PÁGINA DE DUVIDAS-----------------------------------------------
+
+function addQuestion(text) {
+  //declara a função que recebe o texto da dúvida pelo parâmetro
+
+  const taskId = resolveCurrentTaskId(); //obtém e armazena o ID da tarefa ou cenário atual
+  const process = processes[currentProcessIndex]; //busca o processo ativo no array global de processos
+
+  if (!taskId || !process) {
+    //verifica se a tarefa ou o processo atual existem
+    console.error("Não existe tarefa ou processo atual."); //se não existir exibe uma mensagem de erro no console
+    return; //interrompe a execução da função para evitar o registro de dados incompletos
   }
+
   const question = {
-    id: nextQuestionId,
-    task_id: taskId,
-    process_id: process.process_id,
-    text: text,
-    status: "open"
+    //cria o objeto para estruturar os dados da dúvida
+    id: nextQuestionId, //define o id único da dúvida
+    task_id: taskId, //associa o id da task/scenario identificado
+    process_id: process.process_id, //associa o ID do processo
+    text: text, //armazena o texto da duvida do usuário
+    status: "open", //define o status inicial da dúvida como aberta
   };
 
-  questions_data.push(question); // push serve p adicionar a duvida
-  nextQuestionId++; // aumenta a contagem da variavel pra que a proxima duvida seja enumerada corretamente
+  questions_data.push(question); //adiciona o objeto da dúvida ao array global
+  nextQuestionId++; //incrementa o contador de ID para a próxima dúvida
 }
 
-function getCurrentTaskQuestions() { // funcao pra puxar as duvidas da task atual do usuario
+//funcao pra puxar quais são as duvidas da task atual do usuario
+function getCurrentTaskQuestions() {
+
   const taskId = resolveCurrentTaskId();
   if (!taskId) {
-    return []; // array em vez de nada porque a intencao eh devolver lista de duvidas, o array vazio mostra que a lista ta vazua
+    return []; //array em vez de nada porque a intencao eh devolver lista de duvidas, o array vazio mostra que a lista ta vazua
   } // mesmos acontecimentos da anterior, mas sem puxar processo atual dessa vez, ja que nao precisamos do id dele
 
   const currentQuestions = []; // armazena temporariamente as duvdas da tarefa atual
 
-  for (let i = 0; i < questions_data.lenght; // enquanro a variavel criada for menor que o tamanho do array de perguntas
-    i++) { // incrementa
-    if (questions_data[i].task_id === taskId) { // pega o objeto da duvida na posicao indicada e acessa o task_id 
-    // depois compara se o id da tarefa da duvida eh exatamente igual ao id da tarefa atual ou nao
+  for (
+    let i = 0;
+    i < questions_data.lenght; // enquanro a variavel criada for menor que o tamanho do array de perguntas
+    i++
+  ) {
+    // incrementa
+    if (questions_data[i].task_id === taskId) {
+      // pega o objeto da duvida na posicao indicada e acessa o task_id
+      // depois compara se o id da tarefa da duvida eh exatamente igual ao id da tarefa atual ou nao
       currentQuestions.push(questions_data[i]); // adiciona a duvida que passou na comparacao ao final do array currentQuestions
     }
   }
   return currentQuestions; // devolve o array ja filtrado com as duvidas da tarefa atual só
 }
 
-function openQuestionsPage() { // funcao pra abrir a pagina de my questions apos o clique no botao
+function openQuestionsPage() {
+  // funcao pra abrir a pagina de my questions apos o clique no botao
   const tasksContainer = document.getElementById("taskscontainer"); // declara a variavel e procura o elemento do container do html
   const questionsPage = document.getElementById("questionsPage"); // mesma coisa mas com o questionsPage do html
-  tasksContainer.style.display = "none";  //  esconde o container de tarefas
+  tasksContainer.style.display = "none"; //  esconde o container de tarefas
   questionsPage.style.display = "block"; // faz a pagina de duvs aparecer
 
   renderCurrentScenarioQuestions(); //exibe apenas as duvidas do scenario atual
 }
 
-function renderCurrentScenarioQuestions() {
-  const container = document.getElementById("questionsList");
-  if (!container) return;
+//funcao para pegar o numero do scnerio que o usuario esta resolvendo
+function getCurrentScenarioNumber() {
+  //Identifica o número do cenário atual
+  const progressElement = document.getElementById("progressText"); //busca no html o elemente q exibe o scenario
+  const progressText = progressElement ? progressElement.textContent : ""; //verifica se ele existe se não retorna vazio
+  const match = progressText.match(/\d+/); //procura no texto a primeira sequencia de numeros 
 
-  container.innerHTML = "";
+  return match ? match[0] : 1; //retorna o numero encontrado no texto do cabeçalho de scenario
+}
 
-  const currentQuestions = data_collection.questions.filter(
-    q => String(q.scenarioNumber) === String(getCurrentScenarioNumber())
+//função que carrega o as questões do scenario atual
+function renderCurrentScenarioQuestions() { 
+
+  const container = document.getElementById("questionsList"); //pega no html a div que ficarao as listas
+
+  if (!container) return; //se não achar, para a função
+
+  container.innerHTML = ""; //limpa a div antes de renderizar as duvidas do scenario atual
+
+  //filtra o array de duvidas para pegar apenas as que pertencem ao scenario atual
+  const currentQuestions = data_collection.questions.filter( 
+    (q) => String(q.scenarioNumber) === String(getCurrentScenarioNumber()),
   );
 
-  currentQuestions.forEach(questionData => {
+  //funciona como um laço, forEach(para cada) duvida filtrada anteriormente chama a funcao displayQuestionOnScreen que renderiza a duvida na tela
+  currentQuestions.forEach((questionData) => { 
     displayQuestionOnScreen(questionData);
   });
 }
 
-function getCurrentScenarioNumber() {
-  //Identifica o número do cenário atual
-  const progressElement = document.getElementById("progressText");
-  const progressText = progressElement ? progressElement.textContent : "";
-  const match = progressText.match(/\d+/);
-
-  return match ? match[0] : 1;
-}
-
-//--------------------------------------------------------------------------------------------
-
-//PLACEHOLDER:Botão de voltar da página de duvidas para a tarefa
-document.getElementById("questionsBackButton").addEventListener("click", function () {
-    document.getElementById("taskscontainer").style.display = "block";    // exibe novamente o container da tarefa anterios que foi escondido 
-    currentPhase = "task";     // volta a currentPhase para a tarefa atual
+//botão de voltar da página de duvidas para a tarefa
+document
+  .getElementById("questionsBackButton")
+  .addEventListener("click", function () {
+    document.getElementById("taskscontainer").style.display = "block"; // exibe novamente o container da tarefa anterios que foi escondido
+    currentPhase = "task"; // volta a currentPhase para a tarefa atual
     updateDisplay(); // chama a função que atualiza a exibição da interface
-});
+  });
 
 //calcula o tempo decorrido desde o início da tarefa atual e retorna em formato mm:ss
 function getTaskElapsedTime() {
   if (!taskStartTime) return "00:00";
-  
+
   const elapsedMs = new Date() - new Date(taskStartTime);
   const totalSeconds = Math.floor(elapsedMs / 1000);
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
   const seconds = String(totalSeconds % 60).padStart(2, "0");
-  
+
   return `${minutes}:${seconds}`;
 }
 
-//listener para o botão de sendQuestionButton 
+//listener para o botão de sendQuestionButton
 document.addEventListener("DOMContentLoaded", function () {
-	//document é a pagina do HTML
-	//addEventListener é um "ouvinte de eventos"
-	//DOMContentLoaded faz o listener esperar o HTML ser totalmente carregado
-	//function() uma função que não recebe nenhum parametro para executar o que tem dentro
+  //document é a pagina do HTML
+  //addEventListener é um "ouvinte de eventos"
+  //DOMContentLoaded faz o listener esperar o HTML ser totalmente carregado
+  //function() uma função que não recebe nenhum parametro para executar o que tem dentro
 
-    const sendButton = document.getElementById("sendQuestionButton");
-	    //const Cria uma variável fixa
-	    //getElementById("...") Ppocura e seleciona no HTML um elemento específico através do seu id
-	
+  const sendButton = document.getElementById("sendQuestionButton");
+  //const Cria uma variável fixa
+  //getElementById("...") Ppocura e seleciona no HTML um elemento específico através do seu id
 
-    if (sendButton) { //SE o botão sendButton existir 
-        sendButton.addEventListener("click", function () {//adiciona um Listener para quando o botão é clicado que executa uma função
-          
-            const input = document.getElementById("newQuestionInput"); //pega no HTML o elemento do textarea 
-            if (!input) return; //SE o elemento não existir, a função é encerrada
+  if (sendButton) {
+    //SE o botão sendButton existir
+    sendButton.addEventListener("click", function () {
+      //adiciona um Listener para quando o botão é clicado que executa uma função
 
-            const questionText = input.value.trim(); //Limpa os espaços em branco extras do início e do fim do texto para evitar mensagens vazias
-            if (!questionText) return; //SE o texto da pergunta estiver vazio, a função é encerrada
+      const input = document.getElementById("newQuestionInput"); //pega no HTML o elemento do textarea
+  if (!input) return; //SE o elemento não existir, a função é encerrada
 
-            const questionData = { //agrupar as informações da dúvida
-                scenarioNumber: getCurrentScenarioNumber(), //numero do scenario
-                text: questionText, //texto inserido pelo usuario
-                time: typeof getTaskElapsedTime === "function" ? getTaskElapsedTime() : "00:00" // usa o tempo decorrido do timer
-            };
+      const questionText = input.value.trim(); //Limpa os espaços em branco extras do início e do fim do texto para evitar mensagens vazias
+      if (!questionText) return; //SE o texto da pergunta estiver vazio, a função é encerrada
 
-            data_collection.questions.push(questionData); //salva a duvida no array de dados 
-            displayQuestionOnScreen(questionData); //chama a função que renderiza a dúvida na tela
+      const questionData = {
+        //agrupar as informações da dúvida
+        id: Date.now(), //cria um id único baseado no timestamp da duvida
+        scenarioNumber: getCurrentScenarioNumber(), //numero do scenario
+        text: questionText, //texto inserido pelo usuario
+        time:
+          typeof getTaskElapsedTime === "function"
+            ? getTaskElapsedTime()
+            : "00:00", // usa o tempo decorrido do timer
+      };
 
-            input.value = "";
-        });
-    }
+      data_collection.questions.push(questionData); //salva a duvida no array de dados
+      displayQuestionOnScreen(questionData); //chama a função que renderiza a dúvida na tela
 
+      input.value = ""; //limpa a caixa de texto do textarea de duvidas
+    });
+  }
 });
 
-//carrega a duvida na tela 
+//carrega a duvida na tela
 function displayQuestionOnScreen(data) {
-    const container = document.getElementById("questionsList"); //pega no HTML a área da lista de duvidas
-    if (!container) return; //se não achar, para a função
+  const container = document.getElementById("questionsList"); //pega no HTML a área da lista de duvidas
+  if (!container) return; //se não achar, para a função
 
-    const card = document.createElement("div"); //cria uma nova div 
-    card.className = "question-card"; //adiciona a classe no css question-card
-    //adiciona esse trexo de html com a nova duvida 
-    card.innerHTML = `
+  const card = document.createElement("div"); //cria uma nova div
+  card.className = "question-card"; //adiciona a classe no css question-card
+
+  //adiciona esse trexo de html com a nova duvida
+  card.innerHTML = `
         <div class="question-header">
             <h4>Scenario #${data.scenarioNumber}</h4>
             <span class="question-time">${data.time}</span>
         </div>
-        <p class="question-text">${data.text}</p>
+        <div class="question-body">
+            <p class="question-text">${data.text}</p>
+        </div>
+        <div class="question-actions">
+            <button type="button" class="btn-edit">Edit</button>
+            <button type="button" class="btn-delete">Delete</button>
+        </div>
     `;
 
-    container.appendChild(card);
+  //listener para o botão de editar
+  card.querySelector(".btn-edit").addEventListener("click", function () {
+    enableEdit(card, data);
+  });
+
+  //listener para o botão de deletar
+  card.querySelector(".btn-delete").addEventListener("click", function () {
+    deleteQuestion(data.id);
+  });
+
+  container.appendChild(card);
+}
+
+//remove a dúvida do array e atualiza a tela
+function deleteQuestion(id) {
+  data_collection.questions = data_collection.questions.filter(
+    (q) => q.id !== id,
+  );
+  renderCurrentScenarioQuestions();
+}
+
+//funcaio que permite editar a duvida
+function enableEdit(card, data) {
+  const bodyDiv = card.querySelector(".question-body");
+  const actionsDiv = card.querySelector(".question-actions");
+
+  //Substitui o <p> por um <textarea> preenchido com o texto atual
+  bodyDiv.innerHTML = `
+        <textarea class="edit-textarea">${data.text}</textarea>
+    `;
+
+  //Substitui os botões Edit/Delete por Save/Cancel
+  actionsDiv.innerHTML = `
+        <button type="button" class="btn-save">Save</button>
+        <button type="button" class="btn-cancel">Cancel</button>
+    `;
+
+  //listener do botão Save
+  card.querySelector(".btn-save").addEventListener("click", function () {
+    
+    const newText = card.querySelector(".edit-textarea").value.trim();
+    
+    if (newText) {
+      const question = data_collection.questions.find((q) => q.id === data.id);
+      if (question) {
+        question.text = newText;
+      }
+    }
+
+    renderCurrentScenarioQuestions(); //atualiza a tela exibindo o novo texto
+    
+  });
+
+  //listener do botão Cancel
+  card.querySelector(".btn-cancel").addEventListener("click", function () {
+    renderCurrentScenarioQuestions(); //mantem a duvida como estava antes de editar
+  });
 }
 
 //--------------------------------------------------------------------------------------------
