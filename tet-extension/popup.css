@@ -1424,4 +1424,26 @@ button:disabled {
 
   cursor: pointer;
   padding: 5px;
+/*--------------Tela de duvidas-----------*/
+#newQuestionInput {
+  width: 100%;
+  min-height: 140px;
+  padding: 20px;
+  border: 1.5px solid blue;
+  border-radius: 24px;
+  background-color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  color: #1f2937;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+#newQuestionInput::placeholder {
+  color: #9ca3af;
+}
+
+#newQuestionInput:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
