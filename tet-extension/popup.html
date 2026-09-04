@@ -8,14 +8,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
 </head>
-<body>
+<body> 
     <div class="progress-bar-container progress-bar-bluebg" id="progressBarContainer">
-        <div class="progress-text" id="progressText">0/0 Scenarios Completed</div>
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
+    <div class="questions-header-row">
+        <button id="questionsHeaderBackButton" type="button" style="display: none;">
+            ←
+        </button> <div class="progress-text" id="progressText">
+        0/0 Scenarios Completed
         </div>
     </div>
 
+    <div class="progress-bar"> 
+      <div class="progress-bar-fill" id="progressBarFill"></div> 
+    </div>
+
+  </div> 
     <div class="login_page">
         <div class="login-container">
             <div class="bluebg">
@@ -240,6 +247,31 @@
     </div>
 
     <div class="container-tasks" id="taskscontainer">
+    </div>
+
+    <div id="questionsPage" class="questions-page" style="display: none;">
+
+        <div class="question-input-container">
+
+            <div class="question-input-box">
+                <textarea
+                    id="newQuestionInput"
+                    placeholder="Write your question here."
+                ></textarea>
+
+                <button id="sendQuestionButton" type="button" aria-label="Send question">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
+
+        </div>
+
+        <div class="sent-questions-divider">
+            <span>Sent Questions</span>
+        </div>
+
+        <div id="questionsList"></div>
+
     </div>
 
     <div class="final_questionnaire_page">

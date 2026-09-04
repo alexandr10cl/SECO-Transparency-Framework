@@ -5,6 +5,7 @@ let final_questionnaire_page = document.querySelector(".final_questionnaire_page
 let login_page = document.querySelector(".login_page");
 let sync_page = document.querySelector(".sync_page");
 let overlay = document.getElementById('overlay');
+let questions_page = document.getElementById("questionsPage");
 
 // API Configuration
 // Change isDevelopment to false for production deployment
@@ -25,9 +26,13 @@ let data_collection = {
   "performed_tasks" : [],
   "profile_questionnaire" : {},
   "final_questionnaire" : {},
-  "navigation" : [] // Store all navigation events
+  "navigation" : [], // Store all navigation events
+  "questions" : [] // Guarda as duvidas do usuario
 }
 let tasks_data = [];   // Armazena as respostas para envio
+let questions_data = []; // usa let porque pode ser que eu tenha que reatribuir a variaveldepois, 
+// array armanzena as duvidas recebidas, entao quando comeca a avaliacao ta como null = nenhim,a registrada
+let nextQuestionId = 1 // variavel guarda qual vai ser o id da proxima duvida criada
 let todo_tasks = [];   // Armazena as tasks recebidas em formato de objeto para serem feitas
 let processes = []; // Cada processo tem tarefas e perguntas do review
 let currentProcessIndex = 0;
@@ -72,6 +77,257 @@ function resolveCurrentTaskId() {
 
   return null;
 }
+
+//---------------------------------------------PÁGINA DE DUVIDAS-----------------------------------------------
+
+function addQuestion(text) {
+  //declara a função que recebe o texto da dúvida pelo parâmetro
+
+  const taskId = resolveCurrentTaskId(); //obtém e armazena o ID da tarefa ou cenário atual
+  const process = processes[currentProcessIndex]; //busca o processo ativo no array global de processos
+
+  if (!taskId || !process) {
+    //verifica se a tarefa ou o processo atual existem
+    console.error("Não existe tarefa ou processo atual."); //se não existir exibe uma mensagem de erro no console
+    return; //interrompe a execução da função para evitar o registro de dados incompletos
+  }
+
+  const question = {
+    //cria o objeto para estruturar os dados da dúvida
+    id: nextQuestionId, //define o id único da dúvida
+    task_id: taskId, //associa o id da task/scenario identificado
+    process_id: process.process_id, //associa o ID do processo
+    text: text, //armazena o texto da duvida do usuário
+    status: "open", //define o status inicial da dúvida como aberta
+  };
+
+  data_collection.questions.push(question); //adiciona o objeto da dúvida ao array global
+  nextQuestionId++; //incrementa o contador de ID para a próxima dúvida
+}
+
+//funcao pra puxar quais são as duvidas da task atual do usuario
+function getCurrentTaskQuestions() {
+
+  const taskId = resolveCurrentTaskId();
+  if (!taskId) {
+    return []; //array em vez de nada porque a intencao eh devolver lista de duvidas, o array vazio mostra que a lista ta vazua
+  } // mesmos acontecimentos da anterior, mas sem puxar processo atual dessa vez, ja que nao precisamos do id dele
+
+  const currentQuestions = []; // armazena temporariamente as duvdas da tarefa atual
+
+  for (let i = 0; i < data_collection.questions.length; // enquanro a variavel criada for menor que o tamanho do array de perguntas
+    i++) { // incrementa
+    if (data_collection.questions[i].task_id === taskId) { // pega o objeto da duvida na posicao indicada e acessa o task_id 
+    // depois compara se o id da tarefa da duvida eh exatamente igual ao id da tarefa atual ou nao
+      currentQuestions.push(data_collection.questions[i]); // adiciona a duvida que passou na comparacao ao final do array currentQuestions
+    }
+  }
+  return currentQuestions; // devolve o array ja filtrado com as duvidas da tarefa atual só
+}
+
+function openQuestionsPage() {
+  // funcao pra abrir a pagina de my questions apos o clique no botao
+  const tasksContainer = document.getElementById("taskscontainer"); // declara a variavel e procura o elemento do container do html
+  const questionsPage = document.getElementById("questionsPage"); // mesma coisa mas com o questionsPage do html
+  tasksContainer.style.display = "none"; //  esconde o container de tarefas
+  questionsPage.style.display = "block"; // faz a pagina de duvs aparecer
+
+  renderCurrentScenarioQuestions(); //exibe apenas as duvidas do scenario atual
+}
+
+//função que carrega o as questões do scenario atual
+function renderCurrentScenarioQuestions() { 
+
+  const container = document.getElementById("questionsList"); //pega no html a div que ficarao as listas
+
+  if (!container) return; //se não achar, para a função
+
+  container.innerHTML = ""; //limpa a div antes de renderizar as duvidas do scenario atual
+
+  const currentTaskId = resolveCurrentTaskId(); //pega o id da task atual
+  //filtra o array de duvidas para pegar apenas as que pertencem ao scenario atual
+  const currentQuestions = data_collection.questions.filter( 
+    (q) => String(q.task_id) === String(currentTaskId),
+  );
+
+  //funciona como um laço, forEach(para cada) duvida filtrada anteriormente chama a funcao displayQuestionOnScreen que renderiza a duvida na tela
+  currentQuestions.forEach((questionData) => { 
+    displayQuestionOnScreen(questionData);
+  });
+}
+
+//calcula o tempo decorrido desde o início da tarefa atual e retorna em formato mm:ss
+function getTaskElapsedTime() {
+  if (!taskStartTime) return "00:00";
+
+  const elapsedMs = new Date() - new Date(taskStartTime);
+  const totalSeconds = Math.floor(elapsedMs / 1000);
+  const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
+}
+
+//listener para o botão de sendQuestionButton
+document.addEventListener("DOMContentLoaded", function () {
+  //document é a pagina do HTML
+  //addEventListener é um "ouvinte de eventos"
+  //DOMContentLoaded faz o listener esperar o HTML ser totalmente carregado
+  //function() uma função que não recebe nenhum parametro para executar o que tem dentro
+
+  const sendButton = document.getElementById("sendQuestionButton");
+  //const Cria uma variável fixa
+  //getElementById("...") Ppocura e seleciona no HTML um elemento específico através do seu id
+
+  const newQuestionInput = document.getElementById("newQuestionInput"); //pega no HTML o textarea onde o usuario escreve a duvida
+
+  if (sendButton) {
+    //SE o botão sendButton existir
+    sendButton.addEventListener("click", function () {
+      //adiciona um Listener para quando o botão é clicado que executa uma função
+
+      const input = document.getElementById("newQuestionInput"); //pega no HTML o elemento do textarea
+      if (!input) return; //SE o elemento não existir, a função é encerrada
+
+      const questionText = input.value.trim(); //Limpa os espaços em branco extras do início e do fim do texto para evitar mensagens vazias
+      if (!questionText) return; //SE o texto da pergunta estiver vazio, a função é encerrada
+
+      const questionData = {
+        //agrupar as informações da dúvida
+        id: Date.now(), //cria um id único baseado no timestamp da duvida
+        task_id: resolveCurrentTaskId(),
+        process_id: processes[currentProcessIndex].process_id,
+        text: questionText, //texto inserido pelo usuario
+        time:
+          typeof getTaskElapsedTime === "function"
+            ? getTaskElapsedTime()
+            : "00:00", // usa o tempo decorrido do timer
+      };
+
+      data_collection.questions.push(questionData); //salva a duvida no array de dados
+      displayQuestionOnScreen(questionData); //chama a função que renderiza a dúvida na tela
+
+      input.value = ""; //limpa a caixa de texto do textarea de duvidas
+    });
+  }
+
+  //listener para permitir enviar a duvida apertando enter no campo de texto
+  if (newQuestionInput && sendButton) {
+    newQuestionInput.addEventListener("keydown", function (event) {
+      //se apertar enter sem shift, impede a quebra de linha e usa o mesmo clique do botao send
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendButton.click(); //chama o clique do botao para nao repetir toda a logica de envio
+      }
+    });
+  }
+});
+
+//carrega a duvida na tela
+function displayQuestionOnScreen(data) {
+  const container = document.getElementById("questionsList"); //pega no HTML a área da lista de duvidas
+  if (!container) return; //se não achar, para a função
+
+  const card = document.createElement("div"); //cria uma nova div
+  card.className = "question-card"; //adiciona a classe no css question-card
+
+  //adiciona esse trexo de html com a nova duvida
+  card.innerHTML = `
+      <div class="question-header">
+          <h4>Scenario #${data.task_id}</h4>
+
+          <button type="button" class="btn-delete">
+              ×
+          </button>
+      </div>
+
+      <div class="question-body">
+          <span class="question-time">${data.time}</span>
+
+          <p class="question-text">${data.text}</p>
+
+          <button type="button" class="btn-edit">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+      </div>
+
+      <div class="question-actions"></div>
+    `;
+
+  //listener para o botão de editar
+  card.querySelector(".btn-edit").addEventListener("click", function () {
+    enableEdit(card, data);
+  });
+
+  //listener para o botão de deletar
+  card.querySelector(".btn-delete").addEventListener("click", function () {
+    deleteQuestion(data.id);
+  });
+
+  container.appendChild(card);
+}
+
+//remove a dúvida do array e atualiza a tela
+function deleteQuestion(id) {
+  data_collection.questions = data_collection.questions.filter(
+    (q) => q.id !== id,
+  );
+  renderCurrentScenarioQuestions();
+}
+
+//funcaio que permite editar a duvida
+function enableEdit(card, data) {
+  const bodyDiv = card.querySelector(".question-body");
+  const actionsDiv = card.querySelector(".question-actions");
+
+  //Substitui o <p> por um <textarea> preenchido com o texto atual
+  bodyDiv.innerHTML = `
+        <textarea class="edit-textarea">${data.text}</textarea>
+    `;
+
+  //Substitui os botões Edit/Delete por Save/Cancel
+  actionsDiv.innerHTML = `
+        <button type="button" class="btn-save">Save</button>
+        <button type="button" class="btn-cancel">Cancel</button>
+    `;
+
+  const editTextarea = card.querySelector(".edit-textarea"); //pega o textarea que apareceu quando o usuario clicou em editar
+  const saveButton = card.querySelector(".btn-save"); //pega o botao save para poder usar o mesmo comportamento com enter
+
+  //listener para salvar a edicao apertando enter no textarea
+  if (editTextarea && saveButton) {
+    editTextarea.addEventListener("keydown", function (event) {
+      //enter salva a edicao e shift + enter continua permitindo pular linha
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        saveButton.click(); //usa o clique do proprio botao save para nao repetir a logica de salvar
+      }
+    });
+  }
+
+  //listener do botão Save
+  card.querySelector(".btn-save").addEventListener("click", function () {
+    
+    const newText = card.querySelector(".edit-textarea").value.trim();
+    
+    if (newText) {
+      const question = data_collection.questions.find((q) => q.id === data.id);
+      if (question) {
+        question.text = newText;
+      }
+    }
+
+    renderCurrentScenarioQuestions(); //atualiza a tela exibindo o novo texto
+    
+  });
+
+  //listener do botão Cancel
+  card.querySelector(".btn-cancel").addEventListener("click", function () {
+    renderCurrentScenarioQuestions(); //mantem a duvida como estava antes de editar
+  });
+}
+
+//--------------------------------------------------------------------------------------------
 
 function recordNavigationEvent({
   action = "pageNavigation",
@@ -480,6 +736,16 @@ function renderAll() {
             </div>
             <p id="pendingText${task.task_id}" class="pending-tasks-text" style="margin-bottom:10px;">You still have pending scenarios. Click the button to get started.</p>
             <button id="startTask${task.task_id}Button">Start Scenario</button>
+            
+            <p id="questionsText${task.task_id}" style="display:none; color: #1E3A8A">
+            Post any questions regarding the scenario here: 
+            </p>
+
+            <button class="task-btn" name="duvidas-botao" id="questionsTask${task.task_id}Button" style="display:none;" type="button">
+            <span class="material-symbols-outlined icon-botao">help</span>
+            Your Questions
+            </button>
+
             <p id="taskInstructions${task.task_id}" style="display:none; color: #1E3A8A;">Do you believe you have achieved the goal of this scenario?</p>
             <button class="task-btn" id="finishTask${task.task_id}Button" style="display:none">
               <span class="material-symbols-outlined icon-botao">check</span>
@@ -554,6 +820,17 @@ function renderAll() {
 
 // 3) Conecta todos os listeners de uma vez
 function attachListenersAll() {
+
+  // botao de voltar da pagina de duvidas
+  const questionsHeaderBackButton = document.getElementById("questionsHeaderBackButton");
+
+  if (questionsHeaderBackButton) {
+    questionsHeaderBackButton.addEventListener("click", function () {
+      currentPhase = "task";
+      updateDisplay();
+    });
+  }
+
   // Adiciona listeners para os sliders dos process reviews
   processes.forEach((proc) => {
     proc.process_review.forEach((q, i) => {
@@ -606,6 +883,10 @@ function attachListenersAll() {
         document.getElementById(`taskDescription${task.task_id}`).style.display = "block";
         document.getElementById(`taskInstructions${task.task_id}`).style.display = "block";
 
+        // mostr a texto de duvidas e o botao "my questions"
+        document.getElementById(`questionsText${task.task_id}`).style.display = "block";
+        document.getElementById(`questionsTask${task.task_id}Button`).style.display = "flex";
+
         // Esconde o texto de pendentes e o botão Start
         document.getElementById(`pendingText${task.task_id}`).style.display = "none";
         document.getElementById(`startTask${task.task_id}Button`).style.display = "none";
@@ -614,7 +895,7 @@ function attachListenersAll() {
           `finishTask${task.task_id}Button`,
           `notSureTask${task.task_id}Button`,
           `couldntSolveTask${task.task_id}Button`
-        ].forEach(id => document.getElementById(id).style.display = "inline-block");
+        ].forEach(id => document.getElementById(id).style.display = "flex");
 
         currentPhase = "task";
         updateDisplay();
@@ -652,6 +933,19 @@ function attachListenersAll() {
           updateDisplay();
         });
       });
+
+      const questionsButton = document.getElementById(
+        `questionsTask${task.task_id}Button`
+      );
+
+      if (questionsButton) {
+        questionsButton.addEventListener("click", function () {
+          currentPhase = "questions";
+          renderCurrentScenarioQuestions();
+          updateDisplay();
+        });
+      }
+
 
       // Next: salvar resposta e avançar
       document.getElementById(`task${task.task_id}ReviewButton`).addEventListener("click", () => {
@@ -753,7 +1047,12 @@ function updateDisplay() {
   sync_page.style.display = "none";
   final_questionnaire_page.style.display = "none";
   finalpage.style.display = "none";
+  questions_page.style.display = "none";
   document.getElementById("progressBarContainer").style.display = "none";
+  const questionsHeaderBackButton = document.getElementById("questionsHeaderBackButton");
+  const progressBar = document.querySelector(".progress-bar");
+  questionsHeaderBackButton.style.display = "none";
+  progressBar.style.display = "block";
   document.querySelectorAll(".taskbox-container").forEach(el => el.style.display = "none");
 
   // 2) Esconde todos os blocos de tarefa e review
@@ -793,6 +1092,14 @@ function updateDisplay() {
         document.getElementById("progressBarContainer").style.display = "block";
       }
     break;
+
+    case "questions":
+      questions_page.style.display = "block";
+      document.getElementById("progressBarContainer").style.display = "block";
+      questionsHeaderBackButton.style.display = "block";
+      document.getElementById("progressText").textContent = "My Questions";
+      progressBar.style.display = "none";
+      break;
 
     case "review":
       // exibe o review da tarefa atual
