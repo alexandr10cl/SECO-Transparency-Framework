@@ -8,14 +8,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
 </head>
-<body>
+<body> 
     <div class="progress-bar-container progress-bar-bluebg" id="progressBarContainer">
-        <div class="progress-text" id="progressText">0/0 Scenarios Completed</div>
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
+    <div class="questions-header-row">
+        <button id="questionsHeaderBackButton" type="button" style="display: none;">
+            ←
+        </button> <div class="progress-text" id="progressText">
+        0/0 Scenarios Completed
         </div>
     </div>
 
+    <div class="progress-bar"> 
+      <div class="progress-bar-fill" id="progressBarFill"></div> 
+    </div>
+
+  </div> 
     <div class="login_page">
         <div class="login-container">
             <div class="bluebg">
@@ -245,10 +252,6 @@
     <div id="questionsPage" class="questions-page" style="display: none;">
 
         <div class="questions-header">
-            <button id="questionsBackButton" type="button">
-                Back
-            </button>
-
             <h2>Your Questions</h2>
         </div>
 

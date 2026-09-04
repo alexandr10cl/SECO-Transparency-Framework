@@ -29,7 +29,7 @@ let data_collection = {
   "navigation" : [] // Store all navigation events
 }
 let tasks_data = [];   // Armazena as respostas para envio
-let question_data = []; // usa let porque pode ser que eu tenha que reatribuir a variaveldepois, 
+let questions_data = []; // usa let porque pode ser que eu tenha que reatribuir a variaveldepois, 
 // array armanzena as duvidas recebidas, entao quando comeca a avaliacao ta como null = nenhim,a registrada
 let nextQuestionId = 1 // variavel guarda qual vai ser o id da proxima duvida criada
 let todo_tasks = [];   // Armazena as tasks recebidas em formato de objeto para serem feitas
@@ -93,6 +93,8 @@ function addQuestion(text) { // o parametro text indica que pra executar a funca
   };
 
   questions_data.push(question); // push serve p adicionar a duvida
+  console.log("pergunta add:", question);
+  console.log("todas as perguntws:", questions_data); // log pra descobrir se as questoes estao sendo enviadas certo
   nextQuestionId++; // aumenta a contagem da variavel pra que a proxima duvida seja enumerada corretamente
 }
 
@@ -104,7 +106,7 @@ function getCurrentTaskQuestions() { // funcao pra puxar as duvidas da task atua
 
   const currentQuestions = []; // armazena temporariamente as duvdas da tarefa atual
 
-  for (let i = 0; i < questions_data.lenght; // enquanro a variavel criada for menor que o tamanho do array de perguntas
+  for (let i = 0; i < questions_data.length; // enquanro a variavel criada for menor que o tamanho do array de perguntas
     i++) { // incrementa
     if (questions_data[i].task_id === taskId) { // pega o objeto da duvida na posicao indicada e acessa o task_id 
     // depois compara se o id da tarefa da duvida eh exatamente igual ao id da tarefa atual ou nao
@@ -112,13 +114,6 @@ function getCurrentTaskQuestions() { // funcao pra puxar as duvidas da task atua
     }
   }
   return currentQuestions; // devolve o array ja filtrado com as duvidas da tarefa atual só
-}
-
-function openQuestionsPage() { // funcao pra abrir a pagina de my questions apos o clique no botao
-  const tasksContainer = document.getElementById("taskscontainer"); // declara a variavel e procura o elemento do container do html
-  const questionsPage = document.getElementById("questionsPage"); // mesma coisa mas com o questionsPage do html
-  tasksContainer.style.display = "none";  //  esconde o container de tarefas
-  questionsPage.style.display = "block"; // faz a pagina de duvs aparecer
 }
 
 function recordNavigationEvent({
@@ -612,6 +607,29 @@ function renderAll() {
 
 // 3) Conecta todos os listeners de uma vez
 function attachListenersAll() {
+
+  // botao de voltar da pagina de duvidas
+  const questionsHeaderBackButton = document.getElementById("questionsHeaderBackButton");
+
+  if (questionsHeaderBackButton) {
+    questionsHeaderBackButton.addEventListener("click", function () {
+      currentPhase = "task";
+      updateDisplay();
+    });
+  }
+
+  // linka o botao de enviar duvida à funcao addQuestion
+  const sendQuestionButton = document.getElementById("sendQuestionButton");
+  if (sendQuestionButton) {
+    sendQuestionButton.addEventListener("click", function () { // listener
+      const input = document.getElementById("newQuestionInput"); // definindo constantes de duvidas
+      const text = input.value; // faz text virar texto normal
+
+      addQuestion(text); // conecta com a funcao, depois do text transformar em texto essa funcao manda o texto pra funcao criada
+      console.log("perguntws da task atual:", getCurrentTaskQuestions());
+    });
+  }
+
   // Adiciona listeners para os sliders dos process reviews
   processes.forEach((proc) => {
     proc.process_review.forEach((q, i) => {
@@ -829,6 +847,10 @@ function updateDisplay() {
   finalpage.style.display = "none";
   questions_page.style.display = "none";
   document.getElementById("progressBarContainer").style.display = "none";
+  const questionsHeaderBackButton = document.getElementById("questionsHeaderBackButton");
+  const progressBar = document.querySelector(".progress-bar");
+  questionsHeaderBackButton.style.display = "none";
+  progressBar.style.display = "block";
   document.querySelectorAll(".taskbox-container").forEach(el => el.style.display = "none");
 
   // 2) Esconde todos os blocos de tarefa e review
@@ -869,9 +891,13 @@ function updateDisplay() {
       }
     break;
 
-    case "questions": 
-      openQuestionsPage()
-    break;
+    case "questions":
+      questions_page.style.display = "block";
+      document.getElementById("progressBarContainer").style.display = "block";
+      questionsHeaderBackButton.style.display = "block";
+      document.getElementById("progressText").textContent = "My Questions";
+      progressBar.style.display = "none";
+      break;
 
     case "review":
       // exibe o review da tarefa atual

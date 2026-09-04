@@ -1402,3 +1402,26 @@ button:disabled {
   margin-top: 0;
   margin-bottom: 0.25rem;
 }
+
+.questions-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#questionsHeaderBackButton {
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-120%);
+
+  border: none;
+  background: none;
+
+  color: white;
+  font-size: 20px;
+
+  cursor: pointer;
+  padding: 5px;
+}
