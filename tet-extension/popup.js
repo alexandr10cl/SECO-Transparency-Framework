@@ -115,11 +115,11 @@ function getCurrentTaskQuestions() {
 
   const currentQuestions = []; // armazena temporariamente as duvdas da tarefa atual
 
-  for (let i = 0; i < questions_data.length; // enquanro a variavel criada for menor que o tamanho do array de perguntas
+  for (let i = 0; i < data_collection.questions.length; // enquanro a variavel criada for menor que o tamanho do array de perguntas
     i++) { // incrementa
-    if (questions_data[i].task_id === taskId) { // pega o objeto da duvida na posicao indicada e acessa o task_id 
+    if (data_collection.questions[i].task_id === taskId) { // pega o objeto da duvida na posicao indicada e acessa o task_id 
     // depois compara se o id da tarefa da duvida eh exatamente igual ao id da tarefa atual ou nao
-      currentQuestions.push(questions_data[i]); // adiciona a duvida que passou na comparacao ao final do array currentQuestions
+      currentQuestions.push(data_collection.questions[i]); // adiciona a duvida que passou na comparacao ao final do array currentQuestions
     }
   }
   return currentQuestions; // devolve o array ja filtrado com as duvidas da tarefa atual só
@@ -179,13 +179,15 @@ document.addEventListener("DOMContentLoaded", function () {
   //const Cria uma variável fixa
   //getElementById("...") Ppocura e seleciona no HTML um elemento específico através do seu id
 
+  const newQuestionInput = document.getElementById("newQuestionInput"); //pega no HTML o textarea onde o usuario escreve a duvida
+
   if (sendButton) {
     //SE o botão sendButton existir
     sendButton.addEventListener("click", function () {
       //adiciona um Listener para quando o botão é clicado que executa uma função
 
       const input = document.getElementById("newQuestionInput"); //pega no HTML o elemento do textarea
-  if (!input) return; //SE o elemento não existir, a função é encerrada
+      if (!input) return; //SE o elemento não existir, a função é encerrada
 
       const questionText = input.value.trim(); //Limpa os espaços em branco extras do início e do fim do texto para evitar mensagens vazias
       if (!questionText) return; //SE o texto da pergunta estiver vazio, a função é encerrada
@@ -208,6 +210,17 @@ document.addEventListener("DOMContentLoaded", function () {
       input.value = ""; //limpa a caixa de texto do textarea de duvidas
     });
   }
+
+  //listener para permitir enviar a duvida apertando enter no campo de texto
+  if (newQuestionInput && sendButton) {
+    newQuestionInput.addEventListener("keydown", function (event) {
+      //se apertar enter sem shift, impede a quebra de linha e usa o mesmo clique do botao send
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendButton.click(); //chama o clique do botao para nao repetir toda a logica de envio
+      }
+    });
+  }
 });
 
 //carrega a duvida na tela
@@ -220,17 +233,25 @@ function displayQuestionOnScreen(data) {
 
   //adiciona esse trexo de html com a nova duvida
   card.innerHTML = `
-        <div class="question-header">
-            <h4>Scenario #${data.task_id}</h4>
-            <span class="question-time">${data.time}</span>
-        </div>
-        <div class="question-body">
-            <p class="question-text">${data.text}</p>
-        </div>
-        <div class="question-actions">
-            <button type="button" class="btn-edit">Edit</button>
-            <button type="button" class="btn-delete">Delete</button>
-        </div>
+      <div class="question-header">
+          <h4>Scenario #${data.task_id}</h4>
+
+          <button type="button" class="btn-delete">
+              ×
+          </button>
+      </div>
+
+      <div class="question-body">
+          <span class="question-time">${data.time}</span>
+
+          <p class="question-text">${data.text}</p>
+
+          <button type="button" class="btn-edit">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+      </div>
+
+      <div class="question-actions"></div>
     `;
 
   //listener para o botão de editar
@@ -269,6 +290,20 @@ function enableEdit(card, data) {
         <button type="button" class="btn-save">Save</button>
         <button type="button" class="btn-cancel">Cancel</button>
     `;
+
+  const editTextarea = card.querySelector(".edit-textarea"); //pega o textarea que apareceu quando o usuario clicou em editar
+  const saveButton = card.querySelector(".btn-save"); //pega o botao save para poder usar o mesmo comportamento com enter
+
+  //listener para salvar a edicao apertando enter no textarea
+  if (editTextarea && saveButton) {
+    editTextarea.addEventListener("keydown", function (event) {
+      //enter salva a edicao e shift + enter continua permitindo pular linha
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        saveButton.click(); //usa o clique do proprio botao save para nao repetir a logica de salvar
+      }
+    });
+  }
 
   //listener do botão Save
   card.querySelector(".btn-save").addEventListener("click", function () {

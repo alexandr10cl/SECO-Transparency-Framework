@@ -1424,20 +1424,22 @@ button:disabled {
 
   cursor: pointer;
   padding: 5px;
+}
 /*--------------Tela de duvidas-----------*/
 #newQuestionInput {
+  display: block;
   width: 100%;
-  min-height: 140px;
-  padding: 20px;
-  border: 1.5px solid blue;
-  border-radius: 24px;
-  background-color: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 1rem;
-  color: #1f2937;
-  resize: none;
-  outline: none;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 110px;
   box-sizing: border-box;
+  padding: 14px 50px 14px 16px;
+  border: 1px solid #2563eb;
+  border-radius: 18px;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
 }
 
 #newQuestionInput::placeholder {
@@ -1446,4 +1448,207 @@ button:disabled {
 
 #newQuestionInput:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.questions-page {
+  padding: 0 10px 16px 10px;
+  box-sizing: border-box;
+}
+
+.questions-page h2 {
+  margin: 16px 0 10px 0;
+  font-size: 16px;
+}
+
+.question-card {
+  width: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 10px;
+  margin-top: 12px;
+  overflow: hidden;
+  background: white;
+  box-sizing: border-box;
+}
+
+.question-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #2563eb;
+  color: white;
+
+  padding: 8px 10px;
+}
+
+.question-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-delete {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+
+  background: white;
+  color: #2563eb;
+
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.question-body {
+  position: relative;
+  padding: 10px 12px 36px 12px;
+}
+
+.question-time {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.question-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.btn-edit {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: white;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-edit .material-symbols-outlined {
+  font-size: 16px !important;
+  line-height: 1;
+}
+
+#sendQuestionButton {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#sendQuestionButton .material-symbols-outlined {
+  font-size: 24px !important;
+  line-height: 1;
+}
+
+.question-input-container {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 18px;
+}
+
+.question-input-box {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sent-questions-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 8px 0;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sent-questions-divider::before,
+.sent-questions-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  min-height: 70px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.edit-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.question-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 12px 10px 12px;
+}
+
+.btn-save,
+.btn-cancel {
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.btn-save {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-cancel {
+  background: white;
+  color: #2563eb;
+  border: 1px solid #2563eb;
+}
+
+.btn-cancel:hover {
+  background-color: #2563eb;
+  color: white;
 }
