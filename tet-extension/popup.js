@@ -101,7 +101,7 @@ function addQuestion(text) {
     status: "open", //define o status inicial da dúvida como aberta
   };
 
-  questions_data.push(question); //adiciona o objeto da dúvida ao array global
+  data_collection.questions.push(question); //adiciona o objeto da dúvida ao array global
   nextQuestionId++; //incrementa o contador de ID para a próxima dúvida
 }
 
@@ -135,16 +135,6 @@ function openQuestionsPage() {
   renderCurrentScenarioQuestions(); //exibe apenas as duvidas do scenario atual
 }
 
-//funcao para pegar o numero do scnerio que o usuario esta resolvendo
-function getCurrentScenarioNumber() {
-  //Identifica o número do cenário atual
-  const progressElement = document.getElementById("progressText"); //busca no html o elemente q exibe o scenario
-  const progressText = progressElement ? progressElement.textContent : ""; //verifica se ele existe se não retorna vazio
-  const match = progressText.match(/\d+/); //procura no texto a primeira sequencia de numeros 
-
-  return match ? match[0] : 1; //retorna o numero encontrado no texto do cabeçalho de scenario
-}
-
 //função que carrega o as questões do scenario atual
 function renderCurrentScenarioQuestions() { 
 
@@ -154,9 +144,10 @@ function renderCurrentScenarioQuestions() {
 
   container.innerHTML = ""; //limpa a div antes de renderizar as duvidas do scenario atual
 
+  const currentTaskId = resolveCurrentTaskId(); //pega o id da task atual
   //filtra o array de duvidas para pegar apenas as que pertencem ao scenario atual
   const currentQuestions = data_collection.questions.filter( 
-    (q) => String(q.scenarioNumber) === String(getCurrentScenarioNumber()),
+    (q) => String(q.task_id) === String(currentTaskId),
   );
 
   //funciona como um laço, forEach(para cada) duvida filtrada anteriormente chama a funcao displayQuestionOnScreen que renderiza a duvida na tela
@@ -164,15 +155,6 @@ function renderCurrentScenarioQuestions() {
     displayQuestionOnScreen(questionData);
   });
 }
-
-//botão de voltar da página de duvidas para a tarefa
-document
-  .getElementById("questionsBackButton")
-  .addEventListener("click", function () {
-    document.getElementById("taskscontainer").style.display = "block"; // exibe novamente o container da tarefa anterios que foi escondido
-    currentPhase = "task"; // volta a currentPhase para a tarefa atual
-    updateDisplay(); // chama a função que atualiza a exibição da interface
-  });
 
 //calcula o tempo decorrido desde o início da tarefa atual e retorna em formato mm:ss
 function getTaskElapsedTime() {
@@ -211,7 +193,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const questionData = {
         //agrupar as informações da dúvida
         id: Date.now(), //cria um id único baseado no timestamp da duvida
-        scenarioNumber: getCurrentScenarioNumber(), //numero do scenario
+        task_id: resolveCurrentTaskId(),
+        process_id: processes[currentProcessIndex].process_id,
         text: questionText, //texto inserido pelo usuario
         time:
           typeof getTaskElapsedTime === "function"
@@ -238,7 +221,7 @@ function displayQuestionOnScreen(data) {
   //adiciona esse trexo de html com a nova duvida
   card.innerHTML = `
         <div class="question-header">
-            <h4>Scenario #${data.scenarioNumber}</h4>
+            <h4>Scenario #${data.task_id}</h4>
             <span class="question-time">${data.time}</span>
         </div>
         <div class="question-body">
@@ -813,18 +796,6 @@ function attachListenersAll() {
     });
   }
 
-  // linka o botao de enviar duvida à funcao addQuestion
-  const sendQuestionButton = document.getElementById("sendQuestionButton");
-  if (sendQuestionButton) {
-    sendQuestionButton.addEventListener("click", function () { // listener
-      const input = document.getElementById("newQuestionInput"); // definindo constantes de duvidas
-      const text = input.value; // faz text virar texto normal
-
-      addQuestion(text); // conecta com a funcao, depois do text transformar em texto essa funcao manda o texto pra funcao criada
-      console.log("perguntws da task atual:", getCurrentTaskQuestions());
-    });
-  }
-
   // Adiciona listeners para os sliders dos process reviews
   processes.forEach((proc) => {
     proc.process_review.forEach((q, i) => {
@@ -935,6 +906,7 @@ function attachListenersAll() {
       if (questionsButton) {
         questionsButton.addEventListener("click", function () {
           currentPhase = "questions";
+          renderCurrentScenarioQuestions();
           updateDisplay();
         });
       }
