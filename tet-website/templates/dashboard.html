@@ -68,6 +68,7 @@
             <li class="active">Overview</li>
             {% if ai_analysis_enabled %}<li>Findings</li>{% endif %}
             <li>Evaluated Scenarios</li>
+            <li>Developer Journey</li>
             {% if ai_analysis_enabled %}<li>Action Plan</li>{% endif %}
             <li>Hotspots</li>
         </ul>
@@ -606,6 +607,19 @@
         </div>
     </div>
 
+    <div class="developer-journey-container">
+        <div class="overview-card">
+            <div class="overview-header">
+                <h2>Developer Journey</h2>
+                <p>Pick a participant and a scenario to rebuild what actually happened during the session — pages, backtracking, doubts and comments in the order they occurred.</p>
+            </div>
+            <hr class="task-heatmap-divider">
+            <div id="journey-root">
+                <p class="loading">Loading journey data...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de detalhes do KSC -->
     <div id="kscModal" class="modal">
         <div class="modal-content ksc-modal-content">
@@ -825,6 +839,7 @@
 {% block scripts %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/developer_journey.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
     <script src="{{ url_for('static', filename='js/hotspots_heatmaps.js') }}"></script>

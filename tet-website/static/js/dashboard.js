@@ -38,6 +38,7 @@ const navItems = document.querySelectorAll(".dashboard-navbar ul li");
     "Overview": document.querySelector(".overview-container"),
     "Findings": document.querySelector(".findings-container"),
     "Evaluated Scenarios": document.querySelector(".evaluated-scenarios-container"),
+    "Developer Journey": document.querySelector(".developer-journey-container"),
     "Action Plan": document.querySelector(".actionplan-container"),
     "Hotspots": document.querySelector(".hotspots-container"),
 };

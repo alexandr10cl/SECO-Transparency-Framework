@@ -6,6 +6,8 @@ import pytz
 import requests
 from flask import jsonify, request
 
+from sqlalchemy.orm import selectinload
+
 from config_flags import UXT_INTEGRATION
 from functions import isLogged
 from index import app, db
@@ -14,6 +16,8 @@ from models import (
     SECO_process,
     Guideline,
     Navigation,
+    CollectedData,
+    PerformedTask,
 )
 from services.heatmap_cache import get_cached_payload, set_cached_payload, get_cache_stats
 from services.heatmap_service import (
@@ -23,6 +27,7 @@ from services.heatmap_service import (
     aggregate_heatmaps_by_url,
     normalize_timestamp,
 )
+from services.journey_service import build_journey_payload
 from services import uxt_service
 from services.uxt_service import get_uxt_token, UXT_DISABLED_MESSAGE
 
@@ -111,6 +116,26 @@ def api_heatmap_scenarios(evaluation_id: int):
             "error": "Processing error",
             "details": str(exc),
         }), 500
+
+
+@app.route('/api/developer-journey/<int:evaluation_id>')
+def api_developer_journey(evaluation_id: int):
+    """Return the per-participant navigation journey for an evaluation."""
+    if not isLogged():
+        return jsonify({"error": "User not authenticated", "details": "Login required"}), 401
+
+    evaluation = Evaluation.query.options(
+        selectinload(Evaluation.seco_processes).selectinload(SECO_process.tasks),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.performed_tasks)
+            .selectinload(PerformedTask.task),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.navigation),
+        selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.developer_questionnaire),
+    ).get_or_404(evaluation_id)
+
+    return jsonify(build_journey_payload(evaluation))
 
 
 @app.route('/api/guideline/<int:id>')
