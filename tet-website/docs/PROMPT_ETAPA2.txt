@@ -1,0 +1,88 @@
+####################################################################################################
+# ETAPA 2 - ACTIONS  (o que call_ai recebe)
+####################################################################################################
+
+====================================================================================================
+>>> SYSTEM_INSTRUCTION
+====================================================================================================
+Você é a camada analítica do SECO-TransP. Na etapa anterior foram identificados os
+problemas de transparência (Findings) de uma avaliação, já validados contra os dados e
+ancorados no framework (Diretrizes e seus Critérios de Sucesso (KSC)).
+
+TRANSPARÊNCIA é a condição em que as informações sobre capacidades, prioridades e
+comportamentos estão abertamente disponíveis, permitindo a tomada de decisão informada
+pelos envolvidos e reduzindo as ineficiências causadas pela assimetria de informação.
+Cada ação que você propõe existe para aproximar o portal dessa condição.
+
+Sua única pergunta agora é: **O QUE DEVEMOS FAZER?**
+
+REGRAS OBRIGATÓRIAS
+
+1. AGRUPE. Não produza mecanicamente uma ação por finding. Se dois ou mais findings
+   podem ser resolvidos pela mesma intervenção, produza UMA ação que liste todos eles em
+   `finding_ids`. Exemplo: "canais de contato pouco visíveis" + "ausência de formulário
+   para issues" -> uma única ação "criar widget de suporte com link para o issue tracker".
+
+2. NADA DE AÇÃO GENÉRICA. "Melhorar a documentação" é inútil. A ação precisa responder
+   O QUE muda e ONDE. `where` deve conter locais concretos do portal (páginas, seções,
+   componentes, navbar, footer) inferidos das URLs e da navegação que aparecem nos
+   findings. Se não der para inferir um local específico, descreva a área do portal — mas
+   nunca deixe vazio.
+
+3. COBERTURA. Todo finding recebido deve aparecer em pelo menos uma ação. Use apenas os
+   IDs de finding que foram fornecidos (formato F-01, F-02, ...).
+
+4. NÃO ESTIME PRIORIDADE, IMPACTO NEM ESFORÇO, e não mencione esses valores no texto. O
+   sistema calcula a prioridade a partir das evidências que sustentam cada finding. Sua
+   parte é dizer o que fazer e onde.
+
+5. `description` deve explicar e detalhar a ação e, quando ajudar, por que ela trata aqueles
+   findings. Não existe campo separado para justificativa.
+
+6. Escreva tudo na mesma linguagem dos findings. No caso de português, coloque Ç e acentue corretamente todas as palavras.
+
+7. O CRITÉRIO DE SUCESSO ORIENTA A AÇÃO. Cada finding é acompanhado do critério de
+   sucesso (KSC) que ele viola, com sua descrição. Essa descrição enuncia o estado que se
+   espera do portal quanto àquele aspecto da transparência, e é a referência a partir da
+   qual a intervenção deve ser formulada: a ação proposta descreve como o portal passaria
+   da situação observada nos dados para a situação descrita no critério. Não reproduza o
+   texto do critério na `description` — ele é o parâmetro, não o conteúdo da recomendação;
+   traduza-o numa mudança concreta neste portal, apoiada nos locais que os findings
+   indicam.
+
+====================================================================================================
+>>> PROMPT (conteudo do usuario)
+====================================================================================================
+## AVALIACAO
+Lang chain portal evaluation — portal docs.langchain (https://docs.langchain.com/)
+Objetivo do gestor: Avaliar a eficiência, clareza e navegabilidade da documentação do LangChain, identificando como desenvolvedores de diferentes níveis de experiência compreendem, localizam e aplicam as informações necessárias para construir soluções práticas, medindo barreiras, pontos de fricção e oportunidades de melhoria na experiência do usuário.
+
+## FINDINGS VALIDADOS
+
+### F-01 — Dificuldade de localização e falta de clareza nos roadmaps e objetivos futuros do portal
+Observation: Os participantes P1, P3 e P4 avaliaram o acesso público a roadmaps com notas reduzidas (27/100, 35/100 e 44/100, respectivamente). O participante P4 finalizou a Tarefa 5 sem certeza (status NOT_SURE), relatando que as metas futuras não são apresentadas na página principal da documentação, enquanto o participante P3 destacou a falta de clareza quanto ao status de decisão e prioridade das funcionalidades.
+KSC violado: G5 / ksc_id=17 — Public Access to Roadmaps and Change Plans
+Criterio de sucesso a ser atendido: Portals must provide public and continuously updated roadmaps or changelogs that show planned features, improvements, and deprecated elements. Each update should be traceable to prior discussions or documented decisions, illustrating how feedback and requirements shape the platform’s evolution. In sensitive contexts, roadmaps may highlight goals and progress without revealing confidential or security-critical information.
+Abrangencia calculada pelo sistema: 3/4 participantes · recorrencia 5 · confianca da evidencia HIGH
+Paginas envolvidas nas evidencias: https://github.com/orgs/langchain-ai/projects?query=is%3Aopen
+
+### F-02 — Ausência de suporte multilíngue na documentação do ecossistema
+Observation: Os participantes P1 e P3 atribuíram pontuações insatisfatórias ao critério de documentação multilíngue (48/100 e 60/100, respectivamente), tendo o participante P3 registrado a necessidade de suporte a outros idiomas para novos desenvolvedores, enquanto o participante P2 precisou recorrer a uma ferramenta externa de tradução durante a navegação.
+KSC violado: G1 / ksc_id=4 — Equitable and Multilingual Documentation
+Criterio de sucesso a ser atendido: Documentation must be available in multiple languages, accurate, and kept up to date to ensure equal access to technical information. Equitable documentation practices promote shared understanding, collaboration, and trust among developers in different contexts.
+Abrangencia calculada pelo sistema: 3/4 participantes · recorrencia 4 · confianca da evidencia HIGH
+Paginas envolvidas nas evidencias: https://translate.google.com/?sl=auto&tl=en&text=Imagine%20that%20you%20have%20just%20joined%20a%20p · https://translate.google.com/?sl=auto&tl=pt&text=Imagine%20that%20you%20have%20just%20joined%20a%20p
+
+### F-03 — Visibilidade limitada do histórico de commits, Pull Requests e contribuições de código
+Observation: O participante P1 avaliou o critério de rastreabilidade de mudanças com nota 0/100 e registrou em comentário que o portal dificulta a visualização de projetos, histórico de commits e PRs. Do mesmo modo, o participante P4 destacou no comentário final que o histórico de contribuições e merges não estava claro, e o participante P3 atribuiu nota 40/100 a este critério.
+KSC violado: G2 / ksc_id=7 — Traceability of Code Contributions and Changes
+Criterio de sucesso a ser atendido: Repositories must provide traceable records of code contributions and modifications, including authorship, timestamps, and references to related issues or reviews. Traceability should enable developers to understand how and why changes occurred. In hybrid or proprietary sofwtare ecosystems, summarized changelogs or dashboards can ensure visibility without disclosing restricted content.
+Abrangencia calculada pelo sistema: 3/4 participantes · recorrencia 4 · confianca da evidencia HIGH
+Paginas envolvidas nas evidencias: https://github.com/langchain-ai · https://github.com/orgs/langchain-ai/projects?query=is%3Aopen
+
+### F-04 — Falta de clareza quanto aos papéis e responsabilidades dos mantenedores do ecossistema
+Observation: Os participantes P3 e P4 atribuíram notas expressivamente baixas à clareza de papéis da keystone (17/100 e 31/100, respectivamente), em forte divergência em relação a P1 e P2 (que atribuíram notas de 100/100 e 92/100), indicando que desenvolvedores de perfis específicos enfrentam incerteza para identificar os papéis oficiais dos mantenedores.
+KSC violado: G3 / ksc_id=10 — Clarity of Roles and Communication Responsibilities
+Criterio de sucesso a ser atendido: Communication channels must clearly identify who communicates on behalf of the keystone and their specific roles in the ecosystem. Developers should be able to distinguish official statements, announcements, or decisions from personal opinions. The portal must ensure visible ownership of posts or messages, maintaining institutional accountability and preventing misinformation.
+Abrangencia calculada pelo sistema: 4/4 participantes · recorrencia 6 · confianca da evidencia HIGH
+Paginas envolvidas nas evidencias: https://forum.langchain.com/?_gl=1*13i8m96*_gcl_au*ODUwMDgxOTQ1LjE3NjQxODYyMDY.*_ga*MTQzNjE3NDUzLjE3 · https://www.langchain.com/about?_gl=1*1h4cml1*_gcl_au*NzY4OTE1MzI0LjE3NjQxODU1Njk.*_ga*NTQ3OTY0MDUzL

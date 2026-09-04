@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload, selectinload, contains_eager
 
 from index import app, db
+from config_flags import AI_ANALYSIS
 from functions import isLogged, isAdmin, login_required
 from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
@@ -752,7 +753,24 @@ def eval_dashboard(id):
     eId = evaluation.evaluation_id
     ePortal = evaluation.seco_portal
     ePortalUrl = evaluation.seco_portal_url
-    
+
+    # Periodo da avaliacao: da criacao ate a ultima coleta recebida.
+    # created_at e nullable (coluna adicionada depois da base original), entao avaliacoes
+    # antigas caem no fallback da primeira coleta em vez de ficarem sem inicio.
+    capture_times = [cd.end_time for cd in collected_data if cd.end_time]
+    period_end = max(capture_times) if capture_times else None
+    period_start = evaluation.created_at or (min(capture_times) if capture_times else None)
+
+    if period_start and period_end:
+        # Formato por extenso: DD/MM vs MM/DD e ambiguo numa interface em ingles.
+        if period_start.date() == period_end.date():
+            eEvaluationPeriod = f"{period_start:%d %b %Y}"
+        else:
+            eEvaluationPeriod = f"{period_start:%d %b %Y} – {period_end:%d %b %Y}"
+    else:
+        # Sem coleta nenhuma nao ha periodo a exibir: o template mostra o estado vazio.
+        eEvaluationPeriod = None
+
     dimensions = SECO_dimension.query.all()
     
     # Criar lista de IDs dos collected_data desta avaliação
@@ -829,6 +847,9 @@ def eval_dashboard(id):
             total_answers = 0
 
             ksc_data = {
+                # Ancora para o link vindo da aba Findings (camada de IA): e o mesmo
+                # key_success_criterion_id que a analise grava em ai_finding.ksc_id.
+                'ksc_id': ksc.key_success_criterion_id,
                 'title': ksc.title,
                 'description': ksc.description,
                 'questions': [],
@@ -1299,6 +1320,7 @@ def eval_dashboard(id):
                             ePortal=ePortal,
                             ePortalUrl=ePortalUrl,
                             eManagerObjective=evaluation.manager_objective,
+                            eEvaluationPeriod=eEvaluationPeriod,
                             dimensions=dimensions,
                             processed_tasks=processed_tasks,
                             tasks_by_process=tasks_by_process,
@@ -1307,7 +1329,8 @@ def eval_dashboard(id):
                             transparency_badge_overall=transparency_badge_overall,
                             g_dimensions=g_dimensions_flat,
                             dimension_scores=dimension_scores,
-                            dx_categories=dx_categories)
+                            dx_categories=dx_categories,
+                            ai_analysis_enabled=AI_ANALYSIS)
     
 
 @app.route('/view_heatmap/<int:id>')

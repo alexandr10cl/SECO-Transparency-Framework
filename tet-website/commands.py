@@ -132,5 +132,63 @@ def seed_command():
     click.echo("Seed complete!")
 
 
+@click.command("ai-analyze")
+@click.option("--evaluation-id", type=int, required=True, help="Avaliacao a analisar.")
+@click.option("--model", default=None, help="Modelo a usar (padrao: AI_MODEL do .env).")
+@click.option(
+    "--dry-run", is_flag=True,
+    help="Monta e imprime o contexto sem chamar a API — para iterar no prompt de graca.",
+)
+@with_appcontext
+def ai_analyze_command(evaluation_id, model, dry_run):
+    """Roda a camada analitica de IA numa avaliacao, pelo terminal.
+
+    O botao do dashboard e o caminho normal. Esta CLI existe para o que a tela nao faz
+    bem: iterar no prompt sem gastar chamada (--dry-run) e comparar modelos em lote.
+    """
+    from services.ai import pipeline
+    from services.ai.context_builder import EvaluationNotAnalyzable
+
+    try:
+        if dry_run:
+            result = pipeline.build_dry_run(evaluation_id)
+            click.echo(result["prompt"])
+            click.echo("")
+            click.echo("--dry-run: nenhuma chamada a API foi feita.")
+            click.echo(
+                f"{result['participants']} participantes · "
+                f"{result['evidence_catalog_size']} evidencias · "
+                f"{result['framework_scope_size']} KSCs no escopo"
+            )
+            click.echo(f"Catalogo por tipo: {result['catalog_by_type']}")
+            return
+
+        click.echo(f"Analisando a avaliacao {evaluation_id}...")
+        payload = pipeline.run_sync(evaluation_id, model=model)
+    except EvaluationNotAnalyzable as exc:
+        raise click.ClickException(str(exc))
+
+    click.echo("")
+    click.echo(f"Modelo: {payload['model']} · {payload['stats']['ai_duration_s']}s · "
+               f"{payload['stats']['tokens_total']} tokens")
+    click.echo("-" * 72)
+    for finding in payload["findings"]:
+        m = finding["metrics"]
+        click.echo(f"{finding['code']}  {finding['title']}")
+        click.echo(f"       KSC G{finding['ksc']['guideline_id']}/{finding['ksc']['id']} "
+                   f"{finding['ksc']['title']}")
+        click.echo(f"       {m['affected_participants']} participantes · recorrencia "
+                   f"{m['recurrence']} · confianca {m['confidence_band']} · "
+                   f"{m['evidence_count']} evidencias")
+    click.echo("-" * 72)
+    for action in payload["actions"]:
+        click.echo(f"{action['code']}  [{action['priority_band']} {action['priority_score']}] "
+                   f"{action['title']}")
+        click.echo(f"       resolve {', '.join(action['resolves'])} · "
+                   f"onde: {', '.join(action['where'])}")
+    click.echo("-" * 72)
+
+
 def register_commands(app):
     app.cli.add_command(seed_command)
+    app.cli.add_command(ai_analyze_command)

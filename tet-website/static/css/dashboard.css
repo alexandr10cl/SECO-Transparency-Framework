@@ -106,15 +106,16 @@ body {
 .dashboard-title{
     display: flex;
     flex-direction: row;
-    gap: 16px;  
+    gap: 16px;
     align-items: center;
 }
 
+/* Tres cards pares: portal (o que foi avaliado), participantes (a amostra) e periodo
+   (a janela de coleta). auto-fit em vez do flex 50% antigo: com tres itens, duas
+   colunas deixariam o terceiro esticado sozinho na segunda linha. */
 .evaluation-info {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;   
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 8px;
 }
 
@@ -129,11 +130,6 @@ body {
         0 8px 16px rgba(0, 0, 0, 0.04);
     background-color: hsl(var(--card));
     transition: box-shadow 0.3s ease;
-    flex: 1 1 calc(50% - 8px);
-}
-
-.evaluation-info-card.objective-card {
-    flex: 1 1 100%;
 }
 
 .evaluation-info-card h3 {
@@ -143,19 +139,52 @@ body {
     font-weight: 600;
 }
 
-/* Objective card specific styling */
-.objective-content {
-    font-size: 1rem;
-    line-height: 1.4;
-    color: hsl(var(--foreground));
-    font-weight: 400;
-    margin: 0;
-    margin-top: 0.5rem;
+.evaluation-info-card h2 {
+    margin: 6px 0 0;
+    line-height: 1.25;
+    /* Nome de portal pode ser uma URL sem espacos: sem isso estoura o card estreito. */
+    overflow-wrap: anywhere;
 }
 
-.objective-content.no-objective {
-    color: hsl(var(--muted-foreground));
+/* O periodo e um intervalo, nao um numero: cabe menos texto grande que "4" ou o nome do
+   portal, entao desce um degrau para nao quebrar em tres linhas no card estreito. */
+.evaluation-info-card h2.period-value {
+    font-size: 1.25rem;
+}
+
+.evaluation-info-card h2.period-value.is-empty {
+    font-weight: 500;
     font-style: italic;
+    color: hsl(var(--muted-foreground));
+}
+
+/* Objetivo tratado como epigrafe — filete de acento e recuo, a convencao tipografica de
+   um resumo. Fora dos cards de proposito: e a pergunta do estudo, nao um indicador. */
+.eval-objective {
+    border-left: 2px solid #2563eb;
+    padding-left: 16px;
+}
+
+/* Rotulo utilitario: identifica o campo, nunca compete com o valor. */
+.eval-eyebrow {
+    margin: 0 0 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+}
+
+.eval-objective-text {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: hsl(var(--foreground));
+}
+
+.eval-objective-text.is-empty {
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
 }
 
 .dashboard-navbar {
@@ -1421,7 +1450,6 @@ body {
 
 @media (max-width: 768px) {
   .dashboard-container { padding: 16px; }
-  .evaluation-info { flex-direction: column; align-items: stretch; gap: 12px; }
   .dimensions, .dx_categorys { flex-direction: column; gap: 12px; }
   .score { width: 100%; }
   .overall { transform: none; max-width: 100%; }
