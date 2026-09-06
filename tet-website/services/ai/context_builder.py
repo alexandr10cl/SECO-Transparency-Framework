@@ -1,15 +1,15 @@
 """
 Montagem do catálogo de evidências e do contexto que vai para o modelo de IA.
 
-um dicionario unico {id_prefixado -> registro}, onde o id prefixado (PT-591, NAV-476, ANS-1722, DQ-115)
-resolve a colisao entre PKs de tabelas diferentes — `performed_task 591` e
+um dicionario unico {id_prefixado -> registro}, onde o id prefixado (PT-591, NAV-476, ANS-1722,
+DQ-115, DBT-42) resolve a colisao entre PKs de tabelas diferentes — `performed_task 591` e
 `navigation 591` existem os dois — e da a rastreabilidade.
 
 O contexto enviado ao modelo renderiza cada dado ja prefixado pelo seu id, entao nao
 existe duplicacao entre "catalogo" e "narrativa", e a validacao depois confere ID por ID
 contra este mesmo dicionario.
 
-Fora do escopo por enquanto: heatmaps e duvidas.
+Fora do escopo por enquanto: heatmaps.
 """
 from __future__ import annotations
 
@@ -22,6 +22,7 @@ from models import (
     Answer,
     CollectedData,
     DeveloperQuestionnaire,
+    Doubt,
     Evaluation,
     Guideline,
     EvaluationCriterionWheight,
@@ -306,6 +307,31 @@ def build_evidence_catalog(evaluation_id: int) -> "OrderedDict[str, Dict[str, An
             },
         }
 
+    # -- duvidas registradas durante a execucao do cenario (RF-03)
+    doubts = (
+        db.session.query(Doubt)
+        .join(CollectedData, CollectedData.collected_data_id == Doubt.collected_data_id)
+        .filter(CollectedData.evaluation_id == evaluation_id)
+        .order_by(Doubt.collected_data_id, Doubt.timestamp, Doubt.doubt_id)
+        .all()
+    )
+    for doubt in doubts:
+        elapsed = doubt.elapsed_time or "?"
+        catalog[f"DBT-{doubt.doubt_id}"] = {
+            "type": "doubt",
+            "participant_id": doubt.collected_data_id,
+            "task_id": doubt.task_id,
+            # Formato congelado, como o de navigation: este texto vai para o snapshot
+            # `ai_finding.evidence` e a tela faz parse dele (RE_DOUBT em
+            # static/js/ai_analysis.js). Mexer aqui quebra as analises ja gravadas.
+            "summary": f"duvida em {elapsed} de cenario: \"{_clean(doubt.text)}\"",
+            "payload": {
+                "text": _clean(doubt.text),
+                "elapsed_time": doubt.elapsed_time,
+                "timestamp": str(doubt.timestamp),
+            },
+        }
+
     # -- respostas aos KSC (0-100)
     answers = (
         db.session.query(
@@ -396,6 +422,12 @@ def render_data(
         "preservados como o participante os produziu. `(aba)` marca troca de aba em vez "
         "de carregamento de pagina.\n"
     )
+    lines.append(
+        "As linhas [DBT-n] sao duvidas que o participante escreveu com as proprias "
+        "palavras DURANTE a execucao daquele cenario, sem interromper a tarefa. O tempo "
+        "entre parenteses e quanto havia decorrido do cenario quando ele registrou a "
+        "duvida.\n"
+    )
 
     for index, participant in enumerate(participants, start=1):
         pid = participant.collected_data_id
@@ -426,6 +458,13 @@ def render_data(
                     # bloco. Fallback defensivo para registros sem a chave.
                     lines.append(
                         f"    [{eid}] {rec.get('prompt_line') or rec['summary']}"
+                    )
+            for eid, rec in entries:
+                if rec["type"] == "doubt":
+                    payload = rec.get("payload") or {}
+                    lines.append(
+                        f"    [{eid}] duvida ({payload.get('elapsed_time') or '?'}): "
+                        f"\"{payload.get('text') or ''}\""
                     )
             lines.append("")
 

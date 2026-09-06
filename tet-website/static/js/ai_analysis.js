@@ -28,13 +28,14 @@
     var activeFindingCode = null;
     var lastData = null;
 
-    // Icone e cor por tipo de evidencia. So os quatro tipos que o catalogo produz hoje
-    // (context_builder.py) — sem heatmap e sem duvidas, cortados desta entrega.
+    // Icone e cor por tipo de evidencia. Os cinco tipos que o catalogo produz hoje
+    // (context_builder.py) — sem heatmap, cortado desta entrega.
     var EVIDENCE_TYPE = {
         performed_task: { icon: 'task_alt', cls: 'ev-task' },
         navigation: { icon: 'explore', cls: 'ev-nav' },
         answer: { icon: 'bar_chart', cls: 'ev-answer' },
-        developer_questionnaire: { icon: 'person', cls: 'ev-profile' }
+        developer_questionnaire: { icon: 'person', cls: 'ev-profile' },
+        doubt: { icon: 'help', cls: 'ev-doubt' }
     };
 
     // Ordem e rotulo dos grupos de evidencia no painel de detalhe. `navigation` nao tem
@@ -42,8 +43,12 @@
     // performed_task, porque e um sinal de baixo valor sozinha para o gestor mas ainda
     // vale mostrar como linha extra dentro do contexto do cenario. Grupo sem nenhuma
     // evidencia e omitido.
+    // ATENCAO: um tipo que nao esteja em nenhum grupo aqui NAO e renderizado — o filtro
+    // abaixo (evidenceGroupsHTML) o descarta em silencio, enquanto o contador do cabecalho
+    // continua contando o array inteiro. Tipo novo no catalogo exige entrada nesta lista.
     var EVIDENCE_GROUPS = [
         { types: ['performed_task', 'navigation'], label: 'Experience during scenarios' },
+        { types: ['doubt'], label: 'Questions raised during scenarios' },
         { types: ['answer'], label: 'Success criterion assessment' },
         { types: ['developer_questionnaire'], label: 'Participant profile & feedback' }
     ];
@@ -59,7 +64,8 @@
         performed_task: 'tasks',
         navigation: 'navigation',
         answer: 'answers',
-        developer_questionnaire: 'questionnaire'
+        developer_questionnaire: 'questionnaire',
+        doubt: 'questions'
     };
 
     // ---------------------------------------------------------------- helpers
@@ -213,11 +219,14 @@
     //   answer:         "KSC 17 "titulo" -> 27/100"
     //   questionnaire:  "GRADUATION · usa portais OFTEN · 4 anos de xp · segmento
     //                    BACKEND · emocao 2/5 · comentario final: "texto""
+    //   doubt:          "duvida em 01:23 de cenario: "texto""
     var RE_STATUS = /^status=([A-Za-z_]+)/;
     var RE_DURATION = /·\s*(\d+)s/;
     var RE_QUOTED_COMMENT = /comentario(?:\s+final)?:\s*"([^"]*)"/;
     var RE_ANSWER_SCORE = /->\s*(\d+)\/100/;
     var RE_NAV_ACTION = /^([A-Za-z_]+)\s*·\s*"([^"]*)"/;
+    var RE_DOUBT_ELAPSED = /^duvida em (\S+) de cenario/;
+    var RE_DOUBT_TEXT = /de cenario:\s*"([^"]*)"/;
     var RE_PROFILE = /^([A-Za-z_]+)\s*·\s*usa portais ([A-Za-z_]+)\s*·\s*(\d+)\s*anos de xp\s*·\s*segmento ([A-Za-z_]+)\s*·\s*emocao (\d)\/5/;
 
     var STATUS_LABEL = {
@@ -255,12 +264,21 @@
             return esc(humanize(profile[1])) + ' · ' + esc(profile[3]) + ' yrs xp · ' +
                 esc(humanize(profile[4])) + ' · emotion ' + esc(profile[5]) + '/5';
         }
+        if (item.type === 'doubt') {
+            var elapsed = RE_DOUBT_ELAPSED.exec(summary);
+            return 'Scenario ' + esc(item.task_id) +
+                (elapsed && elapsed[1] !== '?' ? ' · asked at ' + esc(elapsed[1]) : '');
+        }
         return esc(summary);
     }
 
     // Comentario/citacao entre aspas, quando existir — a parte que realmente da cor
     // humana a evidencia. Ausente para navigation e answer (sem texto livre no summary).
     function evidenceQuote(item) {
+        if (item.type === 'doubt') {
+            var doubt = RE_DOUBT_TEXT.exec(item.summary || '');
+            return doubt && doubt[1] ? '"' + esc(doubt[1]) + '"' : '';
+        }
         if (item.type !== 'performed_task' && item.type !== 'developer_questionnaire') return '';
         var match = RE_QUOTED_COMMENT.exec(item.summary || '');
         return match && match[1] ? '"' + esc(match[1]) + '"' : '';

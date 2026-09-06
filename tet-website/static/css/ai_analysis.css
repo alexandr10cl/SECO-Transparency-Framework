@@ -551,6 +551,8 @@
 .ev-task .ev-icon    { background: #eff6ff; color: #2563eb; }
 .ev-nav .ev-icon     { background: #f5f3ff; color: #7c3aed; }
 .ev-answer .ev-icon  { background: #fffbeb; color: #d97706; }
+/* Ambar, o mesmo vocabulario visual das duvidas na timeline do Developer Journey. */
+.ev-doubt .ev-icon   { background: #fef3c7; color: #b45309; }
 .ev-profile .ev-icon,
 .ev-generic .ev-icon { background: #f0fdfa; color: #0d9488; }
 
