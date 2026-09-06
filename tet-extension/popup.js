@@ -421,7 +421,7 @@ function captureCurrentTabNavigation({ source = "snapshot", taskIdOverride = nul
 // Enhanced Navigation tracking with precise task boundary detection
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
-    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
+    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "questions" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
 
     if (shouldTrackNavigation) {
       if (request.action === "pageNavigation" || request.action === "tabSwitch") {
