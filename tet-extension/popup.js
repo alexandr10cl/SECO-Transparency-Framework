@@ -202,6 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
           typeof getTaskElapsedTime === "function"
             ? getTaskElapsedTime()
             : "00:00", // usa o tempo decorrido do timer
+        timestamp: new Date().toISOString(), //momento em que a duvida foi registrada
       };
 
       data_collection.questions.push(questionData); //salva a duvida no array de dados
@@ -420,7 +421,7 @@ function captureCurrentTabNavigation({ source = "snapshot", taskIdOverride = nul
 // Enhanced Navigation tracking with precise task boundary detection
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
-    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
+    const shouldTrackNavigation = currentPhase === "task" || currentPhase === "questions" || currentPhase === "review" || currentPhase === "processreview" || currentPhase === "initial";
 
     if (shouldTrackNavigation) {
       if (request.action === "pageNavigation" || request.action === "tabSwitch") {

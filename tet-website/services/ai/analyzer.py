@@ -22,7 +22,7 @@ class Finding(BaseModel):
     title: str = Field(description="O problema identificado, em uma frase. Nao e uma metrica.")
     observation: str = Field(description="Sintese do que os dados mostram e por que sustentam o problema.")
     ksc_id: int = Field(description="ID de um KSC existente na lista fornecida.")
-    supporting_data_ids: List[str] = Field(description="IDs de evidencia do catalogo, ex: PT-608, NAV-431.")
+    supporting_data_ids: List[str] = Field(description="IDs de evidencia do catalogo, ex: PT-608, NAV-431, DBT-12.")
 
 
 class FindingsResponse(BaseModel):
@@ -65,8 +65,8 @@ REGRAS OBRIGATÓRIAS
 
 1. EVIDENCE-FIRST. Todo finding precisa ser sustentado por dados que estão no contexto.
    Em `supporting_data_ids` use EXCLUSIVAMENTE os IDs que aparecem entre colchetes nos
-   dados (formato PT-<n>, NAV-<n>, ANS-<n>, DQ-<n>). NUNCA invente um ID. NUNCA cite um
-   ID que você não viu no contexto. Um ID inventado invalida o finding inteiro.
+   dados (formato PT-<n>, NAV-<n>, ANS-<n>, DQ-<n>, DBT-<n>). NUNCA invente um ID. NUNCA
+   cite um ID que você não viu no contexto. Um ID inventado invalida o finding inteiro.
 
 2. FRAMEWORK-ANCHORED. `ksc_id` tem que ser um dos ksc_id listados na seção do framework.
    Você NÃO cria KSCs novos e NÃO usa ksc_id fora daquela lista. Escolha o KSC que melhor
@@ -124,6 +124,15 @@ REGRAS OBRIGATÓRIAS
     avaliação. Quando o participante usou uma busca, os termos que ele digitou aparecem na
     própria URL. Leia o percurso contra o objetivo da tarefa em que ele aconteceu e
     interprete-o como as demais evidências — nem toda trilha indica um problema.
+
+12. DÚVIDAS. As linhas [DBT-n] são perguntas que o participante escreveu com as próprias
+    palavras enquanto executava o cenário, e não depois dele: o tempo entre parênteses diz
+    em que ponto do cenário a dúvida surgiu, então ela pode ser cruzada com a navegação
+    daquele mesmo intervalo. É o registro mais direto de uma lacuna de informação, porque
+    nomeia aquilo que o participante procurava e não encontrou — mas é o relato de uma
+    dificuldade momentânea, não um defeito já confirmado do portal: uma dúvida pode ter
+    sido resolvida logo em seguida pela própria navegação. Leia-a contra o objetivo da
+    tarefa e contra o que aconteceu depois dela, como faz com as demais evidências.
 """
 SYSTEM_ACTIONS = """\
 Você é a camada analítica do SECO-TransP. Na etapa anterior foram identificados os

@@ -86,7 +86,29 @@ def _build_event(nav) -> Dict[str, Any]:
     }
 
 
-def _build_scenario(performed_task, scenario_ref: str, navigation_events: List) -> Dict[str, Any]:
+def _parse_elapsed_seconds(elapsed):
+    """Parse the extension's "mm:ss" elapsed string into seconds."""
+    if not elapsed:
+        return None
+    parts = elapsed.split(":")
+    if len(parts) != 2:
+        return None
+    try:
+        return float(int(parts[0]) * 60 + int(parts[1]))
+    except ValueError:
+        return None
+
+
+def _build_doubt_event(doubt) -> Dict[str, Any]:
+    return {
+        "kind": "doubt",
+        "timestamp": doubt.timestamp.isoformat(),
+        "text": doubt.text,
+        "elapsed_time": doubt.elapsed_time,
+    }
+
+
+def _build_scenario(performed_task, scenario_ref: str, navigation_events: List, doubts: List) -> Dict[str, Any]:
     status_label, status_tone = STATUS_LABELS.get(
         performed_task.status, (None, None)
     )
@@ -101,15 +123,32 @@ def _build_scenario(performed_task, scenario_ref: str, navigation_events: List) 
 
     initial_ts = performed_task.initial_timestamp
 
-    events = []
-    for nav in sorted(navigation_events, key=lambda n: n.timestamp):
+    timed_events = []
+    for nav in navigation_events:
         event = _build_event(nav)
         try:
             offset_seconds = max(0.0, (nav.timestamp - initial_ts).total_seconds())
         except TypeError:
             offset_seconds = 0.0
         event["offset_seconds"] = offset_seconds
-        events.append(event)
+        timed_events.append((nav.timestamp, event))
+
+    for doubt in doubts:
+        event = _build_doubt_event(doubt)
+        try:
+            offset_seconds = max(0.0, (doubt.timestamp - initial_ts).total_seconds())
+        except TypeError:
+            offset_seconds = 0.0
+        if offset_seconds == 0.0:
+            # Dúvidas antigas (extensão sem timestamp) caem no fallback start_time;
+            # o "mm:ss" gravado pela extensão ainda posiciona o evento no cenário.
+            elapsed_seconds = _parse_elapsed_seconds(doubt.elapsed_time)
+            if elapsed_seconds is not None:
+                offset_seconds = elapsed_seconds
+        event["offset_seconds"] = offset_seconds
+        timed_events.append((doubt.timestamp, event))
+
+    events = [event for _, event in sorted(timed_events, key=lambda item: item[0])]
 
     return {
         "scenario_ref": scenario_ref,
@@ -119,6 +158,7 @@ def _build_scenario(performed_task, scenario_ref: str, navigation_events: List) 
         "status_label": status_label,
         "duration_seconds": duration_seconds,
         "comment": performed_task.comments,
+        "doubt_count": len(doubts),
         "events": events,
     }
 
@@ -136,6 +176,10 @@ def build_journey_payload(evaluation: Evaluation) -> Dict[str, Any]:
         for nav in collected_data.navigation:
             navigation_by_task.setdefault(nav.task_id, []).append(nav)
 
+        doubts_by_task: Dict[int, List] = {}
+        for doubt in collected_data.doubts:
+            doubts_by_task.setdefault(doubt.task_id, []).append(doubt)
+
         performed_tasks_sorted = sorted(
             collected_data.performed_tasks,
             key=lambda pt: scenario_index.get(pt.task_id, ""),
@@ -147,7 +191,8 @@ def build_journey_payload(evaluation: Evaluation) -> Dict[str, Any]:
             if scenario_ref is None:
                 continue
             navigation_events = navigation_by_task.get(performed_task.task_id, [])
-            scenarios.append(_build_scenario(performed_task, scenario_ref, navigation_events))
+            doubts = doubts_by_task.get(performed_task.task_id, [])
+            scenarios.append(_build_scenario(performed_task, scenario_ref, navigation_events, doubts))
 
         try:
             duration_seconds = max(

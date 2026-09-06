@@ -34,6 +34,13 @@ class CollectedData(db.Model):
         cascade='all, delete-orphan'
     )
     
+    # Relationship with Doubt table
+    doubts = db.relationship(
+        'Doubt',
+        backref=db.backref('collected_data', lazy=True),
+        cascade='all, delete-orphan'
+    )
+
     # Relationship with Answer table
     answers = db.relationship(
         'Answer',
