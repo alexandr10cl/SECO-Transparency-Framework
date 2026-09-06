@@ -258,6 +258,10 @@
         badge.appendChild(document.createTextNode(statusLabel));
         summary.appendChild(badge);
         summary.appendChild(el('span', 'journey-scenario-duration', formatDuration(scenario.duration_seconds)));
+        if (scenario.doubt_count > 0) {
+            summary.appendChild(el('span', 'journey-doubt-count-chip',
+                `${scenario.doubt_count} doubt${scenario.doubt_count === 1 ? '' : 's'}`));
+        }
         wrapper.appendChild(summary);
 
         if (scenario.comment) {
@@ -283,11 +287,20 @@
 
     function buildEventNode(event) {
         const isTabSwitch = event.kind === 'tab_switch';
-        const node = el('div', `journey-event${isTabSwitch ? ' tab-switch' : ''}`);
+        const isDoubt = event.kind === 'doubt';
+        const node = el('div', `journey-event${isTabSwitch ? ' tab-switch' : ''}${isDoubt ? ' doubt' : ''}`);
 
         const offset = el('div', 'journey-event-offset', formatOffset(event.offset_seconds));
         offset.title = formatTimestamp(event.timestamp);
         node.appendChild(offset);
+
+        if (isDoubt) {
+            const doubtTitleRow = el('div', 'journey-event-title');
+            doubtTitleRow.appendChild(el('span', 'journey-event-kind-pill doubt', 'Doubt'));
+            node.appendChild(doubtTitleRow);
+            node.appendChild(el('p', 'journey-event-doubt-text', event.text || ''));
+            return node;
+        }
 
         const titleRow = el('div', 'journey-event-title');
         if (isTabSwitch) {

@@ -132,6 +132,8 @@ def api_developer_journey(evaluation_id: int):
         selectinload(Evaluation.collected_data)
             .selectinload(CollectedData.navigation),
         selectinload(Evaluation.collected_data)
+            .selectinload(CollectedData.doubts),
+        selectinload(Evaluation.collected_data)
             .selectinload(CollectedData.developer_questionnaire),
     ).get_or_404(evaluation_id)
 
