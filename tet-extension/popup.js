@@ -202,6 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
           typeof getTaskElapsedTime === "function"
             ? getTaskElapsedTime()
             : "00:00", // usa o tempo decorrido do timer
+        timestamp: new Date().toISOString(), //momento em que a duvida foi registrada
       };
 
       data_collection.questions.push(questionData); //salva a duvida no array de dados

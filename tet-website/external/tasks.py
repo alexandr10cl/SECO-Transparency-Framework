@@ -3,7 +3,7 @@ from index import app, db
 from datetime import datetime
 from models import (
     User, Task, Evaluation, CollectedData, Guideline, SECO_process,
-    PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question
+    PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question, Doubt
 )
 from models.task import task_seco_type
 from models.enums import (
@@ -232,6 +232,25 @@ def submit_tasks():
         )
         db.session.add(nav_entry)
         print(f"✅ Navigation entry added: {action_value} -> {action_enum.value}")
+
+    # Salva as dúvidas registradas durante os cenários
+    for q in data.get("questions", []):
+        text = (q.get("text") or "").strip()
+        if not text or not q.get("task_id"):
+            continue
+        ts_raw = q.get("timestamp")
+        try:
+            ts = datetime.fromisoformat(ts_raw) if ts_raw else collected.start_time
+        except (TypeError, ValueError):
+            ts = collected.start_time
+        db.session.add(Doubt(
+            text              = text[:1000],
+            timestamp         = ts,
+            elapsed_time      = (q.get("time") or "")[:10] or None,
+            task_id           = q.get("task_id"),
+            seco_process_id   = q.get("process_id"),
+            collected_data_id = collected.collected_data_id
+        ))
 
     db.session.commit()
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200

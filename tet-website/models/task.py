@@ -52,6 +52,27 @@ class PerformedTask(db.Model):
     # Relationship com Task
     task = db.relationship('Task', backref=db.backref('performed_tasks', passive_deletes=True), passive_deletes=True)
 
+class Doubt(db.Model):
+    __tablename__ = 'doubt'
+
+    # Main Rows
+    doubt_id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(1000), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)  # momento em que a dúvida foi registrada
+    elapsed_time = db.Column(db.String(10), nullable=True)  # "mm:ss" desde o início do cenário
+
+    # Foreign key to the task table
+    task_id = db.Column(db.Integer, db.ForeignKey('task.task_id'), nullable=False)
+
+    # Foreign key to the seco_process table
+    seco_process_id = db.Column(db.Integer, db.ForeignKey('seco_process.seco_process_id'), nullable=True)
+
+    # Foreign key to the collected data table
+    collected_data_id = db.Column(db.Integer, db.ForeignKey('collected_data.collected_data_id'), nullable=False)
+
+    # Relationship with Task
+    task = db.relationship('Task', passive_deletes=True)
+
 class Question(db.Model):
     __tablename__ = 'question'
     
