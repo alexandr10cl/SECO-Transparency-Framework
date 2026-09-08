@@ -25,8 +25,16 @@
                 <span class="breadcrumb-separator">›</span>
                 <span class="breadcrumb-current">Evaluations</span>
             </nav>
-            <h1 class="page-title">Evaluations</h1>
-            <p class="page-subtitle">An easy way to evaluate the transparency of your portal</p>
+            <div class="page-header-row">
+                <div>
+                    <h1 class="page-title">Evaluations</h1>
+                    <p class="page-subtitle">An easy way to evaluate the transparency of your portal</p>
+                </div>
+                <a href="{{ url_for('create_evaluation') }}" class="dashboard-btn page-header-action">
+                    <span class="btn-icon">+</span>
+                    <span>Create Evaluation</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -48,17 +56,19 @@
             {% endif %}
         {% endwith %}
         
-        <!-- Action Header -->
-        <header class="eval-header">
-            <div class="eval-title-section">
-                <div class="eval-actions">
-                    <a href="{{ url_for('create_evaluation') }}" class="dashboard-btn">
-                        <span class="btn-icon">+</span>
-                        <span>Create Evaluation</span>
-                    </a>
-                </div>
+        <!-- Historico: o score mais recente e o herói; o sparkline mostra de onde ele veio.
+             Fica fora do <main>, que tem grid proprio (.evaluations-section ocupa as duas
+             colunas). A faixa se esconde sozinha quando nao ha ponto (evaluation_history.js). -->
+        <section class="history-strip" id="evaluationHistoryCard" hidden>
+            <div class="history-strip-header">
+                <h2 class="history-strip-title">Transparency over time</h2>
+                <p class="history-strip-subtitle">Overall score of each evaluation, oldest to newest. Select a point to open its dashboard.</p>
             </div>
-        </header>
+            <div class="history-chart-wrapper">
+                <canvas id="evaluationHistoryChart"></canvas>
+                <div class="history-tooltip" id="historyTooltip" aria-hidden="true"></div>
+            </div>
+        </section>
 
         <!-- Fix #28, #29: Search and Sort Controls -->
         <div class="evaluations-controls">
@@ -230,4 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/evaluation_history.js') }}"></script>
 {% endblock %}

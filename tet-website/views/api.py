@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 import pytz
 import requests
-from flask import jsonify, request
+from flask import jsonify, request, session
 
 from sqlalchemy.orm import selectinload
 
@@ -14,6 +14,7 @@ from index import app, db
 from models import (
     Evaluation,
     SECO_process,
+    SECO_MANAGER,
     Guideline,
     Navigation,
     CollectedData,
@@ -28,6 +29,7 @@ from services.heatmap_service import (
     normalize_timestamp,
 )
 from services.journey_service import build_journey_payload
+from services.score_service import compute_scores_for_evaluations
 from services import uxt_service
 from services.uxt_service import get_uxt_token, UXT_DISABLED_MESSAGE
 
@@ -138,6 +140,50 @@ def api_developer_journey(evaluation_id: int):
     ).get_or_404(evaluation_id)
 
     return jsonify(build_journey_payload(evaluation))
+
+
+@app.route('/api/evaluation-history')
+def api_evaluation_history():
+    """Overall score de cada avaliacao do gestor logado, em ordem cronologica.
+
+    Diferente dos demais endpoints deste arquivo, este e por USUARIO e nao por avaliacao:
+    o filtro por user_id e o que impede um gestor de ler o historico de outro. E tambem
+    por isso ele ignora a paginacao da tela — historico truncado na pagina atual nao e
+    historico.
+    """
+    if not isLogged():
+        return jsonify({"error": "User not authenticated", "details": "Login required"}), 401
+
+    user = SECO_MANAGER.query.filter_by(email=session.get('user_signed_in')).first()
+    if user is None:
+        return jsonify({"points": []})
+
+    # Mesma ordenacao da tela de evaluations: created_at e nullable (coluna adicionada
+    # depois da base original), entao evaluation_id garante ordem estavel nas antigas.
+    evaluations = (
+        Evaluation.query
+        .filter_by(user_id=user.user_id)
+        .order_by(Evaluation.created_at.asc(), Evaluation.evaluation_id.asc())
+        .all()
+    )
+
+    scores = compute_scores_for_evaluations([e.evaluation_id for e in evaluations])
+
+    points = [
+        {
+            "evaluation_id": evaluation.evaluation_id,
+            "portal": evaluation.seco_portal,
+            "name": evaluation.name,
+            "score": scores.get(evaluation.evaluation_id),
+            "date": evaluation.created_at.isoformat() if evaluation.created_at else None,
+        }
+        for evaluation in evaluations
+        # Sem resposta nenhuma nao ha ponto a plotar: um zero aqui desenharia uma queda
+        # que nunca aconteceu, quando o que houve foi ausencia de coleta.
+        if scores.get(evaluation.evaluation_id) is not None
+    ]
+
+    return jsonify({"points": points})
 
 
 @app.route('/api/guideline/<int:id>')

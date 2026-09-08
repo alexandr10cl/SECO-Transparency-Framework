@@ -19,6 +19,7 @@ from models import (
     Navigation, Task
 )
 from services.heatmap_prefetch import schedule_heatmap_prefetch
+from services.score_service import compute_overall_score, parse_answer_to_fraction
 from services.uxt_service import get_uxt_token, generate_evaluation_code
 
 # Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
@@ -776,58 +777,6 @@ def eval_dashboard(id):
     # Criar lista de IDs dos collected_data desta avaliação
     evaluation_collected_data_ids = [cd.collected_data_id for cd in collected_data]
     
-    # Helper: parseia resposta para 0..1 (numeric) ou None
-    def parse_answer_to_fraction(ans):
-        """
-        Aceita int, float, '50', '50.0', '50%', '0.5', 'yes', 'partial', 'no'
-        Retorna float entre 0.0 e 1.0 ou None se inválido.
-        """
-        if ans is None:
-            return None
-
-        # se já é número
-        if isinstance(ans, (int, float)):
-            v = float(ans)
-            if 0.0 <= v <= 1.0:
-                return v
-            if 0.0 <= v <= 100.0:
-                return v / 100.0
-            return None
-
-        # string: tenta interpretar
-        if isinstance(ans, str):
-            s = ans.strip().lower()
-            # antigos tokens
-            if s in ('yes', 'y', 'sim'):
-                return 1.0
-            if s in ('partial', 'parcial'):
-                return 0.5
-            if s in ('no', 'n', 'não', 'nao'):
-                return 0.0
-            # remove '%' e tenta converter
-            s_clean = s.rstrip('%')
-            try:
-                v = float(s_clean)
-            except ValueError:
-                return None
-            if 0.0 <= v <= 1.0:
-                return v
-            if 0.0 <= v <= 100.0:
-                return v / 100.0
-            return None
-
-        # fallback
-        try:
-            v = float(ans)
-            if 0.0 <= v <= 1.0:
-                return v
-            if 0.0 <= v <= 100.0:
-                return v / 100.0
-        except Exception:
-            return None
-
-        return None
-
     # Processar pontuação dos ksc e guidelines
     result = []
 
@@ -959,18 +908,11 @@ def eval_dashboard(id):
 
         result.append(g_data)
 
-    scores_guideline = []
-    
-    for i in result:
-        # Excluir guidelines sem respostas (None) do cálculo
-        if i['average_score'] is not None:
-            scores_guideline.append(i['average_score'])
-    
-    # Calcular score_geral apenas se houver scores válidos    
-    if scores_guideline:
-        score_geral = round(sum(scores_guideline) / len(scores_guideline))
-    else:
-        score_geral = 0  # ou None, dependendo de como você quer tratar quando não há dados
+    # Media das medias das guidelines. A formula vive em services/score_service.py porque
+    # o historico da tela de evaluations usa exatamente a mesma conta — duas copias
+    # divergiriam na primeira vez que uma delas fosse ajustada.
+    # O service devolve None quando nao ha nenhuma resposta; aqui o template espera 0.
+    score_geral = compute_overall_score(evaluation) or 0
 
     # Processamento das tasks para facilitar o jinja
     # Reunir tasks únicas
