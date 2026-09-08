@@ -7,7 +7,7 @@ import pytz
 
 from index import app
 from models import Evaluation, PerformedTask
-from services.uxt_service import fetch_heatmap_from_uxt
+from services.uxt_service import fetch_heatmap_summary, fetch_used_codes
 
 
 def normalize_timestamp(timestamp_str: str) -> Optional[datetime]:
@@ -234,142 +234,14 @@ def segment_heatmaps_by_tasks(
     return segmented
 
 
-def aggregate_heatmaps_by_url(
-    heatmap_data: List[Dict[str, Any]],
-    navigation_data: List[Dict[str, Any]],
-    performed_tasks: List[PerformedTask],
-) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[int, Dict[str, Any]]]:
-    scenario_lookup: Dict[int, Dict[str, Any]] = {}
-    for pt in performed_tasks:
-        if pt.task_id not in scenario_lookup:
-            scenario_lookup[pt.task_id] = {
-                'task_id': pt.task_id,
-                'title': getattr(pt.task, 'title', f'Scenario {pt.task_id}'),
-                'description': getattr(pt.task, 'description', '') or getattr(pt.task, 'summary', ''),
-                'process_id': getattr(pt.task, 'seco_process_id', None),
-            }
+def collect_evaluation_tracking(
+    evaluation: Evaluation,
+) -> Tuple[List[PerformedTask], List[Dict[str, Any]]]:
+    """Execuções de tarefa e navegação registradas no banco local para a avaliação.
 
-    url_map: Dict[str, Dict[str, Any]] = {}
-    navigation_map: Dict[str, Dict[str, Any]] = {}
-    unique_scenarios_with_navigation: set[int] = set()
-    total_heatmap_images = 0
-
-    for nav in navigation_data:
-        url = nav.get('url')
-        scenario_id = nav.get('task_id')
-        if not url or scenario_id is None:
-            continue
-        scenario_info = scenario_lookup.get(scenario_id)
-        if not scenario_info:
-            continue
-        scenario_nav_map = navigation_map.setdefault(url, {})
-        scenario_entry = scenario_nav_map.setdefault(scenario_id, {
-            'task_id': scenario_id,
-            'scenario_title': scenario_info['title'],
-            'scenario_description': scenario_info['description'],
-            'navigation_hits': 0,
-            'participants': set(),
-        })
-        scenario_entry['navigation_hits'] += 1
-        cd_id = nav.get('collected_data_id')
-        if cd_id is not None:
-            scenario_entry['participants'].add(cd_id)
-        unique_scenarios_with_navigation.add(scenario_id)
-
-    for item in heatmap_data:
-        if not isinstance(item, dict):
-            continue
-        page_images = item.get('heatmap_images', [])
-        if not isinstance(page_images, list):
-            continue
-        for page_image in page_images:
-            if not isinstance(page_image, dict):
-                continue
-            url = page_image.get('url') or 'Unknown URL'
-            total_heatmap_images += 1
-            entry = url_map.setdefault(url, {
-                'url': url,
-                'title': page_image.get('title') or page_image.get('page_title') or url,
-                'mime': page_image.get('mime') or page_image.get('content_type') or 'image/jpeg',
-                'image': page_image.get('image'),
-                'width': page_image.get('width'),
-                'height': page_image.get('height'),
-                'aggregated_points': [],
-                'heatmap_count': 0,
-                'sources': [],
-            })
-            if not entry.get('image') and page_image.get('image'):
-                entry['image'] = page_image.get('image')
-            if not entry.get('mime') and page_image.get('mime'):
-                entry['mime'] = page_image.get('mime')
-            if not entry.get('width') and page_image.get('width'):
-                entry['width'] = page_image.get('width')
-            if not entry.get('height') and page_image.get('height'):
-                entry['height'] = page_image.get('height')
-            points = page_image.get('points', [])
-            if isinstance(points, list):
-                entry['aggregated_points'].extend(points)
-            entry['heatmap_count'] += 1
-            entry['sources'].append({
-                'points': len(points),
-                'index': entry['heatmap_count'],
-            })
-
-    aggregated_list: List[Dict[str, Any]] = []
-    total_points = 0
-    total_navigation_hits = 0
-
-    for url, entry in url_map.items():
-        nav_info = navigation_map.get(url, {})
-        scenarios_for_url = []
-        navigation_hits_for_url = 0
-        for scenario_id, scenario_data in nav_info.items():
-            participants = scenario_data.get('participants', set())
-            navigation_hits_for_url += scenario_data['navigation_hits']
-            scenarios_for_url.append({
-                'task_id': scenario_id,
-                'scenario_title': scenario_data['scenario_title'],
-                'scenario_description': scenario_data['scenario_description'],
-                'navigation_hits': scenario_data['navigation_hits'],
-                'unique_participants': len(participants),
-            })
-        scenarios_for_url.sort(key=lambda item: item['navigation_hits'], reverse=True)
-        points_for_url = len(entry['aggregated_points'])
-        total_points += points_for_url
-        total_navigation_hits += navigation_hits_for_url
-        aggregated_list.append({
-            'url': url,
-            'title': entry['title'] or url,
-            'mime': entry['mime'] or 'image/jpeg',
-            'image': entry['image'],
-            'width': entry.get('width'),
-            'height': entry.get('height'),
-            'aggregated_points': entry['aggregated_points'],
-            'total_points': points_for_url,
-            'heatmap_count': entry['heatmap_count'],
-            'total_navigation_hits': navigation_hits_for_url,
-            'scenarios_involved': scenarios_for_url,
-            'scenarios_count': len(scenarios_for_url),
-            'sources': entry['sources'],
-        })
-
-    aggregated_list.sort(key=lambda item: item['total_points'], reverse=True)
-    aggregation_stats = {
-        'total_urls': len(aggregated_list),
-        'total_points': total_points,
-        'total_navigation_hits': total_navigation_hits,
-        'total_heatmap_images': total_heatmap_images,
-        'scenarios_with_navigation': len(unique_scenarios_with_navigation),
-    }
-    return aggregated_list, aggregation_stats, scenario_lookup
-
-
-def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:
-    evaluation = Evaluation.query.get(evaluation_id)
-    if not evaluation:
-        raise ValueError(f"Evaluation {evaluation_id} not found")
-
-    heatmap_data = fetch_heatmap_from_uxt(evaluation_id, token)
+    É o cruzamento por URL com essa navegação que atribui cada heatmap aos cenários — a
+    UXT não sabe nada sobre os cenários do framework.
+    """
     performed_tasks: List[PerformedTask] = []
     navigation_data: List[Dict[str, Any]] = []
 
@@ -385,8 +257,155 @@ def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:
                 'collected_data_id': nav.collected_data_id,
             })
 
-    aggregated_urls, aggregation_stats, scenario_lookup = aggregate_heatmaps_by_url(
-        heatmap_data,
+    return performed_tasks, navigation_data
+
+
+def _build_scenario_lookup(performed_tasks: List[PerformedTask]) -> Dict[int, Dict[str, Any]]:
+    scenario_lookup: Dict[int, Dict[str, Any]] = {}
+    for pt in performed_tasks:
+        if pt.task_id not in scenario_lookup:
+            scenario_lookup[pt.task_id] = {
+                'task_id': pt.task_id,
+                'title': getattr(pt.task, 'title', f'Scenario {pt.task_id}'),
+                'description': getattr(pt.task, 'description', '') or getattr(pt.task, 'summary', ''),
+                'process_id': getattr(pt.task, 'seco_process_id', None),
+            }
+    return scenario_lookup
+
+
+def _build_navigation_map(
+    navigation_data: List[Dict[str, Any]],
+    scenario_lookup: Dict[int, Dict[str, Any]],
+) -> Tuple[Dict[str, Dict[int, Dict[str, Any]]], set]:
+    """{url -> {task_id -> estatísticas de navegação}}, para atribuir cenários por URL."""
+    navigation_map: Dict[str, Dict[int, Dict[str, Any]]] = {}
+    scenarios_with_navigation: set = set()
+
+    for nav in navigation_data:
+        url = nav.get('url')
+        scenario_id = nav.get('task_id')
+        if not url or scenario_id is None:
+            continue
+        scenario_info = scenario_lookup.get(scenario_id)
+        if not scenario_info:
+            continue
+        scenario_entry = navigation_map.setdefault(url, {}).setdefault(scenario_id, {
+            'task_id': scenario_id,
+            'scenario_title': scenario_info['title'],
+            'scenario_description': scenario_info['description'],
+            'navigation_hits': 0,
+            'participants': set(),
+        })
+        scenario_entry['navigation_hits'] += 1
+        cd_id = nav.get('collected_data_id')
+        if cd_id is not None:
+            scenario_entry['participants'].add(cd_id)
+        scenarios_with_navigation.add(scenario_id)
+
+    return navigation_map, scenarios_with_navigation
+
+
+def _split_data_uri(image: Optional[str]) -> Tuple[Optional[str], str]:
+    """Separa `data:<mime>;base64,<payload>` em (payload, mime).
+
+    A UXT ora manda o base64 puro, ora com o prefixo. Normalizar aqui evita que a tela
+    monte `data:image/jpeg;base64,data:image/jpeg;base64,...` e mostre imagem quebrada.
+    """
+    if not image:
+        return None, 'image/jpeg'
+    if not image.startswith('data:'):
+        return image, 'image/jpeg'
+    header, _, payload = image.partition(',')
+    mime = header[5:].split(';')[0] or 'image/jpeg'
+    return payload or None, mime
+
+
+def aggregate_summary_by_url(
+    pages: List[Dict[str, Any]],
+    navigation_data: List[Dict[str, Any]],
+    performed_tasks: List[PerformedTask],
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[int, Dict[str, Any]]]:
+    """Junta as páginas do `heatmap_summary` com os cenários vindos da navegação local.
+
+    Cada página já vem agregada pela UXT (uma por URL, com a imagem renderizada e os
+    hotspots calculados), então aqui não há mais soma de pontos — só a atribuição de
+    cenários, que é conhecimento nosso.
+    """
+    scenario_lookup = _build_scenario_lookup(performed_tasks)
+    navigation_map, scenarios_with_navigation = _build_navigation_map(
+        navigation_data, scenario_lookup
+    )
+
+    aggregated_list: List[Dict[str, Any]] = []
+    total_interactions = 0
+    total_navigation_hits = 0
+
+    for page in pages:
+        if not isinstance(page, dict):
+            continue
+
+        url = page.get('url') or 'Unknown URL'
+        interactions = page.get('total_interactions') or 0
+        hotspots = [h for h in (page.get('top_hotspots') or []) if isinstance(h, dict)]
+        image, mime = _split_data_uri(page.get('image'))
+
+        scenarios_for_url = []
+        navigation_hits_for_url = 0
+        for scenario_id, scenario_data in navigation_map.get(url, {}).items():
+            navigation_hits_for_url += scenario_data['navigation_hits']
+            scenarios_for_url.append({
+                'task_id': scenario_id,
+                'scenario_title': scenario_data['scenario_title'],
+                'scenario_description': scenario_data['scenario_description'],
+                'navigation_hits': scenario_data['navigation_hits'],
+                'unique_participants': len(scenario_data.get('participants', set())),
+            })
+        scenarios_for_url.sort(key=lambda item: item['navigation_hits'], reverse=True)
+
+        total_interactions += interactions
+        total_navigation_hits += navigation_hits_for_url
+
+        aggregated_list.append({
+            'url': url,
+            'title': url,
+            'mime': mime,
+            'image': image,
+            'total_interactions': interactions,
+            'hotspots_count': page.get('hotspots_count') or len(hotspots),
+            'top_hotspots': hotspots,
+            'total_navigation_hits': navigation_hits_for_url,
+            'scenarios_involved': scenarios_for_url,
+            'scenarios_count': len(scenarios_for_url),
+        })
+
+    aggregated_list.sort(key=lambda item: item['total_interactions'], reverse=True)
+    aggregation_stats = {
+        'total_urls': len(aggregated_list),
+        'total_interactions': total_interactions,
+        'total_navigation_hits': total_navigation_hits,
+        'scenarios_with_navigation': len(scenarios_with_navigation),
+    }
+    return aggregated_list, aggregation_stats, scenario_lookup
+
+
+def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:
+    """Payload da aba Hotspots: uma entrada por página, com imagem e cenários.
+
+    Caminho: código da avaliação -> sessões coletadas -> `heatmap_summary`. O `token`
+    tem de ser o do gestor dono do código; a UXT filtra as sessões pelo usuário do token.
+    """
+    evaluation = Evaluation.query.get(evaluation_id)
+    if not evaluation:
+        raise ValueError(f"Evaluation {evaluation_id} not found")
+
+    session_ids = fetch_used_codes(evaluation_id, token)
+    summary = fetch_heatmap_summary(session_ids, token) if session_ids else {}
+    pages = summary.get('heatmap_images') or []
+
+    performed_tasks, navigation_data = collect_evaluation_tracking(evaluation)
+
+    aggregated_urls, aggregation_stats, scenario_lookup = aggregate_summary_by_url(
+        pages,
         navigation_data,
         performed_tasks,
     )
@@ -395,10 +414,14 @@ def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:
     data_quality_score = 0
     data_quality_warnings = []
 
-    if aggregation_stats['total_heatmap_images'] > 0:
+    if aggregated_urls:
         data_quality_score += 40
+    elif not session_ids:
+        data_quality_warnings.append(
+            "Nenhuma sessão foi coletada com o código desta avaliação."
+        )
     else:
-        data_quality_warnings.append("No heatmap images returned from UX Tracking.")
+        data_quality_warnings.append("A UX-Tracking não devolveu imagens de heatmap.")
 
     if len(navigation_data) > 0:
         data_quality_score += 30
@@ -412,14 +435,17 @@ def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:
 
     metadata = {
         'total_urls': aggregation_stats['total_urls'],
-        'total_points_processed': aggregation_stats['total_points'],
-        'total_heatmaps': aggregation_stats['total_heatmap_images'],
+        'total_interactions': aggregation_stats['total_interactions'],
+        'sessions_analyzed': summary.get('sessions_analyzed', len(session_ids)),
+        'sessions_found': len(session_ids),
+        'grid_configuration': summary.get('grid_configuration'),
+        'hotspot_threshold_percent': summary.get('hotspot_threshold_percent'),
         'navigation_data_count': len(navigation_data),
         'total_navigation_hits': aggregation_stats['total_navigation_hits'],
         'scenarios_with_navigation': aggregation_stats['scenarios_with_navigation'],
         'processed_at': datetime.now(pytz.UTC).isoformat(),
         'evaluation_id': evaluation_id,
-        'segmentation_method': 'aggregated_by_url',
+        'segmentation_method': 'uxt_heatmap_summary',
         'data_quality_score': data_quality_score,
         'data_quality_warnings': data_quality_warnings,
         'fallback_used': not scenario_mapping_available,

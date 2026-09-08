@@ -2214,6 +2214,62 @@ body {
   font-style: italic;
 }
 
+/* ---------------------------------------------------------------------------
+   Captura do heatmap
+   As imagens da UX-Tracking têm proporção de tela (~1073x637). O gigantismo vinha
+   de `width: 100%`, que as esticava até a largura do cartão — em telas largas isso
+   ampliava a captura muito além do tamanho nativo, borrando tudo.
+   Aqui a imagem se dimensiona sozinha: encolhe se não couber, nunca amplia além do
+   natural, e cabe inteira sem rolagem. Classe nova de propósito — `.heatmap-wrapper`
+   carrega regras legadas com !important (height: 0, transform) que conflitariam.
+   --------------------------------------------------------------------------- */
+.heatmap-frame {
+  display: flex;
+  justify-content: center;
+}
+
+.heatmap-frame img {
+  display: block;
+  width: auto;
+  height: auto;
+  /* Os dois tetos juntos preservam a proporção: o navegador reduz pelo lado que
+     estourar primeiro. `max-width` também impede ampliar além do tamanho nativo. */
+  max-width: min(100%, 1073px);
+  max-height: clamp(320px, 56vh, 620px);
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+/* Zonas quentes: laranja, ecoando o calor da própria imagem — e separando de vez
+   esta linha das etiquetas azuis de cenário logo acima. */
+.hotspot-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.hotspot-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #9a3412;
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.hotspot-chip b {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .heatmap-error,
 .heatmap-image-missing {
   padding: 16px;

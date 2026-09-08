@@ -24,25 +24,44 @@ from services.heatmap_cache import get_cached_payload, set_cached_payload, get_c
 from services.heatmap_service import (
     build_scenarios_payload,
     build_navigation_task_map,
+    collect_evaluation_tracking,
     segment_heatmaps_by_tasks,
-    aggregate_heatmaps_by_url,
-    normalize_timestamp,
 )
 from services.journey_service import build_journey_payload
 from services.score_service import compute_scores_for_evaluations
 from services import uxt_service
-from services.uxt_service import get_uxt_token, UXT_DISABLED_MESSAGE
+from services.uxt_service import (
+    UXT_DISABLED_MESSAGE,
+    UXT_NO_GESTOR_TOKEN_MESSAGE,
+    UXT_OWNERSHIP_MESSAGE,
+    clear_session_uxt_token,
+    get_gestor_token,
+    is_ownership_error,
+)
 
 
-def _token_error_response(details: str = "Session expired"):
+def _token_error_response(details: str = UXT_NO_GESTOR_TOKEN_MESSAGE):
     return jsonify({
         "error": "UXT authentication token not found",
         "details": details,
     }), 401
 
 
+def _ownership_error_response():
+    return jsonify({
+        "error": "Evaluation owned by another UXT account",
+        "details": UXT_OWNERSHIP_MESSAGE,
+    }), 403
+
+
 def _execute_with_token(callback):
-    token = get_uxt_token()
+    """Executa `callback(token)` com o token do gestor logado.
+
+    Sem token não há degradação para a conta de serviço: ela não é dona de nenhuma
+    coleta, então usá-la aqui trocaria um erro claro por uma tela vazia (ver
+    services/uxt_service.py).
+    """
+    token = get_gestor_token()
     if not token:
         return None, _token_error_response()
 
@@ -50,11 +69,13 @@ def _execute_with_token(callback):
         return callback(token), None
     except requests.HTTPError as exc:
         response = exc.response
+        if is_ownership_error(response):
+            return None, _ownership_error_response()
         if response is not None and response.status_code == 401:
-            refreshed = get_uxt_token(force_refresh=True)
-            if not refreshed:
-                return None, _token_error_response("Unable to refresh UX Tracking token. Please sign in again.")
-            return callback(refreshed), None
+            # O token do gestor só nasce no login (a senha dele não fica guardada em
+            # lugar nenhum), então não há o que renovar: limpa e pede novo login.
+            clear_session_uxt_token()
+            return None, _token_error_response()
         raise
 
 
@@ -101,10 +122,14 @@ def api_heatmap_scenarios(evaluation_id: int):
             "error": "Request timeout",
             "details": "The UX Tracking API took too long to respond. This may happen with large heatmap datasets.",
             "suggestion": "Try again in a few moments. If the issue persists, contact the UX Tracking team.",
+            # Bate com o timeout real de fetch_heatmap_summary, a chamada mais longa do
+            # caminho. Antes dizia 120 enquanto o código esperava 300.
             "timeout_seconds": 120,
         }), 504
     except requests.HTTPError as exc:
         response = exc.response
+        if is_ownership_error(response):
+            return _ownership_error_response()
         status_code = response.status_code if response is not None else 500
         details = response.text[:200] if response is not None else str(exc)
         return jsonify({
@@ -398,20 +423,8 @@ def api_heatmap_tasks(evaluation_id):
 
         heatmap_data = payload if isinstance(payload, list) else [payload]
 
-        performed_tasks: List[Any] = []
-        navigation_data: List[Dict[str, Any]] = []
-        for col_data in evaluation.collected_data:
-            performed_tasks.extend(col_data.performed_tasks)
-            for nav in col_data.navigation:
-                navigation_data.append({
-                    'action': nav.action.value if hasattr(nav.action, 'value') else str(nav.action),
-                    'url': nav.url,
-                    'title': nav.title,
-                    'timestamp': nav.timestamp.isoformat(),
-                    'task_id': nav.task_id,
-                    'collected_data_id': nav.collected_data_id,
-                })
-        
+        performed_tasks, navigation_data = collect_evaluation_tracking(evaluation)
+
         if not performed_tasks:
             return jsonify({
                 "heatmaps": [],

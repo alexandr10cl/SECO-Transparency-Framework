@@ -1,7 +1,6 @@
 from datetime import datetime
 from functools import lru_cache
 from secrets import token_urlsafe
-import os
 import random as rd
 
 import requests
@@ -10,7 +9,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload, selectinload, contains_eager
 
 from index import app, db
-from config_flags import AI_ANALYSIS
+from config_flags import AI_ANALYSIS, UXT_INTEGRATION
 from functions import isLogged, isAdmin, login_required
 from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
@@ -20,13 +19,7 @@ from models import (
 )
 from services.heatmap_prefetch import schedule_heatmap_prefetch
 from services.score_service import compute_overall_score, parse_answer_to_fraction
-from services.uxt_service import get_uxt_token, generate_evaluation_code
-
-# Credenciais do administrador (ideal substituir por um sistema de autenticação mais seguro)
-credenciais_admin = {
-    "email": os.getenv('ADMIN_EMAIL'),
-    "password": os.getenv('ADMIN_PASSWORD')
-}
+from services.uxt_service import get_gestor_token, generate_evaluation_code
 
 # PERFORMANCE: Cache for static/rarely-changing data
 @lru_cache(maxsize=1)
@@ -121,7 +114,7 @@ def evaluations():
     evaluations = pagination.items
 
     # Schedule background heatmap prefetch for fast dashboard loading
-    token = get_uxt_token()
+    token = get_gestor_token()
     prefetch_ids = [evaluation.evaluation_id for evaluation in evaluations[:5]]
     schedule_heatmap_prefetch(prefetch_ids, token)
     
@@ -341,9 +334,20 @@ def add_evaluation():
     # generate evaluation_id via UXT API, fallback to unique 6-digit
     evaluation_id = generate_evaluation_code()
 
+    # Com a integração ligada, um código local seria natimorto: os 3 últimos dígitos
+    # dizem à UXT quem é o gestor dono, e um número aleatório aponta para outra conta (ou
+    # nenhuma). A extensão até aceitaria o código, mas nada seria coletado — e o gestor
+    # só descobriria ao abrir um dashboard vazio, depois da avaliação toda.
+    if UXT_INTEGRATION and not evaluation_id:
+        abort(502, description=(
+            "Não foi possível gerar o código da avaliação na UX-Tracking. Se você acabou "
+            "de entrar, saia e faça login novamente; se o problema persistir, a API da "
+            "UX-Tracking pode estar fora do ar."
+        ))
+
     # Fix #5: Generate unique evaluation_id with race condition protection
     if not evaluation_id:
-        print(f"LOG: Usando geração aleatória de código (fallback)")
+        print(f"LOG: Usando geração aleatória de código (modo local, UXT_INTEGRATION=False)")
         # Generate random 7-digit code, checking for collisions
         import random
         max_attempts = 10
@@ -1242,7 +1246,7 @@ def eval_dashboard(id):
 
     # PERFORMANCE: Immediately prefetch heatmap for THIS evaluation (priority)
     # This ensures the heatmap is ready when user clicks the Hotspots tab
-    token = get_uxt_token()
+    token = get_gestor_token()
     if token:
         # Priority prefetch - load THIS evaluation's heatmap immediately (parallel)
         schedule_heatmap_prefetch([id], token, priority=True)
@@ -1277,6 +1281,8 @@ def eval_dashboard(id):
 
 @app.route('/view_heatmap/<int:id>')
 def view_heatmap(id):
+    if not isLogged():
+        return redirect(url_for('signin'))
     email = session['user_signed_in']
     user = User.query.filter_by(email=email).first()
     evaluation = Evaluation.query.get_or_404(id)

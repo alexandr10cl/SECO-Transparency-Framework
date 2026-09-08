@@ -92,6 +92,15 @@ Load unpacked extension in Chrome (chrome://extensions/) from `tet-extension/` f
 4. Optional UX-Tracking integration captures additional interaction/emotion data via external API
 5. Managers view analytics dashboards with heatmaps, word clouds, satisfaction charts, and KPI scores
 
+### UX-Tracking integration: two tokens, never interchangeable
+
+UXT segregates data per manager. The evaluation code embeds the id of whoever generated it (last 3 digits), the participants' sessions land in that manager's collection, and reading someone else's code returns 403. So:
+
+- **`get_gestor_token()`** — the logged-in manager's token (stored in the session at login). The **only** valid one for data: generating evaluation codes, reading heatmaps, running analyses. When it is missing the operation fails with a clear message; it must never fall back to the service account, which sees none of that manager's data.
+- **`get_service_token()`** — the integration account from `ADMIN_EMAIL`/`ADMIN_PASSWORD` (SUPERVISOR on UXT — the name is historical, it is not the portal's admin). Used **only** to provision: create the manager's UXT account at signup and promote it to MANAGER.
+
+Heatmaps come from `GET /generate-code/used/{code}` → `POST /analysis/heatmap_summary`, which returns one image per page **with the heat already rendered** plus structured hotspots. The older `GET /view/heatmap/code/{code}` responds 200 with an empty `heatmap_images` in production — a silent empty dashboard — and now only serves the legacy `/api/view_heatmap` and `/api/heatmap-tasks` routes.
+
 ### Database
 - MySQL 8 (Docker Compose exposes on port 3307, database name `tool_portal`)
 - SQLAlchemy ORM with Alembic/Flask-Migrate for migrations
@@ -106,7 +115,7 @@ Copy `.env.example` for Docker defaults. Key variables:
 |----------|---------|
 | `SGBD`, `DB_USER`, `PASSW`, `SERVER`, `DATABASE` | DB connection (builds SQLAlchemy URI). `DB_USER`, never `USER` — on Linux/Mac the shell exports `USER` and it wins over `.env`. A legacy `USER` fallback still works but is deprecated. |
 | `SECRET_KEY` | Flask session signing |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Initial admin account |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | **The UXT integration account, despite the name** — not the portal's admin, which is never created from `.env`. Must be **SUPERVISOR (role 3)** on UXT: it provisions each manager's UXT account at signup (`register` + promote to MANAGER). Never used to read data — see UX-Tracking integration above. |
 | `DEV_MODE` | Dev vs production behavior (see Environment Flags) |
 | `UXT_INTEGRATION` | UX-Tracking integration on/off (see Environment Flags) |
 | `SMTP_SERVER`, `SMTP_PORT`, `SENDER_EMAIL`, `SENDER_PASSWORD` | Email service |

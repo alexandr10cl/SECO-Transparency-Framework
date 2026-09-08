@@ -841,7 +841,7 @@
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/developer_journey.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.2/src/wordcloud2.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.2/heatmap.min.js"></script>
+    {# heatmap.js saiu: a UX-Tracking já devolve a imagem com o calor renderizado. #}
     <script src="{{ url_for('static', filename='js/hotspots_heatmaps.js') }}"></script>
     {% if ai_analysis_enabled %}
     <script src="{{ url_for('static', filename='js/ai_analysis.js') }}"></script>

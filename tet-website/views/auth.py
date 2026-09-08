@@ -8,7 +8,7 @@ from services.heatmap_prefetch import schedule_heatmap_prefetch
 from services import uxt_service
 from services.uxt_service import (
     clear_session_uxt_token,
-    get_uxt_token,
+    get_gestor_token,
 )
 
 from config_flags import DEV_MODE, UXT_INTEGRATION
@@ -66,7 +66,7 @@ def auth():
 
             # Prefetch heatmaps in the background for faster dashboard loading
             if UXT_INTEGRATION:
-                token_for_prefetch = get_uxt_token()
+                token_for_prefetch = get_gestor_token()
                 evaluation_ids = [
                     evaluation.evaluation_id
                     for evaluation in Evaluation.query

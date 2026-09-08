@@ -63,16 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         root.appendChild(section.card);
         heatmapCards.push(section.card);
 
-        const heatmapPayload = {
-          image: urlData.image,
-          mime: urlData.mime || 'image/jpeg',
-          width: urlData.width,
-          height: urlData.height,
-          points: urlData.aggregated_points || urlData.points || [],
-          title: urlData.title || urlData.url || `Heatmap ${index + 1}`
-        };
-
-        initializeHeatmap(section.heatmapContainer, heatmapPayload, index);
+        renderHeatmapImage(section.heatmapContainer, urlData, index);
       });
 
       applyFilters();
@@ -224,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="stat-label">Scenarios</span>
       </div>
       <div class="stat-item">
-        <span class="stat-value">${formatNumber(urlData.total_points || 0)}</span>
+        <span class="stat-value">${formatNumber(urlData.total_interactions || 0)}</span>
         <span class="stat-label">Interactions</span>
       </div>
       <div class="stat-item">
@@ -247,16 +238,12 @@ document.addEventListener('DOMContentLoaded', () => {
       card.appendChild(info);
     }
 
-    if (Array.isArray(urlData.sources) && urlData.sources.length > 1) {
-      const sourceInfo = document.createElement('p');
-      sourceInfo.className = 'heatmap-source-info';
-      const totalSources = urlData.sources.length;
-      const totalPoints = urlData.total_points || 0;
-      sourceInfo.textContent = `${totalSources} heatmaps combined · ${formatNumber(totalPoints)} interaction points`;
-      card.appendChild(sourceInfo);
+    const hotspotInfo = createHotspotSummary(urlData);
+    if (hotspotInfo) {
+      card.appendChild(hotspotInfo);
     }
 
-    const heatmapContainer = createHeatmapContainer(urlData);
+    const heatmapContainer = createHeatmapContainer();
     card.appendChild(heatmapContainer);
 
     return { card, heatmapContainer };
@@ -290,39 +277,59 @@ document.addEventListener('DOMContentLoaded', () => {
     return container;
   }
 
-  function createHeatmapContainer(heatmapData) {
+  function createHotspotSummary(urlData) {
+    const hotspots = (urlData.top_hotspots || []).filter(spot => spot && spot.is_hotspot);
+    if (!hotspots.length) {
+      return null;
+    }
+
     const container = document.createElement('div');
-    container.className = 'heatmap-wrapper';
+    container.className = 'hotspot-list';
 
-    Object.assign(container.style, {
-      position: 'relative',
-      maxWidth: '100%',
-      marginTop: '16px',
-      borderRadius: '16px',
-      overflow: 'hidden',
-      boxShadow: '0 8px 32px rgba(15, 23, 42, 0.15)',
-      border: '1px solid rgba(148, 163, 184, 0.25)',
-      background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      width: heatmapData.width ? `${heatmapData.width}px` : '720px',
-      height: heatmapData.height ? `${heatmapData.height}px` : '405px'
-    });
+    const label = document.createElement('span');
+    label.className = 'tag-label';
+    label.textContent = 'Zonas quentes:';
+    container.appendChild(label);
 
-    container.addEventListener('mouseenter', () => {
-      container.style.transform = 'translateY(-4px)';
-      container.style.boxShadow = '0 16px 40px rgba(15, 23, 42, 0.18)';
-    });
-
-    container.addEventListener('mouseleave', () => {
-      container.style.transform = 'translateY(0)';
-      container.style.boxShadow = '0 8px 32px rgba(15, 23, 42, 0.15)';
+    hotspots.slice(0, 4).forEach(spot => {
+      const chip = document.createElement('span');
+      chip.className = 'hotspot-chip';
+      const value = document.createElement('b');
+      value.textContent = `${formatNumber(spot.percentage || 0)}%`;
+      chip.appendChild(value);
+      chip.appendChild(document.createTextNode(` ${describeZone(spot)}`));
+      chip.title = `${formatNumber(spot.interaction_count || 0)} interações nesta zona`;
+      container.appendChild(chip);
     });
 
     return container;
   }
 
-  function initializeHeatmap(container, heatmapData, index) {
-    if (!heatmapData.image) {
+  // A grade do heatmap_summary é 4x4 e vem com o centro de cada zona em porcentagem;
+  // traduzir para palavras é mais legível que "row0_col1".
+  function describeZone(spot) {
+    const y = Number(spot.center_y_percent);
+    const x = Number(spot.center_x_percent);
+    if (Number.isNaN(x) || Number.isNaN(y)) {
+      return spot.zone_id || 'zona desconhecida';
+    }
+    const vertical = y < 33 ? 'topo' : (y > 66 ? 'base' : 'meio');
+    const horizontal = x < 33 ? 'esquerda' : (x > 66 ? 'direita' : 'centro');
+    return `${vertical}-${horizontal}`;
+  }
+
+  // Só centraliza: quem define o tamanho é a própria imagem, dentro dos limites do CSS.
+  function createHeatmapContainer() {
+    const frame = document.createElement('div');
+    frame.className = 'heatmap-frame';
+    return frame;
+  }
+
+  // A imagem já chega com o calor desenhado pela UX-Tracking (o mesmo `heatmap_summary`
+  // que a interface deles usa), então aqui basta exibi-la — não há mais sobreposição de
+  // pontos com heatmap.js.
+  function renderHeatmapImage(container, urlData, index) {
+    if (!urlData.image) {
       const fallback = document.createElement('p');
       fallback.textContent = `Heatmap image ${index + 1} is unavailable.`;
       fallback.className = 'heatmap-image-missing';
@@ -331,66 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const img = new Image();
-    const mime = heatmapData.mime || 'image/jpeg';
-    img.src = `data:${mime};base64,${heatmapData.image}`;
-    img.alt = heatmapData.title || `Heatmap ${index + 1}`;
-    img.style.position = 'absolute';
-    img.style.top = '0';
-    img.style.left = '0';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.objectFit = 'cover';
-    img.style.display = 'block';
-
-    const initHeatmap = () => {
-      const naturalW = img.naturalWidth || heatmapData.width || container.clientWidth;
-      const naturalH = img.naturalHeight || heatmapData.height || container.clientHeight;
-      const sourceW = heatmapData.width || naturalW;
-      const sourceH = heatmapData.height || naturalH;
-
-      container.style.width = `${naturalW}px`;
-      container.style.height = `${naturalH}px`;
-      container.appendChild(img);
-
-      const heatmapInstance = h337.create({
-        container,
-        radius: 40,
-        maxOpacity: 0.6,
-        blur: 0.9
-      });
-
-      const scaleX = container.clientWidth / sourceW;
-      const scaleY = container.clientHeight / sourceH;
-
-      const pts = (heatmapData.points || []).map(point => ({
-        x: Math.round((point.x || 0) * scaleX),
-        y: Math.round((point.y || 0) * scaleY),
-        value: Math.max(1, Math.round((point.intensity || 0) * 700))
-      }));
-
-      const maxVal = pts.length ? Math.max(...pts.map(p => p.value)) : 100;
-
-      try {
-        heatmapInstance.setData({ max: Math.max(maxVal, 100), data: pts });
-      } catch (err) {
-        console.error('Error rendering heatmap', err);
-        const errMsg = document.createElement('p');
-        errMsg.textContent = `Error rendering heatmap ${index + 1}: ${err.message}`;
-        errMsg.className = 'heatmap-error';
-        container.appendChild(errMsg);
-      }
-    };
-
-    if (img.decode) {
-      img.decode().then(initHeatmap).catch(err => {
-        console.warn('img.decode failed, falling back to onload', err);
-        img.onload = initHeatmap;
-        img.onerror = () => showImageError(container, index);
-      });
-    } else {
-      img.onload = initHeatmap;
-      img.onerror = () => showImageError(container, index);
-    }
+    img.src = `data:${urlData.mime || 'image/jpeg'};base64,${urlData.image}`;
+    img.alt = `Heatmap de ${urlData.url || `página ${index + 1}`}`;
+    img.onerror = () => showImageError(container, index);
+    container.appendChild(img);
   }
 
   function showImageError(container, index) {
