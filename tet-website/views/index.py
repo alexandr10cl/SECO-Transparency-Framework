@@ -182,6 +182,7 @@ def add_evaluation():
     # read form data
     name = request.form.get('name', '').strip()
     seco_portal = request.form.get('seco_portal', '').strip()
+    seco_portal_description = request.form.get("seco_portal_description", '').strip()
     seco_portal_url = request.form.get('seco_portal_url', '').strip()
     seco_process_ids = request.form.getlist('seco_process_ids')
     seco_type_str = request.form.get('seco_type')
@@ -533,6 +534,7 @@ def update_evaluation(id):
     # getting the form data
     name = request.form.get('name')
     seco_portal = request.form.get('seco_portal')
+    seco_portal_description = request.form.get('seco_portal_description', '').strip()
     seco_portal_url = request.form.get('seco_portal_url')
     seco_type_str = request.form.get('seco_type')
     manager_objective = request.form.get('manager_objective', '')
