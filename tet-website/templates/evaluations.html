@@ -131,7 +131,9 @@
                             <div class="card-header">
                                 <div class="card-title-section">
                                     <h3 class="card-title">{{ e.name }}</h3>
-                                    <div class="evaluation-code">{{ e.evaluation_id }}</div>
+                                    <div class="evaluation-code copy-evaluation-code" data-code="{{ e.evaluation_id }}" title="Copy evaluation code">
+                                        {{ e.evaluation_id }}
+                                    </div>
                                 </div>
                                 <a href="{{ url_for('eval_dashboard', id=e.evaluation_id) }}" class="dashboard-link" title="View Dashboard">
                                     <span class="dashboard-icon">📊</span>
@@ -258,6 +260,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (event.key === 'Enter') {
                 window.location.href = card.dataset.detailsUrl;
             }
+        });
+    });
+
+    const evaluationCodes = document.querySelectorAll('.copy-evaluation-code');
+
+    evaluationCodes.forEach(function(codeElement) {
+        codeElement.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const code = codeElement.dataset.code;
+            navigator.clipboard.writeText(code).then(function() {
+                const originalText = codeElement.textContent;
+                codeElement.textContent = 'Copied!';
+                setTimeout(() => {
+                    codeElement.textContent = originalText;
+                }, 500);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+            });
         });
     });
 });
