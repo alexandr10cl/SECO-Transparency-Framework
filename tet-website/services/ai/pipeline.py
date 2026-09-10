@@ -29,9 +29,9 @@ from typing import Any, Dict, List, Optional
 
 from index import app, db
 from models import AIAction, AIAnalysis, AIFinding, AIAnalysisStatus, AIReviewStatus, CollectedData
-from services.ai import analyzer, metrics as metrics_mod
+from services.ai import analyzer, heatmap_evidence, metrics as metrics_mod
 from services.ai.context_builder import EvaluationNotAnalyzable, build_context
-from services.ai.provider import call_ai, provider_name, resolve_model
+from services.ai.provider import AIProviderError, call_ai, provider_name, resolve_model
 
 _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix='ai-analysis')
 
@@ -60,10 +60,18 @@ def _is_stale(analysis: AIAnalysis) -> bool:
     return datetime.utcnow() - analysis.started_at > STALE_AFTER
 
 
-def schedule(evaluation_id: int, model: Optional[str] = None) -> Dict[str, Any]:
+def schedule(
+    evaluation_id: int,
+    model: Optional[str] = None,
+    uxt_token: Optional[str] = None,
+) -> Dict[str, Any]:
     """Agenda uma analise. Se ja houver uma rodando, nao dispara outra.
 
     Devolve `{"status": ..., "already_running": bool}` — o caller decide entre 202 e 409.
+
+    `uxt_token` tem de ser resolvido NA REQUISICAO e passado como argumento: dentro de um
+    worker do ThreadPoolExecutor `has_request_context()` e sempre False e
+    `get_gestor_token()` devolveria None EM SILENCIO.
     """
     requested = resolve_model(model)
 
@@ -88,15 +96,15 @@ def schedule(evaluation_id: int, model: Optional[str] = None) -> Dict[str, Any]:
         analysis.error_message = None
         db.session.commit()
 
-    _executor.submit(_run, evaluation_id, requested)
+    _executor.submit(_run, evaluation_id, requested, uxt_token)
     return {"status": AIAnalysisStatus.RUNNING.value, "already_running": False}
 
 
-def _run(evaluation_id: int, model: str) -> None:
+def _run(evaluation_id: int, model: str, uxt_token: Optional[str] = None) -> None:
     """Worker da thread. Nunca levanta — falha vira status ERROR no banco."""
     with app.app_context():
         try:
-            result = _analyze(evaluation_id, model)
+            result = _analyze(evaluation_id, model, uxt_token=uxt_token)
             _persist(evaluation_id, result)
             app.logger.info(
                 "ai-analysis: avaliacao %s concluida — %s findings, %s actions, %ss",
@@ -107,6 +115,38 @@ def _run(evaluation_id: int, model: str) -> None:
         except Exception as exc:  # noqa: BLE001 - qualquer falha precisa virar ERROR
             app.logger.exception("ai-analysis: falha na avaliacao %s", evaluation_id)
             _fail(evaluation_id, exc)
+
+
+def _heatmap_debug_lines(heatmap: Dict[str, Any]) -> List[str]:
+    """A linha de mapa de calor do relatorio de terminal.
+
+    Sem ela a geracao fica cega justamente onde a falha e silenciosa POR PROJETO:
+    `fetch_pages` engole tudo e devolve lista vazia.
+    """
+    if not heatmap:
+        return []
+
+    pages = heatmap.get("pages") or 0
+    if not pages:
+        motivo = heatmap_evidence.describe_reason(heatmap.get("reason")) or "sem paginas"
+        detail = heatmap.get("detail")
+        return [
+            f"  heatmap     : 0 paginas — {motivo} (analise rodou texto-so)"
+            + (f" [{detail}]" if detail else "")
+        ]
+
+    dropped = {k: v for k, v in (heatmap.get("dropped") or {}).items() if v}
+    line = (
+        f"  heatmap     : {pages} paginas ({heatmap.get('source') or '?'})"
+        f" · {heatmap.get('fetch_s')}s"
+    )
+    if dropped:
+        line += " · descartadas: " + ", ".join(f"{v} {k}" for k, v in dropped.items())
+
+    lines = [line]
+    if heatmap.get("fallback_text_only"):
+        lines.append("                ATENCAO: a etapa 1 caiu para texto-so (o modelo recusou as imagens).")
+    return lines
 
 
 def _format_debug(evaluation_id: int, result: Dict[str, Any]) -> str:
@@ -122,7 +162,15 @@ def _format_debug(evaluation_id: int, result: Dict[str, Any]) -> str:
     debug = result.get("debug") or {}
     findings = result.get("findings") or []
     actions = result.get("actions") or []
+    heatmap = debug.get("heatmap") or {}
     width = 72
+
+    catalog_size = debug.get("evidence_catalog_size") or 0
+    heatmap_pages = heatmap.get("pages") or 0
+    catalog_breakdown = (
+        f" ({catalog_size - heatmap_pages} + {heatmap_pages} heatmap)"
+        if heatmap_pages else ""
+    )
 
     lines = [
         "",
@@ -132,11 +180,12 @@ def _format_debug(evaluation_id: int, result: Dict[str, Any]) -> str:
         f"  modelo      : {result.get('model')} ({result.get('provider')})",
         f"  duracao     : {result.get('ai_duration_s')}s"
         f" · {result.get('tokens_total')} tokens",
-        f"  entrada     : {debug.get('evidence_catalog_size')} evidencias no catalogo"
+        f"  entrada     : {catalog_size} evidencias no catalogo{catalog_breakdown}"
         f" · {debug.get('framework_scope_size')} KSCs no escopo"
         f" · {result.get('participants_total')} participantes",
-        f"  saida       : {len(findings)} findings · {len(actions)} actions",
     ]
+    lines.extend(_heatmap_debug_lines(heatmap))
+    lines.append(f"  saida       : {len(findings)} findings · {len(actions)} actions")
 
     rejected_findings = debug.get("rejected_findings") or []
     if rejected_findings:
@@ -210,16 +259,40 @@ def _fail(evaluation_id: int, exc: Exception) -> None:
 # Analise
 # ---------------------------------------------------------------------------
 
-def _analyze(evaluation_id: int, model: str) -> Dict[str, Any]:
-    context = build_context(evaluation_id)
+def _analyze(
+    evaluation_id: int,
+    model: str,
+    uxt_token: Optional[str] = None,
+) -> Dict[str, Any]:
+    # Mapas de calor: contexto visual, nao peso.
+    heatmap_pages, heatmap_meta = heatmap_evidence.fetch_pages(evaluation_id, uxt_token)
+    heatmap_meta["fallback_text_only"] = False
+
+    context = build_context(evaluation_id, heatmap_pages=heatmap_pages)
     catalog = context["catalog"]
     scope = context["framework_scope"]
     total_participants = len(context["participants"])
+    image_parts = heatmap_evidence.image_parts(heatmap_pages)
 
-    # o que esta errado?
-    findings_raw, meta1 = call_ai(
-        analyzer.SYSTEM_FINDINGS, context["prompt"], analyzer.FindingsResponse, model
-    )
+    try:
+        findings_raw, meta1 = call_ai(
+            analyzer.SYSTEM_FINDINGS, context["prompt"], analyzer.FindingsResponse,
+            model=model, images=image_parts,
+        )
+    except AIProviderError:
+        # Um 400 INVALID_ARGUMENT (imagem grande demais, mime errado) nao e retryable: a
+        # cadeia so avancaria de modelo, que receberia as mesmas imagens e falharia igual,
+        if not image_parts:
+            raise
+        app.logger.warning(
+            "ai-analysis: avaliacao %s — a cadeia falhou com imagens; "
+            "repetindo a etapa 1 texto-so.", evaluation_id,
+        )
+        heatmap_meta["fallback_text_only"] = True
+        findings_raw, meta1 = call_ai(
+            analyzer.SYSTEM_FINDINGS, context["prompt"], analyzer.FindingsResponse,
+            model=model,
+        )
 
     # validacao tecnica
     findings, rejected_findings = analyzer.validate_findings(
@@ -273,6 +346,7 @@ def _analyze(evaluation_id: int, model: str) -> Dict[str, Any]:
             # ("so 12 evidencias no catalogo"), sem ser insumo de nenhuma metrica.
             "evidence_catalog_size": len(catalog),
             "framework_scope_size": len(scope),
+            "heatmap": heatmap_meta,
             "rejected_findings": rejected_findings,
             "rejected_actions": rejected_actions,
             "uncovered_findings": uncovered,
@@ -380,6 +454,20 @@ def _serialize_finding(
     }
 
 
+def _heatmap_stats(analysis: AIAnalysis) -> Dict[str, Any]:
+    """`{"pages": int, "reason": str | None}` para o cabecalho da analise.
+
+    Analise gravada antes desta entrega cai em `pages=0, reason=None`, que a tela le como
+    "nao viu mapa de calor nenhum" — e a verdade.
+    """
+    debug = analysis.debug if isinstance(analysis.debug, dict) else {}
+    heatmap = debug.get("heatmap") or {}
+    return {
+        "pages": heatmap.get("pages") or 0,
+        "reason": heatmap.get("reason"),
+    }
+
+
 def _serialize(analysis: AIAnalysis) -> Dict[str, Any]:
     """Payload da tela. Findings na ordem de insercao, actions por prioridade."""
     total = analysis.participants_total or 0
@@ -440,6 +528,7 @@ def _serialize(analysis: AIAnalysis) -> Dict[str, Any]:
             "participants": analysis.participants_total,
             "tokens_total": analysis.tokens_total,
             "ai_duration_s": analysis.ai_duration_s,
+            "heatmap": _heatmap_stats(analysis),
         },
         "formulas": {
             "confidence": metrics_mod.CONFIDENCE_FORMULA,
@@ -573,7 +662,11 @@ def move_action(evaluation_id: int, action_id: int, direction: str) -> Dict[str,
 # ---------------------------------------------------------------------------
 
 def run_sync(evaluation_id: int, model: Optional[str] = None) -> Dict[str, Any]:
-    """Roda a analise no processo atual e persiste. Levanta em caso de falha."""
+    """Roda a analise no processo atual e persiste. Levanta em caso de falha.
+
+    Sem token da UXT: a CLI nao tem sessao de gestor, entao a analise roda texto-so
+    (`fetch_pages` devolve [] com motivo `no_token`).
+    """
     requested = resolve_model(model)
     analysis = _get_analysis(evaluation_id)
     if analysis is None:
@@ -585,7 +678,7 @@ def run_sync(evaluation_id: int, model: Optional[str] = None) -> Dict[str, Any]:
     db.session.commit()
 
     try:
-        result = _analyze(evaluation_id, requested)
+        result = _analyze(evaluation_id, requested, uxt_token=None)
         _persist(evaluation_id, result)
     except Exception as exc:
         _fail(evaluation_id, exc)

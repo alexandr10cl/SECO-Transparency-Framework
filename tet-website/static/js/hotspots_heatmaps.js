@@ -1,7 +1,76 @@
+// Acessorio para a camada analitica de IA (static/js/ai_analysis.js): a linha de mapa de
+// calor do painel de um finding precisa da MESMA imagem e do MESMO vocabulario de zona que
+// esta aba usa, e esta aba ja baixa tudo no DOMContentLoaded seja qual for a aba ativa.
+//
+// Vive no topo do arquivo, fora do listener, porque `ai_analysis.js` roda a IIFE dele no
+// parse — antes de qualquer DOMContentLoaded — e precisa encontrar a promise ja criada.
+// `ready` resolve com {byUrl, metadata} ou com null (fetch falhou, UXT desligada, tela
+// ausente) e nunca rejeita; `describeZone` fica FORA dela porque a linha de heatmap nomeia
+// zona a partir da evidencia gravada, mesmo quando o fetch desta aba falhou.
+(function () {
+  var resolveReady = null;
+  window.SecoHeatmaps = {
+    ready: new Promise(function (resolve) { resolveReady = resolve; }),
+    describeZone: describeZone
+  };
+  window.SecoHeatmaps._resolve = function (value) {
+    if (resolveReady) { resolveReady(value); resolveReady = null; }
+  };
+})();
+
+// A grade do heatmap_summary é 4x4 e vem com o centro de cada zona em porcentagem;
+// traduzir para palavras é mais legível que "row0_col1". `center_x/y_percent` são
+// COORDENADA, não medida: dizem apenas ONDE a zona fica.
+function describeZone(spot) {
+  const y = Number(spot.center_y_percent);
+  const x = Number(spot.center_x_percent);
+  if (Number.isNaN(x) || Number.isNaN(y)) {
+    return spot.zone_id || 'unknown zone';
+  }
+  const vertical = y < 33 ? 'top' : (y > 66 ? 'bottom' : 'mid');
+  const horizontal = x < 33 ? 'left' : (x > 66 ? 'right' : 'center');
+  return `${vertical}-${horizontal}`;
+}
+
+// Espelho de `compact_url` (services/ai/urls.py): tira o esquema, os parametros de
+// rastreamento e a barra final. A evidencia de IA guarda a URL JA COMPACTA, entao e por
+// esta forma que ela acha a pagina no payload ao vivo.
+var SECO_TRACKING_KEYS = ['_gl', 'gclid', 'fbclid', 'msclkid', 'gs_lcrp', 'oq'];
+var SECO_TRACKING_PREFIXES = ['_ga', '_gcl', 'utm_'];
+
+function secoIsTracking(key) {
+  if (SECO_TRACKING_KEYS.indexOf(key) !== -1) return true;
+  for (var i = 0; i < SECO_TRACKING_PREFIXES.length; i++) {
+    if (key.indexOf(SECO_TRACKING_PREFIXES[i]) === 0) return true;
+  }
+  return false;
+}
+
+function secoCompactUrl(url) {
+  var raw = String(url === null || url === undefined ? '' : url).trim();
+  var parsed;
+  try {
+    parsed = new URL(raw);
+  } catch (error) {
+    return raw;
+  }
+  // chrome://newtab e afins ficam inteiros, como no backend.
+  if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || !parsed.host) {
+    return raw;
+  }
+  var kept = [];
+  parsed.searchParams.forEach(function (value, key) {
+    if (!secoIsTracking(key)) kept.push(key + '=' + value);
+  });
+  var query = kept.length ? '?' + kept.join('&') : '';
+  return parsed.host + parsed.pathname.replace(/\/+$/, '') + query + (parsed.hash || '');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const evaluationIdElement = document.getElementById('id-avaliacao');
   if (!evaluationIdElement) {
     console.warn('Evaluation id element not found. Heatmaps will not be loaded.');
+    window.SecoHeatmaps._resolve(null);
     return;
   }
 
@@ -11,12 +80,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!root || !filtersContainer) {
     console.warn('Heatmap root or filters container not found.');
+    window.SecoHeatmaps._resolve(null);
     return;
   }
 
   let availableScenarios = [];
   let heatmapCards = [];
   let scenarioMappingAvailable = true;
+  // Indexado pela URL crua E pela compacta: a camada de IA so tem a compacta (e o que o
+  // `summary` congelado guarda), a aba Hotspots trabalha com a crua.
+  const indexByUrl = {};
 
   root.innerHTML = '<p class="loading">Loading heatmaps...</p>';
 
@@ -36,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'Heatmaps não estão disponíveis neste ambiente (UXT_INTEGRATION=False).' +
           '</div>';
         filtersContainer.innerHTML = '';
+        window.SecoHeatmaps._resolve(null);
         return;
       }
 
@@ -55,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emptyState = document.createElement('p');
         emptyState.textContent = 'No heatmaps were generated for this evaluation yet.';
         root.appendChild(emptyState);
+        publishIndex(metadata);
         return;
       }
 
@@ -64,9 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
         heatmapCards.push(section.card);
 
         renderHeatmapImage(section.heatmapContainer, urlData, index);
+
+        indexByUrl[urlData.url] = urlData;
+        indexByUrl[secoCompactUrl(urlData.url)] = urlData;
       });
 
       applyFilters();
+      // Depois dos cards no DOM: quem consome decide no render se emite o link
+      // "View in Hotspots", e para isso o card alvo ja tem de existir.
+      publishIndex(metadata);
     })
     .catch(error => {
       console.error('Error loading scenario heatmaps:', error);
@@ -92,7 +173,18 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       root.innerHTML = '';
       root.appendChild(errorContainer);
+      window.SecoHeatmaps._resolve(null);
     });
+
+  function publishIndex(metadata) {
+    window.SecoHeatmaps._resolve({
+      byUrl: function (url) {
+        if (url === null || url === undefined) return null;
+        return indexByUrl[url] || indexByUrl[secoCompactUrl(url)] || null;
+      },
+      metadata: metadata || {}
+    });
+  }
 
   function setupScenarioFilters(scenarios, metadata = {}) {
     filtersContainer.innerHTML = '';
@@ -171,6 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function createHeatmapCard(urlData, index) {
     const card = document.createElement('section');
     card.className = 'heatmap-card';
+    // Ancora enderecavel: e por ela que o "View in Hotspots" da camada de IA acha o card
+    // desta pagina (`data-scenario-ids` sozinho nao identifica uma URL).
+    card.dataset.url = urlData.url || '';
 
     const scenarioIds = (urlData.scenarios_involved || [])
       .map(scenario => normalizeScenarioId(scenario.task_id))
@@ -288,34 +383,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const label = document.createElement('span');
     label.className = 'tag-label';
-    label.textContent = 'Zonas quentes:';
+    label.textContent = 'Zones with most interactions:';
     container.appendChild(label);
 
     hotspots.slice(0, 4).forEach(spot => {
       const chip = document.createElement('span');
       chip.className = 'hotspot-chip';
+      // A CONTAGEM vem em destaque: `interaction_count` é absoluto e inequívoco, enquanto
+      // `percentage` é "porcentagem de interações" sem denominador declarado pela UXT.
       const value = document.createElement('b');
-      value.textContent = `${formatNumber(spot.percentage || 0)}%`;
+      value.textContent = formatNumber(spot.interaction_count || 0);
       chip.appendChild(value);
       chip.appendChild(document.createTextNode(` ${describeZone(spot)}`));
-      chip.title = `${formatNumber(spot.interaction_count || 0)} interações nesta zona`;
+      chip.title = `${formatNumber(spot.interaction_count || 0)} interactions recorded `
+        + `in this zone (${formatNumber(spot.percentage || 0)}% as reported by UX-Tracking)`;
       container.appendChild(chip);
     });
 
     return container;
-  }
-
-  // A grade do heatmap_summary é 4x4 e vem com o centro de cada zona em porcentagem;
-  // traduzir para palavras é mais legível que "row0_col1".
-  function describeZone(spot) {
-    const y = Number(spot.center_y_percent);
-    const x = Number(spot.center_x_percent);
-    if (Number.isNaN(x) || Number.isNaN(y)) {
-      return spot.zone_id || 'zona desconhecida';
-    }
-    const vertical = y < 33 ? 'topo' : (y > 66 ? 'base' : 'meio');
-    const horizontal = x < 33 ? 'esquerda' : (x > 66 ? 'direita' : 'centro');
-    return `${vertical}-${horizontal}`;
   }
 
   // Só centraliza: quem define o tamanho é a própria imagem, dentro dos limites do CSS.
@@ -339,7 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const img = new Image();
     img.src = `data:${urlData.mime || 'image/jpeg'};base64,${urlData.image}`;
-    img.alt = `Heatmap de ${urlData.url || `página ${index + 1}`}`;
+    // Descreve o DADO, sem interpretá-lo: não é atenção, é distribuição de interações.
+    img.alt = `Interaction distribution over ${urlData.url || `page ${index + 1}`}`;
     img.onerror = () => showImageError(container, index);
     container.appendChild(img);
   }

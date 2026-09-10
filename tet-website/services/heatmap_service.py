@@ -388,18 +388,40 @@ def aggregate_summary_by_url(
     return aggregated_list, aggregation_stats, scenario_lookup
 
 
-def build_scenarios_payload(evaluation_id: int, token: str) -> Dict[str, Any]:
+def is_cacheable(payload: Optional[Dict[str, Any]]) -> bool:
+    """Vale guardar este payload por horas?
+
+    NÃO quando não havia nenhuma sessão: isso é um estado transitório da coleta, e com o
+    TTL de 6h a entrada vazia se auto-perpetua — o prefetch devolve cedo no
+    `if get_cached_payload(...)` e ninguém consegue substituí-la.
+    """
+    metadata = (payload or {}).get('metadata') or {}
+    return bool(metadata.get('sessions_found'))
+
+
+def build_scenarios_payload(
+    evaluation_id: int,
+    token: str,
+    used_codes_timeout: int = 30,
+    summary_timeout: int = 120,
+) -> Dict[str, Any]:
     """Payload da aba Hotspots: uma entrada por página, com imagem e cenários.
 
     Caminho: código da avaliação -> sessões coletadas -> `heatmap_summary`. O `token`
     tem de ser o do gestor dono do código; a UXT filtra as sessões pelo usuário do token.
+
+    Os timeouts são parâmetro porque a análise de IA chama isto de dentro de uma thread
+    com o relógio de `pipeline.STALE_AFTER` correndo, e lá o teto tem de ser curto.
     """
     evaluation = Evaluation.query.get(evaluation_id)
     if not evaluation:
         raise ValueError(f"Evaluation {evaluation_id} not found")
 
-    session_ids = fetch_used_codes(evaluation_id, token)
-    summary = fetch_heatmap_summary(session_ids, token) if session_ids else {}
+    session_ids = fetch_used_codes(evaluation_id, token, timeout=used_codes_timeout)
+    summary = (
+        fetch_heatmap_summary(session_ids, token, timeout=summary_timeout)
+        if session_ids else {}
+    )
     pages = summary.get('heatmap_images') or []
 
     performed_tasks, navigation_data = collect_evaluation_tracking(evaluation)

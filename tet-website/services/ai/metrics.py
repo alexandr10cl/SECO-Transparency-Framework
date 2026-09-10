@@ -15,6 +15,9 @@ Duas medidas entram nas formulas, e so duas:
   duas entradas (participantes distintos x tipos de sinal distintos). Sem pesos para
   calibrar e explicavel ao gestor numa frase.
 
+Evidencia AGREGADA — sem participante dono, hoje so o mapa de calor — fica fora das
+duas: ver `AGGREGATE_TYPES`.
+
 `recurrence` continua sendo calculado, mas apenas como numero DESCRITIVO exibido na tela
 ("seen in 4 occurrences"). Ele nao entra em nenhuma formula: contar ocorrencias favorece
 sinais verbosos — navegacao gera dezenas de linhas por participante — e diz pouco alem do
@@ -37,6 +40,8 @@ _CONFIDENCE_MIN_TYPES = 2
 _CONFIDENCE_WEIGHT = {"HIGH": 1.0, "MEDIUM": 0.6, "LOW": 0.3}
 
 _PRIORITY_BANDS = ((0.45, "HIGH"), (0.20, "MEDIUM"), (0.0, "LOW"))
+
+AGGREGATE_TYPES = frozenset({"heatmap"})
 
 
 def _band(value: float, bands) -> str:
@@ -74,14 +79,23 @@ def compute_finding_metrics(
 
     Cada registro de `evidence` precisa ter `type`, `participant_id` e `task_id` — que e
     exatamente o que o catalogo produz e o que fica gravado em `ai_finding.evidence`.
+
+    Evidencia AGREGADA (`participant_id is None`) nao tem dono e por isso fica fora das
+    duas medidas — mas continua contada em `evidence_count` e listada em `evidence_types`,
+    que sao exibicao. O filtro de `None` tambem roda na LEITURA, sobre o
+    `ai_finding.evidence` ja gravado: e ele que impede um None persistido de derrubar o
+    `sorted(participants)` e deixar o GET da analise em 500 permanente.
     """
-    participants = {r["participant_id"] for r in evidence}
-    types = {r["type"] for r in evidence}
+    with_owner = [r for r in evidence if r["participant_id"] is not None]
+    participants = {r["participant_id"] for r in with_owner}
+    types_all = {r["type"] for r in evidence}
+
     # Descritivo: pares distintos (participante, tarefa). Evidencias sem tarefa
     # (questionario, resposta de KSC) contam como um par proprio do participante.
-    pairs = {(r["participant_id"], r["task_id"]) for r in evidence}
+    pairs = {(r["participant_id"], r["task_id"]) for r in with_owner}
 
     n_participants = len(participants)
+    n_types = len(types_all - AGGREGATE_TYPES)
     affected_ratio = (
         n_participants / total_participants if total_participants else 0.0
     )
@@ -93,8 +107,8 @@ def compute_finding_metrics(
         "affected_participants": f"{n_participants}/{total_participants}",
         "affected_ratio": round(affected_ratio, 3),
         "recurrence": len(pairs),
-        "evidence_types": sorted(types),
-        "confidence_band": confidence_band(n_participants, len(types)),
+        "evidence_types": sorted(types_all),
+        "confidence_band": confidence_band(n_participants, n_types),
         "participant_ids": sorted(participants),
     }
 
@@ -103,17 +117,26 @@ def build_evidence_snapshot(
     supporting_data_ids: List[str],
     catalog: Dict[str, Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
-    """Congela as evidencias validadas no formato que vai para o banco e para a tela."""
-    return [
-        {
+    """Congela as evidencias validadas no formato que vai para o banco e para a tela.
+
+    Evidencia agregada leva o `payload` junto: a tela precisa dos numeros estruturados
+    (zonas, contagens, coordenadas) e, sem eles, so lhe restaria reparsear o `summary` —
+    que e uma frase escrita para o modelo, nao um formato de dados.
+    """
+    snapshot = []
+    for eid in supporting_data_ids:
+        record = catalog[eid]
+        item = {
             "id": eid,
-            "type": catalog[eid]["type"],
-            "participant_id": catalog[eid]["participant_id"],
-            "task_id": catalog[eid]["task_id"],
-            "summary": catalog[eid]["summary"],
+            "type": record["type"],
+            "participant_id": record["participant_id"],
+            "task_id": record["task_id"],
+            "summary": record["summary"],
         }
-        for eid in supporting_data_ids
-    ]
+        if record["type"] in AGGREGATE_TYPES:
+            item["payload"] = record.get("payload") or {}
+        snapshot.append(item)
+    return snapshot
 
 
 def attach_finding_metrics(
@@ -172,7 +195,7 @@ def compute_action_metrics(
     """
     participants = set()
     for m in linked_metrics:
-        participants.update(m["participant_ids"])
+        participants.update(p for p in m["participant_ids"] if p is not None)
 
     impact_ratio = (
         len(participants) / total_participants if total_participants else 0.0

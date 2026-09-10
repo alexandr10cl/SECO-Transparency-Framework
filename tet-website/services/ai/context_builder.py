@@ -9,13 +9,14 @@ O contexto enviado ao modelo renderiza cada dado ja prefixado pelo seu id, entao
 existe duplicacao entre "catalogo" e "narrativa", e a validacao depois confere ID por ID
 contra este mesmo dicionario.
 
-Fora do escopo por enquanto: heatmaps.
+Os mapas de calor por pagina (HM-<n>) entram por `heatmap_pages`, montados em
+`services/ai/heatmap_evidence.py`: sinal AGREGADO, sem participante e sem cenario dono,
+que ganha secao propria no prompt em vez de entrar no agrupamento por participante.
 """
 from __future__ import annotations
 
 from collections import OrderedDict, defaultdict
 from typing import Any, Dict, List, Optional, Set
-from urllib.parse import parse_qsl, urlsplit
 
 from index import db
 from models import (
@@ -32,6 +33,8 @@ from models import (
     Question,
     Task,
 )
+from services.ai import heatmap_evidence
+from services.ai.urls import compact_url
 
 
 class EvaluationNotAnalyzable(Exception):
@@ -141,39 +144,7 @@ def _enum_name(value) -> str:
 # resto. Boa parte disso e moldura repetida linha a linha, nao informacao: o rotulo da
 # acao, o horario, o `https://` e os parametros de rastreamento.
 
-_TRACKING_KEYS = {"_gl", "gclid", "fbclid", "msclkid", "gs_lcrp", "oq"}
-_TRACKING_PREFIXES = ("_ga", "_gcl", "utm_")
 _TITLE_SEPARATORS = (" - ", " | ", " · ", " — ")
-
-
-def _is_tracking(key: str) -> bool:
-    """`gs_lcrp` e `oq` entram aqui: sao ruido do buscador, nao a busca (`q` fica)."""
-    return key in _TRACKING_KEYS or key.startswith(_TRACKING_PREFIXES)
-
-
-def _compact_url(url: str) -> str:
-    """URL sem o `https://` e sem os parametros de rastreamento.
-
-    O filtro e por lista de chaves, nunca pela presenca de `?`: os parametros de busca
-    (`?q=`, `?query=`, `&text=`) guardam, nas palavras do proprio participante, aquilo que
-    ele nao conseguiu encontrar navegando — a evidencia mais direta de uma lacuna de
-    descoberta que existe no conjunto.
-    """
-    parts = urlsplit(url or "")
-    if parts.scheme not in ("http", "https") or not parts.netloc:
-        # chrome://newtab, about:blank e afins ficam inteiros: sem o scheme viram
-        # "newtab", que nao diz ao modelo que aquilo e uma pagina do navegador e nao
-        # do portal.
-        return (url or "").strip()
-
-    kept = [
-        (key, value)
-        for key, value in parse_qsl(parts.query, keep_blank_values=True)
-        if not _is_tracking(key)
-    ]
-    query = "?" + "&".join(f"{k}={v}" for k, v in kept) if kept else ""
-    fragment = f"#{parts.fragment}" if parts.fragment else ""
-    return f"{parts.netloc}{parts.path.rstrip('/')}{query}{fragment}"
 
 
 def _common_title_suffixes(titles: List[str], min_count: int = 4) -> Set[str]:
@@ -200,7 +171,10 @@ def _trim_title(title: str, suffixes: Set[str]) -> str:
     return title
 
 
-def build_evidence_catalog(evaluation_id: int) -> "OrderedDict[str, Dict[str, Any]]":
+def build_evidence_catalog(
+    evaluation_id: int,
+    heatmap_pages: Optional[List[Dict[str, Any]]] = None,
+) -> "OrderedDict[str, Dict[str, Any]]":
     """Devolve {evidence_id -> registro}, cada um com type/participant_id/task_id/summary.
 
     `participant_id` e `task_id` sao o que permite ao sistema calcular participantes
@@ -208,7 +182,11 @@ def build_evidence_catalog(evaluation_id: int) -> "OrderedDict[str, Dict[str, An
 
     A ORDEM de insercao importa: e ela que define a ordem das tarefas na renderizacao
     do contexto (ver `render_data`). Questionarios primeiro, depois execucoes na ordem
-    em que aconteceram, depois navegacao, depois respostas.
+    em que aconteceram, depois navegacao, depois respostas, e por ultimo os mapas de
+    calor — que nao pertencem a participante nenhum e saem por secao propria.
+
+    Os HM-<n> entram aqui, e nao so no prompt: `validate_findings` so aceita ID que
+    exista no catalogo.
     """
     catalog: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
 
@@ -296,7 +274,7 @@ def build_evidence_catalog(evaluation_id: int) -> "OrderedDict[str, Dict[str, An
             # URL perde o scheme e o rastreamento. Ver `render_data`.
             "prompt_line": (
                 f"\"{_trim_title(_clean(nav.title), title_suffixes)}\" "
-                f"{_compact_url(nav.url)}"
+                f"{compact_url(nav.url)}"
                 + (" (aba)" if _enum_name(nav.action) == "TAB_SWITCH" else "")
             ),
             "payload": {
@@ -365,6 +343,10 @@ def build_evidence_catalog(evaluation_id: int) -> "OrderedDict[str, Dict[str, An
             },
         }
 
+    # -- mapas de calor por pagina (sinal agregado, sem dono)
+    if heatmap_pages:
+        catalog.update(heatmap_evidence.catalog_records(heatmap_pages))
+
     return catalog
 
 
@@ -373,9 +355,9 @@ def build_evidence_catalog(evaluation_id: int) -> "OrderedDict[str, Dict[str, An
 # ---------------------------------------------------------------------------
 
 def render_framework(scope: List[Dict[str, Any]]) -> str:
-    lines = ["## FRAMEWORK DE TRANSPARENCIA — KSCs no escopo desta avaliacao", ""]
+    lines = ["## FRAMEWORK DE TRANSPARÊNCIA — KSCs no escopo desta avaliação", ""]
     lines.append(
-        "Estes sao os UNICOS ksc_id que voce pode usar. Nao invente nem crie novos.\n"
+        "Estes são os ÚNICOS ksc_id que você pode usar. Não invente nem crie novos.\n"
     )
     by_guideline: "OrderedDict[int, List[Dict[str, Any]]]" = OrderedDict()
     for k in scope:
@@ -402,6 +384,10 @@ def render_data(
         lambda: {"dq": [], "by_task": defaultdict(list), "answers": []}
     )
     for eid, rec in catalog.items():
+        if rec["participant_id"] is None:
+            # Sinal agregado: sai por secao propria. O teste e por `participant_id`, e nao
+            # por `type`, para valer para qualquer tipo agregado futuro.
+            continue
         bucket = by_participant[rec["participant_id"]]
         if rec["type"] == "developer_questionnaire":
             bucket["dq"].append((eid, rec))
@@ -410,23 +396,30 @@ def render_data(
         else:
             bucket["by_task"][rec["task_id"]].append((eid, rec))
 
-    lines = ["## DADOS CAPTURADOS NA AVALIACAO", ""]
+    lines = ["## DADOS CAPTURADOS NA AVALIAÇÃO", ""]
+    # "IDs que nao aparecem abaixo nao existem" mente quando ha uma secao DEPOIS desta.
+    has_heatmap = any(rec["type"] == "heatmap" for rec in catalog.values())
     lines.append(
-        "Cada linha comeca com o ID da evidencia entre colchetes. Use EXATAMENTE esses "
-        "IDs em supporting_data_ids. IDs que nao aparecem abaixo nao existem.\n"
+        "Cada linha começa com o ID da evidência entre colchetes. Use EXATAMENTE esses "
+        "IDs em supporting_data_ids. " + (
+            "Só existem os IDs que aparecem nesta seção e na seção de mapas de calor, "
+            "mais abaixo.\n"
+            if has_heatmap else
+            "IDs que não aparecem abaixo não existem.\n"
+        )
     )
     lines.append(
-        "A navegacao de cada tarefa esta em ORDEM CRONOLOGICA, uma linha por evento: "
-        "[NAV-n] \"titulo da pagina\" url. O `https://` foi omitido e os parametros de "
-        "rastreamento (_gl, _ga, utm_) foram removidos; os parametros de busca foram "
+        "A navegação de cada tarefa está em ORDEM CRONOLÓGICA, uma linha por evento: "
+        "[NAV-n] \"título da página\" url. O `https://` foi omitido e os parâmetros de "
+        "rastreamento (_gl, _ga, utm_) foram removidos; os parâmetros de busca foram "
         "preservados como o participante os produziu. `(aba)` marca troca de aba em vez "
-        "de carregamento de pagina.\n"
+        "de carregamento de página.\n"
     )
     lines.append(
-        "As linhas [DBT-n] sao duvidas que o participante escreveu com as proprias "
-        "palavras DURANTE a execucao daquele cenario, sem interromper a tarefa. O tempo "
-        "entre parenteses e quanto havia decorrido do cenario quando ele registrou a "
-        "duvida.\n"
+        "As linhas [DBT-n] são dúvidas que o participante escreveu com as próprias "
+        "palavras DURANTE a execução daquele cenário, sem interromper a tarefa. O tempo "
+        "entre parênteses é quanto havia decorrido do cenário quando ele registrou a "
+        "dúvida.\n"
     )
 
     for index, participant in enumerate(participants, start=1):
@@ -450,7 +443,7 @@ def render_data(
             lines.append(f"  Tarefa {task_id} — {title}")
             for eid, rec in entries:
                 if rec["type"] == "performed_task":
-                    lines.append(f"    [{eid}] execucao: {rec['summary']}")
+                    lines.append(f"    [{eid}] execução: {rec['summary']}")
             for eid, rec in entries:
                 if rec["type"] == "navigation":
                     # `prompt_line` em vez de `summary`: o prefixo "navegacao:" e
@@ -463,13 +456,13 @@ def render_data(
                 if rec["type"] == "doubt":
                     payload = rec.get("payload") or {}
                     lines.append(
-                        f"    [{eid}] duvida ({payload.get('elapsed_time') or '?'}): "
+                        f"    [{eid}] dúvida ({payload.get('elapsed_time') or '?'}): "
                         f"\"{payload.get('text') or ''}\""
                     )
             lines.append("")
 
         if bucket["answers"]:
-            lines.append("  Respostas do participante aos KSC (0=pessimo, 100=otimo):")
+            lines.append("  Respostas do participante aos KSC (0=péssimo, 100=ótimo):")
             for eid, rec in sorted(
                 bucket["answers"], key=lambda e: e[1]["payload"]["ksc_id"]
             ):
@@ -484,7 +477,7 @@ def render_header(evaluation: Evaluation, n_participants: int) -> str:
         f"- {p.description}" for p in evaluation.seco_processes
     )
     return (
-        "## AVALIACAO ANALISADA\n\n"
+        "## AVALIAÇÃO ANALISADA\n\n"
         f"- Nome: {evaluation.name}\n"
         f"- Portal do ecossistema: {evaluation.seco_portal} ({evaluation.seco_portal_url})\n"
         f"- Tipo de SECO: {_enum_name(evaluation.seco_type)}\n"
@@ -494,8 +487,15 @@ def render_header(evaluation: Evaluation, n_participants: int) -> str:
     )
 
 
-def build_context(evaluation_id: int) -> Dict[str, Any]:
-    """Ponto de entrada: devolve tudo que as etapas seguintes precisam."""
+def build_context(
+    evaluation_id: int,
+    heatmap_pages: Optional[List[Dict[str, Any]]] = None,
+) -> Dict[str, Any]:
+    """Ponto de entrada: devolve tudo que as etapas seguintes precisam.
+
+    `heatmap_pages` vem de `heatmap_evidence.fetch_pages` e e sempre opcional: sem ele
+    (CLI, `--dry-run`, sessao sem token) o contexto sai exatamente como antes.
+    """
     evaluation = fetch_evaluation(evaluation_id)
     participants = fetch_participants(evaluation_id)
 
@@ -505,13 +505,14 @@ def build_context(evaluation_id: int) -> Dict[str, Any]:
         )
 
     scope = fetch_framework_scope(evaluation_id)
-    catalog = build_evidence_catalog(evaluation_id)
+    catalog = build_evidence_catalog(evaluation_id, heatmap_pages=heatmap_pages)
     tasks = {task.task_id: task.title for task in Task.query.all()}
 
     prompt = "\n".join([
         render_header(evaluation, len(participants)),
         render_framework(scope),
         render_data(participants, catalog, tasks),
+        heatmap_evidence.render_section(heatmap_pages),
     ])
 
     return {
