@@ -387,6 +387,7 @@ def add_evaluation():
         print(f"name: {name}")
         print(f"user_id: {user.user_id}")
         print(f"seco_portal: {seco_portal}")
+        print(f"seco_portal_description: '{seco_portal_description}'")
         print(f"seco_portal_url: {seco_portal_url}")
         print(f"seco_type: {seco_type}")
         print(f"manager_objective: '{manager_objective}'")
@@ -399,6 +400,7 @@ def add_evaluation():
             user_id=user.user_id,
             seco_processes=seco_processes,
             seco_portal=seco_portal,
+            seco_portal_description=seco_portal_description,
             seco_portal_url=seco_portal_url,
             seco_type=seco_type,
             manager_objective=manager_objective
