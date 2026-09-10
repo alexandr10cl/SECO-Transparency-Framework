@@ -80,6 +80,7 @@
                             <label for="seco_portal_description" class="form-label">Portal Description</label>
                             <textarea name="seco_portal_description" id="seco_portal_description" class="form-input" rows="4" maxlength="2000" placeholder="Describe the portal being evaluated" required {% if evaluation.collected_data %}disabled{% endif %}>{{ evaluation.seco_portal_description or '' }}</textarea>
                             <div class="form-help">Briefly describe the portal and its purpose.</div>
+                        </div>
 
                         <div class="form-group">
                             <label for="seco_portal_url" class="form-label">Portal URL</label>

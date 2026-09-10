@@ -281,6 +281,7 @@ def add_evaluation():
     form_values = {
         "name": name,
         "seco_portal": seco_portal,
+        "seco_portal_description": seco_portal_description,
         "seco_portal_url": seco_portal_url,
         "seco_type": seco_type_str,
         "manager_objective": manager_objective,
@@ -435,6 +436,7 @@ def add_evaluation():
                 values = {
                     "name": name,
                     "seco_portal": seco_portal,
+                    "seco_portal_description": seco_portal_description,
                     "seco_portal_url": seco_portal_url,
                     "seco_type": seco_type_str,
                     "manager_objective": manager_objective
