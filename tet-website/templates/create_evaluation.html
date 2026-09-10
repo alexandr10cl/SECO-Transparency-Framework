@@ -70,7 +70,7 @@
                         </div>
                     </div>
                     
-                    <form action="{{ url_for('add_evaluation') }}" method="post" class="create-form" novalidate>
+                    <form id="create-evaluation-form" action="{{ url_for('add_evaluation') }}" method="post" class="create-form" novalidate>
                         <div id="step-details">
                         <!-- Basic Information -->
                         <div class="form-group">
@@ -194,5 +194,6 @@
 <script>
   window.prefilledKscWeights = {{ (values.ksc_weights if values is defined and values.ksc_weights is defined else {}) | tojson }};
 </script>
+
 <script src="/static/js/evaluation.js"></script>
 {% endblock %}
