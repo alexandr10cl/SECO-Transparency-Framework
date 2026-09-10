@@ -2,7 +2,8 @@
 
 Um provider implementa **uma funcao so**:
 
-    generate(system_instruction, prompt, schema, model) -> tuple[BaseModel, dict]
+    generate(system_instruction, prompt, schema, model, images=None)
+        -> tuple[BaseModel, dict]
 
 Regras do contrato:
 
@@ -13,6 +14,11 @@ Regras do contrato:
 3. Traduz qualquer falha do SDK para `AIProviderError`, marcando `retryable` conforme
    `RETRYABLE_CODES`. Essa traducao e a unica parte especifica do provedor — e por isso
    que ela mora aqui e nao no orquestrador.
+4. **`images`** e uma lista de `(rotulo, bytes, mime)`, ou None. Havendo imagens, o
+   provider as INTERCALA com o texto, cada uma precedida do seu proprio rotulo — e assim
+   que a linha `[HM-n]` e a imagem correspondente se encontram. Quando e None ou vazia, o
+   conteudo enviado tem de ser exatamente o de antes (texto puro): a degradacao texto-so
+   de `pipeline._analyze` depende disso.
 
 Nenhum modulo fora de `services/ai/providers/` deve importar o SDK de um provedor.
 """

@@ -285,14 +285,14 @@
     z-index: 20;
     width: max-content;
     max-width: 240px;
-    padding: 8px 10px;
+    padding: 10px 12px;
     border-radius: 8px;
     background: #1f2937;
     color: #fff;
     /* .ai-stats e o cabecalho do modal aplicam caixa-alta e tracking; o tooltip e prosa. */
     font-size: 11.5px;
     font-weight: 500;
-    line-height: 1.5;
+    line-height: 1.6;
     letter-spacing: 0;
     text-transform: none;
     white-space: normal;
@@ -317,6 +317,25 @@
 
 @media (prefers-reduced-motion: reduce) {
     .ai-stat-help::after { transition: none; }
+}
+
+/* O badge CONFIDENCE fica no topo do painel (.fd-head): abrir para cima sairia da area
+   visivel. Abre para baixo e alinha pela direita, porque o badge e o ultimo item da
+   linha flex. `pre-line` faz os `\n` de `confidenceTooltip` virarem quebras de linha reais
+   — cada oracao ja chega pronta na sua propria linha. 320px (nao 240px, o padrao de
+   `.ai-stat-help::after`): largura o bastante para a maior linha ("This finding: N
+   participants, N evidence types") nao ultrapassar e forcar uma SEGUNDA quebra por conta
+   propria, que reintroduziria uma palavra orfa isolada — o problema que a quebra manual
+   ja resolve. */
+.ai-badge.ai-stat-help::after {
+    top: calc(100% + 8px);
+    bottom: auto;
+    left: auto;
+    right: 0;
+    width: 320px;
+    max-width: 85vw;
+    padding: 12px 14px;
+    white-space: pre-line;
 }
 
 .ai-stat-info {
@@ -481,21 +500,6 @@
     color: hsl(var(--muted-foreground));
 }
 
-.fd-evidence-count {
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: normal;
-}
-
-/* Metadado secundario: triangulacao (participantes/ocorrencias/itens + fontes), fora
-   das stats principais para nao competir visualmente com confidence/recurrence. */
-.fd-evidence-summary {
-    margin: 0 0 14px;
-    font-size: 11.5px;
-    line-height: 1.6;
-    color: hsl(var(--muted-foreground));
-}
-
 /* Um bloco por tipo de evidencia agrupado (Task experience / Success criterion
    assessment / Participant profile) — reduz a leitura "log de banco de dados" ao deixar
    explicito como sinais heterogeneos convergem para o mesmo finding. */
@@ -512,11 +516,6 @@
     font-size: 11.5px;
     font-weight: 700;
     color: hsl(var(--foreground));
-}
-
-.ev-group-count {
-    font-weight: 500;
-    color: hsl(var(--muted-foreground));
 }
 
 /* Uma linha por evidencia — icone colorido por tipo de sinal, quem/onde, texto, e o ID
@@ -1091,4 +1090,242 @@
 
 .ai-modal-resolves strong {
     color: hsl(var(--foreground));
+}
+
+.ev-profile-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 12px;
+    margin-top: 2px;
+}
+
+.ev-profile-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    color: hsl(var(--muted-foreground));
+}
+
+.ev-profile-stat b {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+.ev-profile-stat .material-symbols-outlined {
+    font-size: 14px !important;
+}
+
+.ev-pill-academic .material-symbols-outlined { color: #8b5cf6 !important; }
+.ev-pill-experience .material-symbols-outlined { color: #2563eb !important; }
+.ev-pill-segment .material-symbols-outlined { color: #0d9488 !important; }
+.ev-pill-familiarity .material-symbols-outlined { color: #d97706 !important; }
+.ev-pill-emotion .material-symbols-outlined { color: #e11d48 !important; }
+
+/* =====================================================================
+   EVIDENCIA AGREGADA: MAPA DE CALOR POR PAGINA
+
+   Os `!important` nos icones vencem o override global de dashboard.css
+   (`.material-symbols-outlined { font-size: 50px !important; color: #2563EB }`).
+   ===================================================================== */
+
+.ev-heatmap {
+    align-items: flex-start;
+    padding: 12px 0;
+}
+
+/* 120x71 e a proporcao nativa da captura (1073x637). Qualquer outra deforma o que o
+   gestor ja viu na aba Hotspots. E' um <button> quando ha imagem: clicavel para ampliar. */
+.ev-heatmap .ev-thumb {
+    flex: none;
+    width: 120px;
+    height: 71px;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    background: #f8fafc;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.ev-heatmap .ev-thumb:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.ev-heatmap .ev-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Sem imagem: a linha continua legivel — os numeros vem da evidencia gravada. Nao e
+   clicavel, entao volta ao cursor default. */
+.ev-heatmap .ev-thumb-missing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
+.ev-heatmap .ev-thumb-missing .material-symbols-outlined {
+    font-size: 22px !important;
+    color: #94a3b8 !important;
+}
+
+/* A URL ocupa o slot que nas outras linhas e do participante: a pagina e o "quem" desta
+   evidencia. */
+.ev-heatmap .ev-page {
+    flex: 1 1 100%;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    word-break: break-all;
+}
+
+.ev-heatmap .ev-chips {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+/* Mesmos chips da aba Hotspots, reduzidos: laranja para zona, azul para cenario. */
+.ev-zone {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #9a3412;
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.ev-zone b {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.ev-scenario {
+    display: inline-flex;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.ev-heatmap .ev-foot {
+    flex: 1 1 100%;
+    margin-top: 5px;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+}
+
+/* "all scenarios combined" e a defesa da TELA contra a leitura errada — nao e decorativo. */
+.ev-combined {
+    font-style: italic;
+}
+
+.ev-drift {
+    display: block;
+    margin-top: 3px;
+    color: #b45309;
+}
+
+.ev-heatmap .ev-links {
+    flex: 1 1 100%;
+    display: flex;
+    gap: 14px;
+    margin-top: 7px;
+}
+
+.ev-hm-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 11px;
+    color: #2563eb;
+    cursor: pointer;
+}
+
+.ev-hm-link:hover { text-decoration: underline; }
+
+.ev-hm-link:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.ev-hm-link .material-symbols-outlined {
+    font-size: 14px !important;
+    color: #2563eb !important;
+}
+
+/* Modal de imagem do heatmap: reusa .ai-modal-overlay/.active, simples de proposito —
+   so a captura em tamanho grande e a legenda com os numeros. */
+.ai-modal-heatmap {
+    position: relative;
+    max-width: min(92vw, 1073px);
+    padding: 20px;
+}
+
+.ai-modal-heatmap img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid hsl(var(--border));
+}
+
+.ai-modal-heatmap-title {
+    margin: 0 40px 12px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    word-break: break-all;
+}
+
+.ai-modal-heatmap-caption {
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+}
+
+.ai-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    cursor: pointer;
+}
+
+.ai-modal-close .material-symbols-outlined {
+    font-size: 18px !important;
+    color: hsl(var(--muted-foreground)) !important;
+}
+
+.ai-modal-close:hover {
+    background: hsl(var(--border));
+}
+
+@media (max-width: 900px) {
+    .ev-heatmap .ev-thumb { width: 88px; height: 52px; }
 }

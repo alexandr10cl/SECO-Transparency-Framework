@@ -23,6 +23,7 @@ from models import (
 from services.heatmap_cache import get_cached_payload, set_cached_payload, get_cache_stats
 from services.heatmap_service import (
     build_scenarios_payload,
+    is_cacheable,
     build_navigation_task_map,
     collect_evaluation_tracking,
     segment_heatmaps_by_tasks,
@@ -114,7 +115,10 @@ def api_heatmap_scenarios(evaluation_id: int):
             return token_error
 
         payload['metadata']['cached'] = False
-        set_cached_payload(evaluation_id, 'scenarios', payload)
+        # Só cacheia o que vale guardar por horas: um payload sem nenhuma sessão é
+        # "a coleta ainda não começou", não uma resposta (ver `is_cacheable`).
+        if is_cacheable(payload):
+            set_cached_payload(evaluation_id, 'scenarios', payload)
         return jsonify(payload)
     except requests.exceptions.Timeout:
         app.logger.warning("Timeout while fetching heatmaps for evaluation %s", evaluation_id)

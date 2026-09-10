@@ -14,6 +14,7 @@ from index import app
 from models import Evaluation
 from services.ai import pipeline
 from services.ai.provider import available_models
+from services.uxt_service import get_gestor_token
 
 AI_DISABLED_MESSAGE = (
     "Camada analitica de IA desativada. Defina AI_ANALYSIS=True no .env para habilitar."
@@ -59,6 +60,11 @@ def api_ai_analysis_generate(evaluation_id: int):
 
     Regenerar (quando ja existe resultado) exige AI_ALLOW_REGENERATE — e o que impede o
     gestor de queimar chamadas de API em producao clicando no botao.
+
+    E TAMBEM O UNICO LUGAR ONDE O TOKEN DA UXT EXISTE: dentro da thread de analise
+    `has_request_context()` e sempre False e `get_gestor_token()` devolveria None em
+    silencio, fazendo os mapas de calor sumirem sem erro nenhum. Sem token a analise roda
+    texto-so; nao ha degradacao para a conta de servico, que nao enxerga dado do gestor.
     """
     error = _guard(evaluation_id)
     if error:
@@ -74,7 +80,11 @@ def api_ai_analysis_generate(evaluation_id: int):
             }), 403
 
         body = request.get_json(silent=True) or {}
-        result = pipeline.schedule(evaluation_id, model=body.get("model"))
+        result = pipeline.schedule(
+            evaluation_id,
+            model=body.get("model"),
+            uxt_token=get_gestor_token(),
+        )
     except Exception as exc:  # noqa: BLE001
         app.logger.exception("ai-analysis: falha agendando a avaliacao %s", evaluation_id)
         return jsonify({"error": "Processing error", "details": str(exc)}), 500

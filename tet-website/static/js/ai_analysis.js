@@ -28,14 +28,41 @@
     var activeFindingCode = null;
     var lastData = null;
 
-    // Icone e cor por tipo de evidencia. Os cinco tipos que o catalogo produz hoje
-    // (context_builder.py) — sem heatmap, cortado desta entrega.
+    // A imagem do mapa de calor vem DO CLIENTE, nao do servidor: exibi-la a partir do
+    // backend exigiria ler o cache de 6h (que pode ter expirado) ou re-buscar da UXT no
+    // GET, somando ate 150s ao dashboard. A aba Hotspots ja baixou tudo no
+    // DOMContentLoaded — ver `window.SecoHeatmaps` em hotspots_heatmaps.js. Os NUMEROS,
+    // esses, vem da evidencia gravada e nao dependem disto.
+    var heatmapsReady = false;   // a promise ja resolveu?
+    var heatmapsApi = null;      // {byUrl, metadata} ou null (fetch falhou / UXT off)
+
+    (window.SecoHeatmaps && window.SecoHeatmaps.ready
+        ? window.SecoHeatmaps.ready
+        : Promise.resolve(null)
+    ).then(function (api) {
+        heatmapsReady = true;
+        heatmapsApi = api;
+        // As linhas ja renderizadas trocam o placeholder pela miniatura.
+        if (lastData) renderFindings(lastData);
+    });
+
+    // Tipos de sinal AGREGADO — espelha metrics.AGGREGATE_TYPES. Dirige o rotulo "context
+    // only" do grupo, o filtro de "Sources" e a contagem do cabecalho de evidencias.
+    var AGGREGATE_TYPES = ['heatmap'];
+
+    function isAggregate(type) {
+        return AGGREGATE_TYPES.indexOf(type) !== -1;
+    }
+
+    // Icone e cor por tipo de evidencia. No heatmap o icone so aparece no placeholder:
+    // quando ha imagem, a miniatura ocupa o lugar dele.
     var EVIDENCE_TYPE = {
         performed_task: { icon: 'task_alt', cls: 'ev-task' },
         navigation: { icon: 'explore', cls: 'ev-nav' },
         answer: { icon: 'bar_chart', cls: 'ev-answer' },
         developer_questionnaire: { icon: 'person', cls: 'ev-profile' },
-        doubt: { icon: 'help', cls: 'ev-doubt' }
+        doubt: { icon: 'help', cls: 'ev-doubt' },
+        heatmap: { icon: 'blur_on', cls: 'ev-heatmap' }
     };
 
     // Ordem e rotulo dos grupos de evidencia no painel de detalhe. `navigation` nao tem
@@ -50,7 +77,10 @@
         { types: ['performed_task', 'navigation'], label: 'Experience during scenarios' },
         { types: ['doubt'], label: 'Questions raised during scenarios' },
         { types: ['answer'], label: 'Success criterion assessment' },
-        { types: ['developer_questionnaire'], label: 'Participant profile & feedback' }
+        { types: ['developer_questionnaire'], label: 'Participant profile & feedback' },
+        // Por ultimo e marcado como contexto: o rotulo diz o que o dado E (distribuicao
+        // de interacoes), nunca o que ele NAO e (atencao / olhar / percepcao).
+        { types: ['heatmap'], label: 'Interaction distribution by page', contextOnly: true }
     ];
 
     // "impact 4/4" era lido como nota (4 de 4 = bom? ruim?). Nao e nota: e alcance — a
@@ -59,14 +89,6 @@
     // lado o numero e melhor, que era exatamente a duvida dos usuarios.
     var IMPACT_HELP = 'Participants this action would help, out of the total. ' +
         'Higher means broader reach.';
-
-    var EVIDENCE_SOURCE_LABEL = {
-        performed_task: 'tasks',
-        navigation: 'navigation',
-        answer: 'answers',
-        developer_questionnaire: 'questionnaire',
-        doubt: 'questions'
-    };
 
     // ---------------------------------------------------------------- helpers
 
@@ -158,6 +180,31 @@
         return '<div class="ai-empty">' + message + '</div>';
     }
 
+    // Por que esta analise nao tem mapa de calor. Mesmas chaves de `REASON_LABEL`
+    // (services/ai/heatmap_evidence.py), em ingles e sem jargao.
+    var HEATMAP_REASON = {
+        disabled: 'turned off',
+        uxt_disabled: 'UX-Tracking integration off',
+        no_token: 'session expired',
+        ownership: 'another UX-Tracking account owns this evaluation',
+        unauthorized: 'UX-Tracking rejected the session',
+        timeout: 'UX-Tracking timed out',
+        unreachable: 'UX-Tracking unreachable',
+        no_sessions: 'no sessions collected',
+        no_images: 'UX-Tracking returned no usable images',
+        error: 'fetch failed'
+    };
+
+    function heatmapStatLabel(heatmap) {
+        if (!heatmap) return '';
+        if (heatmap.pages) {
+            return heatmap.pages + ' heatmap page' + (heatmap.pages === 1 ? '' : 's');
+        }
+        if (!heatmap.reason) return '';
+        return 'heatmaps unavailable (' +
+            (HEATMAP_REASON[heatmap.reason] || heatmap.reason) + ')';
+    }
+
     // ---------------------------------------------------------------- cabecalho
 
     function renderControls(data) {
@@ -167,6 +214,10 @@
         var tokens = formatTokens(data.stats && data.stats.tokens_total);
         if (tokens) meta.push(esc(tokens));
         if (data.stats && data.stats.ai_duration_s) meta.push(esc(Math.round(data.stats.ai_duration_s)) + 's');
+        // Sem isto uma analise que enxergou mapas de calor e uma que rodou texto-so sao
+        // visualmente identicas.
+        var heatmapStat = heatmapStatLabel(data.stats && data.stats.heatmap);
+        if (heatmapStat) meta.push(esc(heatmapStat));
 
         var html = meta.length ? '<div class="ai-meta">' + meta.join(' · ') + '</div>' : '';
 
@@ -284,14 +335,188 @@
         return match && match[1] ? '"' + esc(match[1]) + '"' : '';
     }
 
+    // ------------------------------------------------- mapa de calor por pagina
+    //
+    // Os numeros saem de `item.payload`, gravado no snapshot da evidencia
+    // (metrics.build_evidence_snapshot): URL, contagens e zonas com `x`/`y`. A imagem e a
+    // unica coisa que vem do payload ao vivo da aba Hotspots — e ilustracao.
+    //
+    // A zona e nomeada por `SecoHeatmaps.describeZone`, a MESMA funcao da aba Hotspots:
+    // `x`/`y` sao COORDENADA (onde a zona fica) e `count` e a medida. O percentual so
+    // aparece no `title`, como a UX-Tracking o entrega — o denominador ela nao declara.
+
+    function zoneLabel(hotspot) {
+        return (window.SecoHeatmaps && window.SecoHeatmaps.describeZone)
+            ? window.SecoHeatmaps.describeZone({
+                center_x_percent: hotspot.x, center_y_percent: hotspot.y
+            })
+            : (hotspot.zone_id || 'zone');
+    }
+
+    // A pagina no payload AO VIVO da aba Hotspots, ou null. `byUrl` aceita a URL compacta
+    // (a que a evidencia guarda) e a crua.
+    function heatmapPage(url) {
+        if (!heatmapsApi || !url) return null;
+        return heatmapsApi.byUrl(url);
+    }
+
+    function heatmapCardFor(page) {
+        if (!page || !page.url) return null;
+        var cards = document.querySelectorAll('.heatmap-card');
+        for (var i = 0; i < cards.length; i++) {
+            if (cards[i].dataset.url === page.url) return cards[i];
+        }
+        return null;
+    }
+
+    function heatmapAlt(hm) {
+        var lead = 'Interaction distribution over ' + (hm.url || 'this page');
+        if (!hm.hotspots.length) return lead;
+        var top = hm.hotspots[0];
+        return lead + ' — most interactions in the ' + zoneLabel(top) + ' zone (' +
+            top.count + ' of ' + hm.interactions + ' recorded)';
+    }
+
+    function heatmapThumbHTML(hm, page) {
+        if (page && page.image) {
+            return '<button type="button" class="ev-thumb" data-ai-hm-expand="' + esc(hm.url) +
+                '" title="Expand image">' +
+                '<img src="data:' + esc(page.mime || 'image/jpeg') + ';base64,' + esc(page.image) +
+                '" alt="' + esc(heatmapAlt(hm)) + '"></button>';
+        }
+        return '<span class="ev-thumb ev-thumb-missing" aria-hidden="true">' +
+            '<span class="material-symbols-outlined">image_not_supported</span></span>';
+    }
+
+    // Nota discreta quando a captura ao vivo ja nao e a que a analise viu. Sem isto a linha
+    // afirmaria "5 sessions" ao lado de uma imagem que ja e de 7.
+    function heatmapDriftHTML(hm) {
+        if (!heatmapsApi || !hm.sessions) return '';
+        var live = Number((heatmapsApi.metadata || {}).sessions_analyzed);
+        if (!live || live === hm.sessions) return '';
+        var note = live > hm.sessions
+            ? 'The page has new sessions since this analysis'
+            : 'The session count changed since this analysis';
+        return '<span class="ev-drift">' + note + ' (' + live + ' now, ' +
+            hm.sessions + ' then).</span>';
+    }
+
+    function heatmapChipsHTML(hm, page) {
+        // Cenarios: CONTEXTO de onde a pagina foi visitada, nunca dono do calor. Os
+        // titulos so existem no payload ao vivo; sem ele, o ID ja diz qual e.
+        var live = (page && page.scenarios_involved) || [];
+        var chips = live.length
+            ? live.map(function (scenario) {
+                return '<span class="ev-scenario">' +
+                    esc(scenario.scenario_title || ('Scenario ' + scenario.task_id)) + '</span>';
+            }).join('')
+            : hm.scenarios.map(function (id) {
+                return '<span class="ev-scenario">Scenario ' + esc(id) + '</span>';
+            }).join('');
+
+        chips += hm.hotspots.map(function (hotspot) {
+            return '<span class="ev-zone" title="' + esc(hotspot.percentage) +
+                '% as reported by UX-Tracking">' +
+                '<b>' + esc(hotspot.count) + '</b>' + esc(zoneLabel(hotspot)) + '</span>';
+        }).join('');
+
+        return chips ? '<span class="ev-chips">' + chips + '</span>' : '';
+    }
+
+    // A decisao e tomada NO RENDER, contra o card real: se a aba ainda nao carregou, esta
+    // em erro, ou a UXT esta desligada, o link simplesmente nao e emitido.
+    function heatmapLinkHTML(hm, page) {
+        if (!heatmapCardFor(page)) return '';
+        return '<span class="ev-links">' +
+            '<button type="button" class="ev-hm-link" data-ai-hm-goto="' + esc(hm.url) + '">' +
+            '<span class="material-symbols-outlined">north_east</span>' +
+            'View in Hotspots</button></span>';
+    }
+
+    // Tres desvios deliberados da .ev-row comum: a URL ocupa o slot que nas outras linhas
+    // e do participante (um sinal agregado nao pode virar, visualmente, uma pessoa de
+    // identidade desconhecida — o backend mapeia participant_id ausente para "?"), a
+    // miniatura substitui o icone de 28px, e o corpo cresce para quatro faixas.
+    function heatmapRow(item) {
+        var hm = item.payload;
+        if (!hm || !hm.url) {
+            // Evidencia gravada antes do payload existir: mostra o texto cru em vez de
+            // sumir da tela.
+            return '<div class="ev-row ev-generic">' +
+                '<span class="ev-icon"><span class="material-symbols-outlined">blur_on</span></span>' +
+                '<div class="ev-body"><span class="ev-lead">' + esc(item.summary || '') + '</span></div>' +
+                '<span class="ev-id">' + esc(item.id) + '</span></div>';
+        }
+        hm = {
+            url: hm.url,
+            interactions: hm.interactions || 0,
+            sessions: hm.sessions || 0,
+            scenarios: hm.scenarios || [],
+            hotspots: hm.hotspots || []
+        };
+
+        var page = heatmapPage(hm.url);
+        var foot = esc(hm.interactions) + ' interactions recorded across ' +
+            esc(hm.sessions) + ' session' + (hm.sessions === 1 ? '' : 's') +
+            ' · <em class="ev-combined">all scenarios combined</em>';
+        foot += (heatmapsReady && heatmapsApi && !page)
+            ? '<span class="ev-drift">This page is no longer in the current heatmap data.</span>'
+            : heatmapDriftHTML(hm);
+
+        return '<div class="ev-row ev-heatmap">' +
+            heatmapThumbHTML(hm, page) +
+            '<div class="ev-body">' +
+                '<span class="ev-page">' + esc(hm.url) + '</span>' +
+                heatmapChipsHTML(hm, page) +
+                '<span class="ev-foot">' + foot + '</span>' +
+                heatmapLinkHTML(hm, page) +
+            '</div>' +
+            '<span class="ev-id" title="Evidence record ID, for traceability">' +
+                esc(item.id) + '</span>' +
+        '</div>';
+    }
+
+    // Perfil do participante como uma faixa de mini-stats, no mesmo vocabulario visual do
+    // Developer Journey (.journey-profile-*, dashboard.css): icone colorido por categoria
+    // + rotulo pequeno + valor. Aqui em escala reduzida, para nao competir com o resto da
+    // linha de evidencia.
+    var PROFILE_STAT = [
+        { key: 1, icon: 'school', label: 'Education', cls: 'ev-pill-academic' },
+        { key: 3, icon: 'work_history', label: 'Experience', cls: 'ev-pill-experience',
+            format: function (v) { return v + ' yr' + (v === '1' ? '' : 's') + ' xp'; } },
+        { key: 4, icon: 'domain', label: 'Segment', cls: 'ev-pill-segment' },
+        { key: 2, icon: 'travel_explore', label: 'Portal use', cls: 'ev-pill-familiarity' },
+        { key: 5, icon: 'mood', label: 'Emotion', cls: 'ev-pill-emotion',
+            format: function (v) { return v + '/5'; } }
+    ];
+
+    function profileStatsHTML(item) {
+        var profile = RE_PROFILE.exec(item.summary || '');
+        if (!profile) return '';
+        // RE_PROFILE captura, em ordem: academic_level, portal_familiarity,
+        // experience_years, segment, emotion — indexes 1..5.
+        return PROFILE_STAT.map(function (stat) {
+            var raw = profile[stat.key];
+            var value = stat.format ? stat.format(raw) : humanize(raw);
+            return '<span class="ev-profile-stat ' + stat.cls + '">' +
+                '<span class="material-symbols-outlined">' + stat.icon + '</span>' +
+                '<b>' + esc(value) + '</b>' +
+            '</span>';
+        }).join('');
+    }
+
     function evidenceRow(item) {
+        if (item.type === 'heatmap') return heatmapRow(item);
         var meta = EVIDENCE_TYPE[item.type] || { icon: 'description', cls: 'ev-generic' };
         var quote = evidenceQuote(item);
+        var profileStats = item.type === 'developer_questionnaire' ? profileStatsHTML(item) : '';
         return '<div class="ev-row ' + meta.cls + '">' +
             '<span class="ev-icon"><span class="material-symbols-outlined">' + meta.icon + '</span></span>' +
             '<div class="ev-body">' +
                 '<span class="ev-who">' + esc(item.participant || '?') + '</span>' +
-                '<span class="ev-lead">' + evidenceLead(item) + '</span>' +
+                (profileStats
+                    ? '<span class="ev-profile-stats">' + profileStats + '</span>'
+                    : '<span class="ev-lead">' + evidenceLead(item) + '</span>') +
                 (quote ? '<p class="ev-text">' + quote + '</p>' : '') +
             '</div>' +
             '<span class="ev-id" title="Evidence record ID, for traceability">' + esc(item.id) + '</span>' +
@@ -317,7 +542,7 @@
         if (!items.length) return '';
         var label = group.types[0] === 'answer' ? answerGroupLabel(items) : group.label;
         return '<div class="ev-group">' +
-            '<h6 class="ev-group-title">' + label + ' <span class="ev-group-count">(' + items.length + ')</span></h6>' +
+            '<h6 class="ev-group-title">' + label + '</h6>' +
             items.map(evidenceRow).join('') +
         '</div>';
     }
@@ -375,9 +600,28 @@
         }).join('');
 
         return '<div class="fd-actions">' +
-            '<h5>Recommended actions <span class="fd-evidence-count">(' + actions.length + ')</span></h5>' +
+            '<h5>Recommended actions</h5>' +
             (rows || '<p class="fd-actions-empty">No action in the plan resolves this finding yet.</p>') +
         '</div>';
+    }
+
+    // Tooltip do badge de confianca. Escrito em ingles aqui (nao reusa
+    // `data.formulas.confidence`, que vem em portugues do backend para o terminal/CLI).
+    // Cada oracao tem sua propria linha (`\n`, preservado pelo CSS via `pre-line`) em vez
+    // de uma frase corrida: deixar o navegador decidir onde quebrar produzia uma palavra
+    // orfa sozinha na linha seguinte ("evidence types.", "neither.", "MEDIUM." isolados —
+    // esse ultimo ainda pior por separar a seta do resultado que ela aponta). Quebrando no
+    // limite de cada oracao, a seta fica colada ao rotulo de confianca que ela introduz.
+    function confidenceTooltip(m) {
+        var nParticipants = m.participants_affected;
+        var nTypes = (m.evidence_types || []).filter(function (t) { return !isAggregate(t); }).length;
+        return 'HIGH needs 2+ distinct participants\n' +
+            'AND 2+ distinct evidence types.\n' +
+            'MEDIUM needs only one of the two.\n' +
+            'LOW needs neither.\n\n' +
+            'This finding: ' + nParticipants + ' participant' + (nParticipants === 1 ? '' : 's') +
+            ', ' + nTypes + ' evidence type' + (nTypes === 1 ? '' : 's') + '\n' +
+            '→ ' + (m.confidence_band || '?') + '.';
     }
 
     function findingDetailHTML(finding) {
@@ -385,12 +629,12 @@
         var m = finding.metrics || {};
         var ksc = finding.ksc || {};
         var evidence = finding.evidence || [];
-        var sources = (m.evidence_types || []).map(function (t) { return EVIDENCE_SOURCE_LABEL[t] || t; }).join(' · ');
 
         return '<div class="fd-head">' +
                 '<span class="ai-code">' + esc(finding.code) + '</span>' +
                 '<h2>' + esc(finding.title) + '</h2>' +
-                '<span class="' + confidenceBadgeClass(m.confidence_band) + '">CONFIDENCE: ' +
+                '<span class="' + confidenceBadgeClass(m.confidence_band) + ' ai-stat-help"' +
+                    ' tabindex="0" data-help="' + esc(confidenceTooltip(m)) + '">CONFIDENCE: ' +
                     esc(m.confidence_band) + '</span>' +
             '</div>' +
             '<div class="ai-stats">' +
@@ -412,12 +656,7 @@
             '</div>' +
             '<div class="fd-evidence">' +
                 '<div class="fd-evidence-head">' +
-                    '<h5>Evidence supporting this finding <span class="fd-evidence-count">(' + evidence.length + ')</span></h5>' +
-                    '<p class="fd-evidence-summary">' +
-                        esc(m.affected_participants) + ' participants · ' + evidence.length +
-                        ' evidence item' + (evidence.length === 1 ? '' : 's') +
-                        (sources ? '<br>Sources: ' + esc(sources) : '') +
-                    '</p>' +
+                    '<h5>Evidence supporting this finding</h5>' +
                 '</div>' +
                 evidenceGroupsHTML(evidence) +
             '</div>' +
@@ -811,6 +1050,83 @@
             .catch(function (error) { console.error('ai-analysis:', error); });
     }
 
+    // Leva a aba Hotspots e para no card daquela pagina. O card so e alvo se existir —
+    // a decisao de emitir o link ja foi tomada no render (heatmapLinkHTML).
+    function goToHeatmapCard(url) {
+        var card = heatmapCardFor(heatmapPage(url));
+        if (!card) return;
+
+        goToTab('Hotspots');
+
+        // Filtro de cenario ativo esconde o card (.filtered-out zera altura e opacidade):
+        // rolar ate ele nao mostraria nada.
+        if (card.classList.contains('filtered-out')) {
+            var showAll = document.getElementById('filter-all-scenarios');
+            if (showAll && !showAll.checked) {
+                showAll.checked = true;
+                showAll.dispatchEvent(new Event('change'));
+            }
+        }
+
+        highlight(card);
+    }
+
+    // ---------------------------------------------------------------- heatmap modal
+
+    // Reusa o padrao .ai-modal-overlay/.ai-modal (o mesmo do editor de action, mais
+    // abaixo) em vez de introduzir um terceiro sistema de modal.
+    var heatmapModalEl = null;
+
+    function ensureHeatmapModal() {
+        if (heatmapModalEl) return heatmapModalEl;
+        heatmapModalEl = document.createElement('div');
+        heatmapModalEl.className = 'ai-modal-overlay';
+        heatmapModalEl.innerHTML = '<div class="ai-modal ai-modal-heatmap" data-ai-hm-modal-body></div>';
+        document.body.appendChild(heatmapModalEl);
+        return heatmapModalEl;
+    }
+
+    // A evidencia de heatmap para uma URL, procurando nos findings ja carregados.
+    function heatmapEvidenceFor(url) {
+        var findings = (lastData && lastData.findings) || [];
+        for (var i = 0; i < findings.length; i++) {
+            var evidence = findings[i].evidence || [];
+            for (var j = 0; j < evidence.length; j++) {
+                if (evidence[j].type === 'heatmap' && evidence[j].payload &&
+                    evidence[j].payload.url === url) {
+                    return evidence[j];
+                }
+            }
+        }
+        return null;
+    }
+
+    function openHeatmapModal(url) {
+        var page = heatmapPage(url);
+        var item = heatmapEvidenceFor(url);
+        if (!page || !page.image || !item) return;
+
+        var hm = item.payload;
+        var modal = ensureHeatmapModal();
+        modal.querySelector('[data-ai-hm-modal-body]').innerHTML =
+            '<button type="button" class="ai-modal-close" data-ai-hm-close aria-label="Close">' +
+                '<span class="material-symbols-outlined">close</span>' +
+            '</button>' +
+            '<h3 class="ai-modal-heatmap-title">' + esc(url) + '</h3>' +
+            '<img src="data:' + esc(page.mime || 'image/jpeg') + ';base64,' + esc(page.image) +
+                '" alt="' + esc(heatmapAlt(hm)) + '">' +
+            '<p class="ai-modal-heatmap-caption">' +
+                esc(hm.interactions) + ' interactions recorded across ' + esc(hm.sessions) +
+                ' session' + (hm.sessions === 1 ? '' : 's') +
+                ' · <em class="ev-combined">all scenarios combined</em>' +
+            '</p>';
+        modal.classList.add('active');
+    }
+
+    function closeHeatmapModal() {
+        if (heatmapModalEl) heatmapModalEl.classList.remove('active');
+    }
+
     // ---------------------------------------------------------------- eventos
 
     document.addEventListener('click', function (event) {
@@ -900,6 +1216,28 @@
             return;
         }
 
+        // "View in Hotspots" de um mapa de calor.
+        var hmGoto = event.target.closest('[data-ai-hm-goto]');
+        if (hmGoto) {
+            goToHeatmapCard(hmGoto.dataset.aiHmGoto);
+            return;
+        }
+
+        // Miniatura de um mapa de calor: abre a imagem grande.
+        var hmExpand = event.target.closest('[data-ai-hm-expand]');
+        if (hmExpand) {
+            openHeatmapModal(hmExpand.dataset.aiHmExpand);
+            return;
+        }
+        if (event.target.closest('[data-ai-hm-close]')) {
+            closeHeatmapModal();
+            return;
+        }
+        if (heatmapModalEl && event.target === heatmapModalEl) {
+            closeHeatmapModal();
+            return;
+        }
+
         // Modal: cancelar, salvar, ou clicar fora do card fecha.
         if (event.target.closest('[data-ai-modal-cancel]')) {
             closeEditModal();
@@ -912,6 +1250,10 @@
         if (editModalEl && event.target === editModalEl) {
             closeEditModal();
         }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeHeatmapModal();
     });
 
     document.addEventListener('change', function (event) {

@@ -8,7 +8,7 @@ from flask import current_app
 from index import app
 from models import Evaluation
 from services.heatmap_cache import get_cached_payload, set_cached_payload
-from services.heatmap_service import build_scenarios_payload
+from services.heatmap_service import build_scenarios_payload, is_cacheable
 
 _prefetch_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='heatmap-prefetch')
 
@@ -54,6 +54,14 @@ def _prefetch_heatmap(evaluation_id: int, token: str, cache_type: str) -> None:
             return
         try:
             payload = build_scenarios_payload(evaluation_id, token)
+            if not is_cacheable(payload):
+                # Avaliação recém-criada, ainda sem coleta. Guardar isso por 6h cegaria
+                # a aba Hotspots e a análise de IA até o TTL expirar — ver `is_cacheable`.
+                app.logger.info(
+                    "Skipped heatmap cache for evaluation %s: nenhuma sessao ainda.",
+                    evaluation_id,
+                )
+                return
             set_cached_payload(evaluation_id, cache_type, payload)
             app.logger.info("Prefetched heatmap cache for evaluation %s", evaluation_id)
         except Exception as exc:

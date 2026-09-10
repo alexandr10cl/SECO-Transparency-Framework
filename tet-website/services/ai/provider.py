@@ -30,7 +30,7 @@ from services.ai.providers.base import AIProviderError
 
 DEFAULT_PROVIDER = "gemini"
 DEFAULT_MODEL = "gemini-3.6-flash"
-DEFAULT_FALLBACK_MODELS = ["gemini-3.5-flash", "gemini-2.5-flash"]
+DEFAULT_FALLBACK_MODELS = ["gemini-3.5-flash"]
 
 DEFAULT_PICKER_MODELS = [DEFAULT_MODEL, "gemini-3.7-flash"] + DEFAULT_FALLBACK_MODELS
 
@@ -100,11 +100,16 @@ def call_ai(
     model: Optional[str] = None,
     fallbacks: Optional[List[str]] = None,
     attempts: int = 4,
+    images: Optional[List[Tuple[str, bytes, str]]] = None,
 ) -> Tuple[BaseModel, Dict[str, Any]]:
     """Uma chamada estruturada a um LLM, com retry e fallback de modelo.
 
     Devolve `(objeto pydantic validado, meta)`, onde meta traz o modelo que de fato
     respondeu — que pode nao ser o pedido, se a cadeia de fallback entrou em acao.
+
+    `images` e uma lista de `(rotulo, bytes, mime)` que o provider intercala com o texto,
+    cada imagem precedida do seu rotulo. Repassada como esta: quem decide repetir sem
+    imagem e `pipeline._analyze`.
 
     O 503 UNAVAILABLE ("high demand") e comum nos modelos flash mais novos e e
     transitorio: tentamos o mesmo modelo algumas vezes com backoff exponencial e, se
@@ -131,7 +136,9 @@ def call_ai(
     for candidate in chain:
         for attempt in range(1, attempts + 1):
             try:
-                parsed, meta = generate(system_instruction, prompt, schema, candidate)
+                parsed, meta = generate(
+                    system_instruction, prompt, schema, candidate, images=images
+                )
             except AIProviderError as exc:
                 last_error = exc
                 if not exc.retryable:

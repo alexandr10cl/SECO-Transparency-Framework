@@ -10,6 +10,7 @@ from models.enums import (
     PerformedTaskStatus, NavigationType, AcademicLevel,
     SegmentType, PreviousExperience
 )
+from services.heatmap_cache import clear_cache_entry
 from flask_cors import CORS
 
 CORS(app)
@@ -253,6 +254,10 @@ def submit_tasks():
         ))
 
     db.session.commit()
+
+    for cache_type in ('scenarios', 'tasks'):
+        clear_cache_entry(evaluation.evaluation_id, cache_type)
+
     return jsonify({"message": "Dados recebidos e salvos com sucesso"}), 200
 
 
