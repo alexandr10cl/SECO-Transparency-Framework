@@ -84,6 +84,15 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="seco_portal_description" class="form-label">Portal Description</label>
+                            <textarea name="seco_portal_description" id="seco_portal_description" class="form-input" rows="4" maxlength="2000" placeholder="Describe the portal being evaluated" required>{{ values.seco_portal_description if values else '' }}</textarea>
+
+                            <div class="form-help">
+                                Briefly describe the portal and its purpose.
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label for="seco_portal_url" class="form-label">Portal URL</label>
                             <input type="text" name="seco_portal_url" id="seco_portal_url" class="form-input" placeholder="example.com" value="{{ values.seco_portal_url if values else '' }}" required>
                             <div class="form-help">Enter the portal URL (e.g., example.com or https://example.com)</div>
