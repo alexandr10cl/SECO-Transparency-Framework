@@ -555,6 +555,7 @@ def update_evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
     evaluation.name = name
     evaluation.seco_portal = seco_portal
+    evaluation.seco_portal_description = seco_portal_description
     evaluation.seco_portal_url = seco_portal_url
     evaluation.seco_processes = seco_processes
     evaluation.seco_type = seco_type
