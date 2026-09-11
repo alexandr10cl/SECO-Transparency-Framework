@@ -3892,6 +3892,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-top: 8px;
+    white-space: nowrap;
 }
 
 .ksc-score span:first-child {
