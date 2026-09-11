@@ -70,7 +70,7 @@
                         </div>
                     </div>
                     
-                    <form action="{{ url_for('add_evaluation') }}" method="post" class="create-form" novalidate>
+                    <form id="create-evaluation-form" action="{{ url_for('add_evaluation') }}" method="post" class="create-form" novalidate>
                         <div id="step-details">
                         <!-- Basic Information -->
                         <div class="form-group">
@@ -81,6 +81,15 @@
                         <div class="form-group">
                             <label for="seco_portal" class="form-label">SECO Portal</label>
                             <input type="text" name="seco_portal" id="seco_portal" class="form-input" placeholder="Portal name to be evaluated" value="{{ values.seco_portal if values else '' }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seco_portal_description" class="form-label">Portal Description</label>
+                            <textarea name="seco_portal_description" id="seco_portal_description" class="form-input" rows="4" maxlength="2000" placeholder="Describe the portal being evaluated" required>{{ values.seco_portal_description if values else '' }}</textarea>
+
+                            <div class="form-help">
+                                Briefly describe the portal and its purpose.
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -185,5 +194,6 @@
 <script>
   window.prefilledKscWeights = {{ (values.ksc_weights if values is defined and values.ksc_weights is defined else {}) | tojson }};
 </script>
+
 <script src="/static/js/evaluation.js"></script>
 {% endblock %}

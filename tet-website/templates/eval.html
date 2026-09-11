@@ -83,6 +83,15 @@
                             </div>
                         </div>
 
+                        {% if evaluation.seco_portal_description %}
+                        <div class="info-item">
+                            <label class="info-label">Portal Description</label>
+                            <div class="info-value">
+                                <p style="margin: 0; white-space: pre-wrap;">{{ evaluation.seco_portal_description }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <div class="info-item">
                             <label class="info-label">SECO Type</label>
                             <div class="info-value">

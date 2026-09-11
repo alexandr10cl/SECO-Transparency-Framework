@@ -882,3 +882,7 @@ footer {
     padding-right: 40px;   
     height: 60px;           
 }
+
+.copy-evaluation-code {
+    cursor: copy;
+}
