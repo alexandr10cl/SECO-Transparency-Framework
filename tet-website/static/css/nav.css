@@ -144,7 +144,7 @@ body {
     width: 100%;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1100) {
     .navbar {
         flex-direction: row;
         align-items: center;
