@@ -124,7 +124,10 @@
                 <div class="evaluations-grid">
                     {% if evaluations %}
                         {% for e in evaluations %}
-                        <div class="evaluation-card">
+                        <div class="evaluation-card"
+                            data-details-url="{{ url_for('evaluation', id=e.evaluation_id) }}"
+                            tabindex="0"
+                            role="link">
                             <div class="card-header">
                                 <div class="card-title-section">
                                     <h3 class="card-title">{{ e.name }}</h3>
@@ -238,6 +241,25 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    const evaluationCards = document.querySelectorAll('.evaluation-card');
+
+    evaluationCards.forEach(function(card) {
+        card.addEventListener('click', function(event) {
+
+            if (event.target.closest('a')) {
+                return;
+            }
+
+            window.location.href = card.dataset.detailsUrl;
+        });
+
+        card.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                window.location.href = card.dataset.detailsUrl;
+            }
+        });
+    });
 });
 </script>
 {% endblock %}
