@@ -101,6 +101,7 @@ def call_ai(
     fallbacks: Optional[List[str]] = None,
     attempts: int = 4,
     images: Optional[List[Tuple[str, bytes, str]]] = None,
+    temperature: float = 0,
 ) -> Tuple[BaseModel, Dict[str, Any]]:
     """Uma chamada estruturada a um LLM, com retry e fallback de modelo.
 
@@ -110,6 +111,12 @@ def call_ai(
     `images` e uma lista de `(rotulo, bytes, mime)` que o provider intercala com o texto,
     cada imagem precedida do seu rotulo. Repassada como esta: quem decide repetir sem
     imagem e `pipeline._analyze`.
+
+    `temperature` default 0 preserva o comportamento original (mitigacao: reduzir
+    variacao entre execucoes) para quem nao passar nada — a analise de transparencia
+    (services/ai/analyzer.py) sempre chamou assim. Existe para chamadas que precisam de
+    mais de um ponto na escala, como a personalizacao de cenarios (mapeamento factual em
+    baixa temperatura, reescrita em temperatura moderada).
 
     O 503 UNAVAILABLE ("high demand") e comum nos modelos flash mais novos e e
     transitorio: tentamos o mesmo modelo algumas vezes com backoff exponencial e, se
@@ -137,7 +144,8 @@ def call_ai(
         for attempt in range(1, attempts + 1):
             try:
                 parsed, meta = generate(
-                    system_instruction, prompt, schema, candidate, images=images
+                    system_instruction, prompt, schema, candidate,
+                    images=images, temperature=temperature,
                 )
             except AIProviderError as exc:
                 last_error = exc

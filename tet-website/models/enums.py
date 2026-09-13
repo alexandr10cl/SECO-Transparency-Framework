@@ -51,3 +51,26 @@ class AIReviewStatus(Enum):
     NEW = "NEW"
     ACCEPTED = "ACCEPTED"
     DISMISSED = "DISMISSED"
+    
+class StatusCollection(Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    DONE = "DONE"
+    ERROR = "ERROR"
+
+class StatusScenario(Enum):
+    """Estado da personalizacao de um cenario (evaluation + task). RUNNING funciona
+    como lock, no mesmo esquema de AIAnalysisStatus: enquanto ele estiver posto, o
+    pipeline nao dispara outra geracao para o mesmo par evaluation/task."""
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    AWAITING_APPROVAL = "AWAITING_APPROVAL"
+    APPROVED = "APPROVED"
+    ERROR = "ERROR"
+
+class ScenarioApprovalDecision(Enum):
+    """Decisao do gestor sobre um PersonalizedScenario, registrada em ScenarioApprovalLog.
+    Rejeitar nao e um estado do cenario (ver StatusScenario) - e um evento no historico,
+    porque a rejeicao regenera o cenario do zero em vez de deixa-lo parado."""
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"

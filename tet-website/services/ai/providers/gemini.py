@@ -61,6 +61,7 @@ def generate(
     schema: type[BaseModel],
     model: str,
     images: Optional[List[Tuple[str, bytes, str]]] = None,
+    temperature: float = 0,
 ) -> Tuple[BaseModel, Dict[str, Any]]:
     """Uma tentativa contra a API do Gemini. Ver o contrato em `providers/base.py`."""
     from google import genai
@@ -85,7 +86,7 @@ def generate(
             contents=_build_contents(prompt, images, types),
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
-                temperature=0,  # mitigacao: reduzir variacao entre execucoes
+                temperature=temperature,  # 0 por padrao: mitigacao, reduzir variacao entre execucoes
                 response_mime_type="application/json",
                 response_schema=schema,
             ),

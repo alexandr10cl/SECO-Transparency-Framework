@@ -9,6 +9,8 @@
 {% block title %}{{ evaluation.name}}{% endblock %}
 
 {% block content %}
+<p id="id-avaliacao" style="display:none">{{ evaluation.evaluation_id }}</p>
+
 <!-- Full-page loading overlay (shown immediately on dashboard link click) -->
 <div id="page-loader" class="page-loader" style="display: none;">
     <div class="loader-content">
@@ -133,6 +135,7 @@
                         <span class="card-icon">✅</span>
                         Procedures & Scenarios
                     </h3>
+                    <div id="collection-info" class="collection-info" hidden></div>
                     <div class="procedures-tasks">
                         {% for proc_data in procedures_data %}
                         <div class="procedure-task-group">
@@ -150,7 +153,12 @@
                             
                             <div class="procedure-tasks">
                                 {% for task in proc_data.tasks %}
-                                <div class="task-item">{{ task.title }}</div>
+                                <div class="task-item">
+                                    <div class="task-item-title">{{ task.title }}</div>
+                                    <div class="scenario-panel" data-task-id="{{ task.task_id }}">
+                                        <span class="scenario-loading">Loading personalized scenario…</span>
+                                    </div>
+                                </div>
                                 {% endfor %}
                             </div>
                         </div>
@@ -190,4 +198,5 @@
 
 {% block scripts %}
 <script src="/static/js/eval.js"></script>
+<script src="/static/js/scenario_approval.js"></script>
 {% endblock %}

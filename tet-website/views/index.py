@@ -20,6 +20,7 @@ from models import (
 from services.heatmap_prefetch import schedule_heatmap_prefetch
 from services.score_service import compute_overall_score, parse_answer_to_fraction
 from services.uxt_service import get_gestor_token, generate_evaluation_code
+from services.scenario_personalization.pipeline import schedule_evaluation as schedule_scenario_personalization
 
 # PERFORMANCE: Cache for static/rarely-changing data
 @lru_cache(maxsize=1)
@@ -498,6 +499,11 @@ def add_evaluation():
             else:
                 print("\nDEBUG: WARNING - Could not find evaluation in database after save!")
 
+            # RF21: dispara a personalizacao de cenarios uma unica vez, aqui no
+            # cadastro do portal. Assincrono (RNF01) - nao bloqueia esta resposta;
+            # o gestor ve os cenarios prontos na tela de aprovacao (Fase 4).
+            schedule_scenario_personalization(new_evaluation.evaluation_id)
+
         except IntegrityError as e:
             # Fix #5: Handle race condition/duplicate evaluation gracefully
             print(f"\nDEBUG: ERROR - IntegrityError occurred: {str(e)}")
@@ -519,8 +525,8 @@ def add_evaluation():
             abort(500, description="Failed to save evaluation. Please try again.")
 
     # Fix #26: Add success flash message
-    flash('Evaluation created successfully! Share the evaluation code with participants.', 'success')
-    return redirect(url_for('evaluations'))
+    flash('Evaluation created successfully! Personalizing its scenarios now.', 'success')
+    return redirect(url_for('evaluation_scenarios', evaluation_id=new_evaluation.evaluation_id))
 
 
 @app.route('/evaluations/<int:id>/edit')

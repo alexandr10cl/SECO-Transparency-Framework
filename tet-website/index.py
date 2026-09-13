@@ -1,8 +1,19 @@
+import sys
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 
+# Muitos `print()` no codebase usam emoji (✅, ⚠️, etc.) para debug. No Windows
+# o stdout de um console nao herda UTF-8 por padrao (cai em cp1252/cp850), e
+# esses prints derrubam a request inteira com UnicodeEncodeError - visto na
+# pratica em `add_evaluation`, onde isso vira um 500 no cadastro de avaliacao
+# real. Reconfigurar aqui, uma vez, no processo inteiro, em vez de caçar cada
+# print - `errors="replace"` troca o que nao entra por "?" ao inves de travar.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -44,6 +55,7 @@ from views.auth import *
 from views.admin import *
 from views.api import *
 from views.ai_analysis import *
+from views.scenarios import *
 from external.tasks import *
 from views import pages, auth  # We gebruiken pages.py voor de API endpoints
 
