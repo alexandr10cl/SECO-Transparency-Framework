@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('change', saveFormData)
   
   // Clear data on successful submission
-  form.addEventListener('submit', function() => {
+  form.addEventListener('submit', function() {
     // Wait a bit before clearing to ensure submission succeeded
     clearFormData();
   })
