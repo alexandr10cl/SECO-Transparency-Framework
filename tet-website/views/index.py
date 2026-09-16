@@ -716,6 +716,11 @@ def eval_dashboard(id):
     ).all() if question_ids else []
                 
     count_collected_data = len(collected_data)
+
+    participant_labels = {}
+
+    for index, participant in enumerate(collected_data, start=1):
+        participant_labels[participant.collected_data_id] = f"Participant {index}"
     
     # Scenario summaries sourced from Rodrigo's spreadsheet (Scenario Context column)
     scenario_context_lookup = {
@@ -794,10 +799,12 @@ def eval_dashboard(id):
         }
 
         ksc_scores = []
+        participant_ksc_scores = {}
 
         for ksc in g.key_success_criteria:
             total_score = 0.0
             total_answers = 0
+            participant_scores = {}
 
             ksc_data = {
                 # Ancora para o link vindo da aba Findings (camada de IA): e o mesmo
@@ -839,6 +846,17 @@ def eval_dashboard(id):
                         continue  # ignora respostas inválidas
 
                     score = parsed  # 0..1
+                    participant_id = answer.collected_data_id
+
+                    if participant_id not in participant_scores:
+                        participant_scores[participant_id] = {
+                            "total_score": 0.0,
+                            "total_answers": 0
+                        }
+
+                    participant_scores[participant_id]["total_score"] += score
+                    participant_scores[participant_id]["total_answers"] += 1
+
                     display_value = f"{round(score * 100)} / 100"
 
                     total_score += score
@@ -846,6 +864,22 @@ def eval_dashboard(id):
                     question_data['answers'].append(display_value)
 
                 ksc_data['questions'].append(question_data)
+
+            for participant_id, participant_data in participant_scores.items():
+                participant_data["score"] = (
+                    participant_data["total_score"] /
+                    participant_data["total_answers"]
+                )
+
+            ksc_data["participant_scores"] = participant_scores
+
+            for participant_id, participant_data in participant_scores.items():
+                if participant_id not in participant_ksc_scores:
+                    participant_ksc_scores[participant_id] = []
+
+                participant_ksc_scores[participant_id].append(
+                    participant_data["score"]
+                )
 
             # Score individual do KSC
             if total_answers > 0:
@@ -876,6 +910,16 @@ def eval_dashboard(id):
                     })
 
             g_data['key_success_criteria'].append(ksc_data)
+
+        participant_guideline_scores = {}
+
+        for participant_id, scores in participant_ksc_scores.items():
+            if scores:
+                participant_guideline_scores[participant_id] = (
+                    sum(scores) / len(scores)
+                )
+
+        g_data["participant_scores"] = participant_guideline_scores
 
         # Score médio da guideline
         if ksc_scores:
@@ -1067,12 +1111,29 @@ def eval_dashboard(id):
         }
 
         scores = []
+        dimension_participant_scores = {}
 
         for g in d.guidelines:
             g_result = next((item for item in result if item['title'] == g.title), None)
             if g_result and g_result['average_score'] is not None:
                 dim_data['guidelines'].append(g_result)
                 scores.append(g_result['average_score'])
+
+                for participant_id, participant_score in g_result["participant_scores"].items():
+                    if participant_id not in dimension_participant_scores:
+                        dimension_participant_scores[participant_id] = []
+
+                    dimension_participant_scores[participant_id].append(participant_score)
+
+        participant_dimension_averages = {}
+
+        for participant_id, participant_scores in dimension_participant_scores.items():
+            if participant_scores:
+                participant_dimension_averages[participant_id] = round(
+                    (sum(participant_scores) / len(participant_scores)) * 100
+                )
+
+        dim_data["participant_scores"] = participant_dimension_averages
 
         if scores:
             dim_data['average_score'] = round(sum(scores) / len(scores))
@@ -1123,25 +1184,29 @@ def eval_dashboard(id):
             'name': 'Common Technological Platform',
             'guidelines': [],
             'score': None,
-            'has_data': False
+            'has_data': False,
+            'participant_scores': {}
         },
         'projects_and_applications': {
             'name': 'Projects and Applications',
             'guidelines': [],
             'score': None,
-            'has_data': False
+            'has_data': False,
+            'participant_scores': {}
         },
         'community_interaction': {
             'name': 'Community Interaction',
             'guidelines': [],
             'score': None,
-            'has_data': False
+            'has_data': False,
+            'participant_scores': {}
         },
         'expectations_and_value': {
             'name': 'Expectations and Value of Contribution',
             'guidelines': [],
             'score': None,
-            'has_data': False
+            'has_data': False,
+            'participant_scores': {}
         }
     }
     
@@ -1162,6 +1227,15 @@ def eval_dashboard(id):
                 # Adicionar score apenas uma vez para cada categoria única
                 for category in guideline_categories:
                     dx_categories[category]['guidelines'].append(g_result['average_score'])
+
+                    for participant_id, participant_score in g_result["participant_scores"].items():
+                        if participant_id not in dx_categories[category]["participant_scores"]:
+                            dx_categories[category]["participant_scores"][participant_id] = []
+
+                        dx_categories[category]["participant_scores"][participant_id].append(
+                            participant_score
+                        )
+
             else:
                 # Fallback: distribuição equilibrada als niet kan mappen
                 hash_value = hash(g_result['title']) % 4
@@ -1170,6 +1244,13 @@ def eval_dashboard(id):
     
     # Calcular média para cada categoria DX
     for category in dx_categories.values():
+
+        for participant_id, participant_scores in category["participant_scores"].items():
+            if participant_scores:
+                category["participant_scores"][participant_id] = round(
+                    (sum(participant_scores) / len(participant_scores)) * 100
+                )
+
         if category['guidelines']:
             category['score'] = round(sum(category['guidelines']) / len(category['guidelines']))
             category['has_data'] = True
@@ -1276,6 +1357,7 @@ def eval_dashboard(id):
                             g_dimensions=g_dimensions_flat,
                             dimension_scores=dimension_scores,
                             dx_categories=dx_categories,
+                            participant_labels=participant_labels,
                             ai_analysis_enabled=AI_ANALYSIS)
     
 

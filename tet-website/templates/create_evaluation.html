@@ -120,8 +120,8 @@
                             <div class="processes-grid" id="process-group" aria-describedby="process-error">
                                 {% set selected_process_ids = values.selected_process_ids if values is defined and values.selected_process_ids is defined else [] %}
                                 {% for process in seco_processes %}
-                                <div class="process-card">
-                                    <label for="seco_{{ process.seco_process_id }}" class="process-label">
+                                    <label for="seco_{{ process.seco_process_id }}" class="process-card">
+
                                         <div class="process-header">
                                             <span class="process-id">P{{ process.seco_process_id }}</span>
                                             <input type="checkbox" id="seco_{{ process.seco_process_id }}" 
@@ -131,7 +131,6 @@
                                         </div>
                                         <div class="process-description">{{ process.description }}</div>
                                     </label>
-                                </div>
                                 {% endfor %}
                             </div>
                             <div id="process-error" class="form-error {% if error_msg %}{% else %}d-none{% endif %}" role="alert">

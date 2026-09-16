@@ -52,6 +52,18 @@
                 <h2 class="period-value is-empty">No data collected yet</h2>
             {% endif %}
         </div>
+        <div class="evaluation-info-card">
+            <h3>Overall Score</h3>
+
+        <div class="score-display">
+            <div class="score-number">{{ score_geral }}</div>
+
+            <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
+                {{ transparency_badge_overall }}
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     <div class="eval-objective">
@@ -82,18 +94,6 @@
             </div>
             <hr class="task-heatmap-divider">
             <div class="scores">
-                <!-- Overall Score Section -->
-                <div class="overall-score-section">
-                    <div class="overall-score-card">
-                        <h3>Overall Score</h3>
-                        <div class="score-display">
-                            <div class="score-number">{{ score_geral }}</div>
-                            <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
-                                {{ transparency_badge_overall }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Evaluated Procedures Section -->
                 <div class="evaluated-procedures-overview">
@@ -126,115 +126,221 @@
                     </div>
                 </div>
 
-                <!-- Software Ecosystems Dimensions Section -->
-                <div class="seco-dimensions-section">
-                    <h3>Software Ecosystems Dimensions</h3>
-                    <p class="dimensions-subtitle">These scores indicate how clearly each ecosystem dimension communicates information essential to developers' understanding of platform structures and processes, as part of cognitive experience.</p>
-                    <div class="dimensions-grid">
-                        {% for d in dimension_scores %}
-                        <div class="dimension-card">
-                            <h4>{{ d.name }}</h4>
-                            {% if d.name == 'Technical' %}
-                                <p class="dimension-focus">Focus: Documentation, code structure, and tools clarity.</p>
-                            {% elif d.name == 'Social' %}
-                                <p class="dimension-focus">Focus: Communication, collaboration, and community exchange.</p>
-                            {% elif d.name == 'Business' %}
-                                <p class="dimension-focus">Focus: Policies, decision flows, and governance visibility.</p>
-                            {% endif %}
-                            {% if d.average_score is not none %}
-                                <div class="dimension-score">
-                                    <span class="score">Score: {{ d.average_score }}</span>
-                                    <span class="transparency-badge {{ d.transparency_badge|lower|replace(' ', '-') }}">
-                                        {{ d.transparency_badge }}
-                                    </span>
-                                </div>
-                                <div class="procedure-bars">
-                                    {% for process in seco_processes %}
-                                        {% set procedure_key = 'P' + process.seco_process_id|string %}
-                                        {% if d.procedure_scores[procedure_key] and d.procedure_scores[procedure_key] > 0 %}
-                                        <div class="procedure-bar">
-                                            <span class="procedure-label">P{{ process.seco_process_id }}</span>
-                                            <div class="progress-bar">
-                                                <div class="progress-fill" data-pct="{{ d.procedure_scores[procedure_key] }}"></div>
-                                            </div>
-                                            <span class="procedure-score">{{ d.procedure_scores[procedure_key] }}</span>
+                <div class="dimensions-table-section">
+
+                    <h3>Dimensions & DX Categories</h3>
+
+                    <p class="dimensions-table-subtitle">
+                        SECO dimensions and cognitive DX categories share the same procedure scores — merged here into a single reading.
+                    </p>
+
+                    <div class="dimensions-table-wrapper">
+                        <table class="dimensions-table">
+                            <thead>
+                                <tr>
+                                    <th>TYPE</th>
+                                    <th>NAME</th>
+                                    <th>FOCUS</th>
+                                    <th>SCORE</th>
+                                    <th>PROCEDURES</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for d in dimension_scores %}
+                                <tr 
+                                    {% if d.participant_scores %}
+                                        class="expandable-row"
+                                        data-details-id="dimension-details-{{ d.id }}"
+                                        aria-expanded="false"
+                                    {% endif %}
+                                >
+
+                                    <td>SECO DIMENSION</td>
+
+                                    <td>
+                                        <div class="expandable-name">
+                                            <span>{{ d.name }}</span>
+
+                                            {% if d.participant_scores %}
+                                                <span class="expand-chevron">⌄</span>
+                                            {% endif %}
                                         </div>
+                                    </td>
+
+                                    <td>
+                                        {% if d.name == 'Technical' %}
+                                            Documentation, code structure, and tools clarity
+                                        {% elif d.name == 'Social' %}
+                                            Communication, collaboration, and community exchange
+                                        {% elif d.name == 'Business' %}
+                                            Policies, decision flows, and governance visibility
                                         {% endif %}
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {% if count_collected_data == 0 %}
-                                    <div class="awaiting-data-message">
-                                        <span class="material-symbols-outlined">pending</span>
-                                        <p>Awaiting participant data</p>
-                                        <small>Scores will appear once participants complete the evaluation</small>
-                                    </div>
-                                {% elif not d.has_guidelines %}
-                                    <p class="not-related-message">Not related to the evaluation</p>
-                                {% else %}
-                                    <p class="no-data-message">No data available</p>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                        {% endfor %}
+                                    </td>
+
+                                    <td>
+                                        <div class="table-score">
+                                            <span>
+                                                {% if d.average_score is not none %}
+                                                    {{ d.average_score }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </span>
+
+                                            <div class="table-score-bar">
+                                                <div class="table-score-fill"
+                                                    style="width: {{ d.average_score or 0 }}%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        {% for process in seco_processes %}
+                                            {% set procedure_key = 'P' + process.seco_process_id|string %}
+
+                                            {% if d.procedure_scores[procedure_key] and d.procedure_scores[procedure_key] > 0 %}
+                                                <span class="procedure-badge">
+                                                    P{{ process.seco_process_id }} · {{ d.procedure_scores[procedure_key] }}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+
+                                <tr id="dimension-details-{{ d.id }}" 
+                                    class="participant-details-row"
+                                    style="display: none;">
+
+                                    <td colspan="5">
+
+                                        <div class="participant-scores-container">
+                                            {% for participant_id, participant_score in d.participant_scores.items() %}
+                                                <div class="participant-score-item">
+
+                                                    <span class="participant-label">
+                                                        {{ participant_labels[participant_id] }}
+                                                    </span>
+
+                                                    <div class="participant-score">
+                                                        <span class="participant-score-value">
+                                                            {{ participant_score }}
+                                                        </span>
+
+                                                        <div class="participant-score-bar">
+                                                            <div class="participant-score-fill"
+                                                                style="width: {{ participant_score or 0 }}%;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                                {% for category_key, category in dx_categories.items() %}
+                                <tr 
+                                    {% if category.participant_scores %}
+                                        class="expandable-row"
+                                        data-details-id="dx-details-{{ category_key }}"
+                                        aria-expanded="false"
+                                    {% endif %}
+                                >
+
+                                    <td>DX CATEGORY</td>
+
+                                    <td>
+                                        <div class="expandable-name">
+                                            <span>{{ category.name }}</span>
+
+                                            {% if category.participant_scores %}
+                                                <span class="expand-chevron">⌄</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        {% if category.name == 'Common Technological Platform' %}
+                                            Understanding tools, codebase, and infrastructure clarity
+                                        {% elif category.name == 'Projects and Applications' %}
+                                            Learning how projects evolve and how information is organized
+                                        {% elif category.name == 'Community Interaction' %}
+                                            Communicating, sharing, and accessing collective knowledge
+                                        {% elif category.name == 'Expectations and Value of Contribution' %}
+                                            Understanding contribution rules, recognition, and clarity of decision processes
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <div class="table-score">
+                                            <span>
+                                                {% if count_collected_data > 0 %}
+                                                    {{ category.score }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </span>
+
+                                            <div class="table-score-bar">
+                                                <div class="table-score-fill"
+                                                    style="width: {{ category.score if count_collected_data > 0 else 0 }}%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        {% for process in seco_processes %}
+                                            {% set procedure_key = 'P' + process.seco_process_id|string %}
+
+                                            {% if category.procedure_scores[procedure_key] and category.procedure_scores[procedure_key] > 0 %}
+                                                <span class="procedure-badge">
+                                                    P{{ process.seco_process_id }} · {{ category.procedure_scores[procedure_key] }}
+                                                </span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+
+                                <tr id="dx-details-{{ category_key }}" 
+                                    class="participant-details-row"
+                                    style="display: none;">
+
+                                    <td colspan="5">
+
+                                        <div class="participant-scores-container">
+                                            {% for participant_id, participant_score in category.participant_scores.items() %}
+                                                <div class="participant-score-item">
+
+                                                    <span class="participant-label">
+                                                        {{ participant_labels[participant_id] }}
+                                                    </span>
+
+                                                    <div class="participant-score">
+                                                        <span class="participant-score-value">{{ participant_score }}</span>
+
+                                                        <div class="participant-score-bar">
+                                                            <div class="participant-score-fill"
+                                                                style="width: {{ participant_score }}%;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
 
-               <!-- Developer Experience Section -->
-                <div class="developer-experience-section">
-                <h3>Developer Experience - Cognitive Dimension</h3>
-                <p class="dx-subtitle">These categories show how developers cognitively experience transparency while performing the evaluated scenarios.</p>
-                <div class="dx-grid">
-                    {% for category_key, category in dx_categories.items() %}
-                    <div class="dx-card">
-                    <h4>{{ category.name }}</h4>
-
-                    {% if category.name == 'Common Technological Platform' %}
-                        <p class="dimension-focus">Focus: Understanding tools, codebase, and infrastructure clarity.</p>
-                    {% elif category.name == 'Projects and Applications' %}
-                        <p class="dimension-focus">Focus: Learning how projects evolve and how information is organized.</p>
-                    {% elif category.name == 'Community Interaction' %}
-                        <p class="dimension-focus">Focus: Communicating, sharing, and accessing collective knowledge.</p>
-                    {% elif category.name == 'Expectations and Value of Contribution' %}
-                        <p class="dimension-focus">Focus: Understanding contribution rules, recognition, and clarity of decision processes.</p>
-                    {% endif %}
-
-                    {% if category.score is not none and category.score > 0 %}
-                        <div class="dx-score">
-                        <span class="score">Score: {{ category.score }}</span>
-                        <span class="transparency-badge {{ category.transparency_badge|lower|replace(' ', '-') }}">
-                            {{ category.transparency_badge }}
-                        </span>
-                        </div>
-
-                        <div class="procedure-bars">
-                        {% for process in seco_processes %}
-                            {% set procedure_key = 'P' + process.seco_process_id|string %}
-                            {% if category.procedure_scores[procedure_key] and category.procedure_scores[procedure_key] > 0 %}
-                            <div class="procedure-bar">
-                            <span class="procedure-label">P{{ process.seco_process_id }}</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" data-pct="{{ category.procedure_scores[procedure_key] }}"></div>
-                            </div>
-                            <span class="procedure-score">{{ category.procedure_scores[procedure_key] }}</span>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                        </div>
-                    {% else %}
-                        {% if count_collected_data == 0 %}
-                        <div class="awaiting-data-message">
-                            <span class="material-symbols-outlined">pending</span>
-                            <p>Awaiting participant data</p>
-                            <small>Scores will appear once participants complete the evaluation</small>
-                        </div>
-                        {% else %}
-                        <p class="no-data-message">No data available for this category</p>
-                        {% endif %}
-                    {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
                 </div>
 
                 <div class="overview-profile">
@@ -247,23 +353,35 @@
 
                         <!-- Academic Background -->
                         <div class="academic">
-                            <canvas id="educationChart" style="height: 300px;"></canvas>
-                            <p class="chart-legend">Academic background distribution among participants.</p>
+                            <div class="chart-content">
+                                <canvas id="educationChart"></canvas>
+                                <p class="chart-legend">
+                                    Academic background distribution among participants.
+                                </p>
+                            </div>
                         </div>
 
                         <!-- Professional Experience -->
                         <div class="experience">
-                            <canvas id="experienceChart" style="height: 300px;"></canvas>
-                            <p class="chart-legend">Years of experience in software development.</p>
+                            <div class="chart-content">
+                                <canvas id="experienceChart"></canvas>
+                                <p class="chart-legend">
+                                    Years of experience in software development.
+                                </p>
+                            </div>
                         </div>
 
                         <!-- Familiarity with the Portal -->
                         <div class="familiarity">
-                            <canvas id="familiarityChart" style="height: 300px;"></canvas>
-                            <p class="chart-legend">Frequency of portal use among participants.</p>
+                            <div class="chart-content">
+                                <canvas id="familiarityChart"></canvas>
+                                <p class="chart-legend">
+                                    Frequency of portal use among participants.
+                                </p>
+                            </div>
                         </div>
 
-                    </div>
+</div>
 
                     <p>
                         Participants with less than 3 years of professional experience were categorized in the low experience group,
@@ -299,18 +417,21 @@
     </div>
 
     <div class="evaluated-scenarios-container">
-        <div class="scenarios-layout">
-            <div class="scenarios-sidebar">
-                <h3>Evaluated Scenarios</h3>
-                <ul class="scenarios-list">
-                    {% for task in processed_tasks %}
-                    <li class="scenario-item {% if loop.first %}active{% endif %}" data-scenario-id="{{ task.task_id }}">
-                        <span class="scenario-id">S{{ loop.index }}</span>
-                        <span class="scenario-title">{{ task.title }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+
+        {% if processed_tasks %}
+        
+            <div class="scenarios-layout">
+                <div class="scenarios-sidebar">
+                    <h3>Evaluated Scenarios</h3>
+                    <ul class="scenarios-list">
+                        {% for task in processed_tasks %}
+                        <li class="scenario-item {% if loop.first %}active{% endif %}" data-scenario-id="{{ task.task_id }}">
+                            <span class="scenario-id">S{{ loop.index }}</span>
+                            <span class="scenario-title">{{ task.title }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
             <div class="scenarios-content">
                 {% for task in processed_tasks %}
@@ -478,6 +599,7 @@
                                         <h5>Key Success Criteria</h5>
                                         <p class="ksc-explanation">Each criterion score is the overall transparency score according to its assigned weight. Lower scores on highly weighted criteria have stronger impact on the final result. Target ≥ 75.</p>
 
+                                    <div class="ksc-table-wrapper">
                                         <table class="ksc-table">
                                             <thead>
                                                 <tr>
@@ -526,6 +648,7 @@
                                         </table>
                                     </div>
                                 </div>
+                            </div>
                                 {% endif %}
                             {% endfor %}
 
@@ -605,6 +728,19 @@
                 {% endfor %}
             </div>
         </div>
+
+        {% else %}
+
+        <div class="scenarios-empty-state">
+            <span class="material-symbols-outlined">assignment</span>
+            <h3>No evaluated scenarios yet</h3>
+            <p>
+                Scenario results will appear here after participant data is collected.
+            </p>
+        </div>
+
+        {% endif %}
+
     </div>
 
     <div class="developer-journey-container">
@@ -919,5 +1055,25 @@
                 }
             }
         });
+
+        const expandableRows = document.querySelectorAll('.expandable-row')
+
+        expandableRows.forEach(function(row) {
+            row.addEventListener('click', function() {
+                const detailsId = row.dataset.detailsId;
+                const detailsRow = document.getElementById(detailsId);
+
+                const isExpanded = row.getAttribute('aria-expanded') === 'true';
+
+                if (isExpanded) {
+                    detailsRow.style.display = 'none';
+                    row.setAttribute('aria-expanded', 'false');
+                } else {
+                    detailsRow.style.display = 'table-row';
+                    row.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
     </script>
 {% endblock %}
