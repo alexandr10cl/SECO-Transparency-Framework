@@ -52,6 +52,18 @@
                 <h2 class="period-value is-empty">No data collected yet</h2>
             {% endif %}
         </div>
+        <div class="evaluation-info-card">
+            <h3>Overall Score</h3>
+
+        <div class="score-display">
+            <div class="score-number">{{ score_geral }}</div>
+
+            <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
+                {{ transparency_badge_overall }}
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     <div class="eval-objective">
@@ -82,18 +94,6 @@
             </div>
             <hr class="task-heatmap-divider">
             <div class="scores">
-                <!-- Overall Score Section -->
-                <div class="overall-score-section">
-                    <div class="overall-score-card">
-                        <h3>Overall Score</h3>
-                        <div class="score-display">
-                            <div class="score-number">{{ score_geral }}</div>
-                            <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
-                                {{ transparency_badge_overall }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Evaluated Procedures Section -->
                 <div class="evaluated-procedures-overview">

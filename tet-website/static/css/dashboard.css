@@ -163,6 +163,7 @@ body {
 .eval-objective {
     border-left: 2px solid #2563eb;
     padding-left: 16px;
+    margin-left: 20px;
 }
 
 /* Rotulo utilitario: identifica o campo, nunca compete com o valor. */
@@ -192,7 +193,7 @@ body {
     color: hsl(var(--muted-foreground));
     border-radius: 10px;
     padding: 8px 16px;
-    margin-top: 20px;
+    margin: 20px auto 0;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
     width: 100%;
     max-width: 780px;
