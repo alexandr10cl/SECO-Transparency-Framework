@@ -77,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('change', saveFormData)
   
   // Clear data on successful submission
-  form.addEventListener('submit', () => {
+  form.addEventListener('submit', function() => {
     // Wait a bit before clearing to ensure submission succeeded
-    setTimeout(clearFormData, 1000)
+    clearFormData();
   })
   
   // Fix #6: Character counter for manager objective textarea
