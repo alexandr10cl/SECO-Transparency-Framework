@@ -229,11 +229,19 @@ body {
 }
 
 .overview-container,
-  .evaluated-scenarios-container,
-  .developer-journey-container,
-  .hotspots-container {
+.evaluated-scenarios-container,
+.developer-journey-container,
+.hotspots-container {
     display: none;
-  }
+}
+
+.hotspots-header h2 {
+    margin-bottom: 10px;
+}
+
+.hotspots-header > p:first-of-type {
+    margin-top: 0;
+}
 
 .active-container {
     display: block;
