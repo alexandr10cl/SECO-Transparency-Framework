@@ -277,11 +277,17 @@
 
                                     <td>
                                         <div class="table-score">
-                                            <span>{{ category.score }}</span>
+                                            <span>
+                                                {% if count_collected_data > 0 %}
+                                                    {{ category.score }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </span>
 
                                             <div class="table-score-bar">
                                                 <div class="table-score-fill"
-                                                    style="width: {{ category.score or 0 }}%;">
+                                                    style="width: {{ category.score if count_collected_data > 0 else 0 }}%;">
                                                 </div>
                                             </div>
                                         </div>
@@ -411,18 +417,21 @@
     </div>
 
     <div class="evaluated-scenarios-container">
-        <div class="scenarios-layout">
-            <div class="scenarios-sidebar">
-                <h3>Evaluated Scenarios</h3>
-                <ul class="scenarios-list">
-                    {% for task in processed_tasks %}
-                    <li class="scenario-item {% if loop.first %}active{% endif %}" data-scenario-id="{{ task.task_id }}">
-                        <span class="scenario-id">S{{ loop.index }}</span>
-                        <span class="scenario-title">{{ task.title }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
+
+        {% if processed_tasks %}
+        
+            <div class="scenarios-layout">
+                <div class="scenarios-sidebar">
+                    <h3>Evaluated Scenarios</h3>
+                    <ul class="scenarios-list">
+                        {% for task in processed_tasks %}
+                        <li class="scenario-item {% if loop.first %}active{% endif %}" data-scenario-id="{{ task.task_id }}">
+                            <span class="scenario-id">S{{ loop.index }}</span>
+                            <span class="scenario-title">{{ task.title }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
             <div class="scenarios-content">
                 {% for task in processed_tasks %}
@@ -718,7 +727,18 @@
                 {% endfor %}
             </div>
         </div>
-    </div>
+
+        {% else %}
+
+        <div class="scenarios-empty-state">
+            <span class="material-symbols-outlined">assignment</span>
+            <h3>No evaluated scenarios yet</h3>
+            <p>
+                Scenario results will appear here after participant data is collected.
+            </p>
+        </div>
+
+        {% endif %}
 
     </div>
 

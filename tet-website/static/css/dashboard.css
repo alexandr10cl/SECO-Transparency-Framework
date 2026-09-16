@@ -5150,6 +5150,32 @@ body {
     padding: 6px 0;
 }
 
+.scenarios-empty-state {
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.scenarios-empty-state .material-symbols-outlined {
+    font-size: 48px !important;
+    margin-bottom: 16px;
+}
+
+.scenarios-empty-state h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+.scenarios-empty-state p {
+    margin: 0;
+    color: #737373;
+    font-size: 14px;
+}
+
 /* evita a tabela ficar toda espremida em tela menor */
 .dimensions-table-wrapper {
     width: 100%;
