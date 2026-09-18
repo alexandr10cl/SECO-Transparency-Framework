@@ -29,6 +29,7 @@
             <li><a href="#chromeextension">Chrome Extension</a></li>
             <li><a href="#uxt">How to use UX-Tracking</a></li>
             <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#aianalysis">AI Analysis</a></li>
             <li><a href="#glossary">Glossary of Terms</a></li>
             <li><a href="#glossary-tutorials">Tutorials</a></li>
         </ul>
@@ -440,6 +441,362 @@
             </p>
         </section>
 
+        <hr>
+        <section id="aianalysis">
+            <br>
+            <br>
+            <br>
+            <h1>AI Analysis</h1>
+
+            <p>
+                The <strong>AI (Artificial Intelligence)</strong> layer reads everything a completed evaluation collected:
+                scenario outcomes, navigation, questions raised during the scenarios, <strong>KSC (Key Success Criterion)</strong>
+                scores, participant profiles and the interaction heatmaps. It turns all of that into two things: a short list of
+                <strong>Findings</strong> (transparency problems grounded in the framework) and an ordered
+                <strong>Action Plan</strong> (what to do about them).
+            </p>
+
+            <p>
+                <strong>The model writes, the system measures.</strong> The AI is responsible only for <em>what the problem is</em>
+                and <em>what to do about it</em>. Every number on screen, such as how many participants are affected, how confident
+                a finding is, or where an action ranks, is computed by the platform from the evidence records themselves.
+                No score in this section is estimated by the model.
+            </p>
+
+            <h2>Where to Find It</h2>
+            <p>
+                The analysis lives in two tabs of the evaluation dashboard: <strong>Findings</strong> and <strong>Action Plan</strong>.
+                The first time you open the dashboard of an evaluation, the analysis starts on its own and takes a couple of minutes;
+                the page refreshes itself while it runs, so you can keep reading the other tabs. If your instance allows regeneration,
+                a model selector and a <strong>Regenerate</strong> button appear next to the tab header.
+            </p>
+
+            <h2>Core Concepts</h2>
+
+            <div class="guideline-info-card">
+                <h4>Finding</h4>
+                <p>
+                    A synthetic statement about a possible transparency failure observed during the evaluation, anchored to exactly
+                    <strong>one Key Success Criterion</strong> of the framework and supported by specific evidence. Each one is
+                    labelled <code>F-01</code>, <code>F-02</code>, and so on.
+                </p>
+                <p>
+                    A finding is an <em>interpretation</em>, not a measurement. "A participant took 120 seconds on the scenario" is
+                    data, not a finding; "official contact channels have low visibility on the portal" is a finding. The AI always
+                    picks a criterion that already exists in the evaluation scope, and never invents new ones.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Action</h4>
+                <p>
+                    A concrete improvement recommendation that addresses <strong>one or more</strong> Findings. It carries a title,
+                    a description, and a <strong>Where</strong> field listing the concrete places to act on
+                    (e.g. <code>/support</code>, <code>navbar</code>). Each one is labelled <code>A-01</code>, <code>A-02</code>, etc.
+                </p>
+                <p>
+                    Grouping is encouraged: a single action resolving three related findings is better than three fragmented ones, and
+                    grouping never lowers an action's priority. Note that action codes are assigned <em>after</em> ordering, so
+                    <code>A-01</code> is always the first action of the plan, not the first one the AI produced.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Evidence</h4>
+                <p>
+                    The original collected records that support a finding. Every record has a traceable ID shown on the card, so any
+                    claim can be traced back to what a participant actually did or wrote. A finding whose cited records do not exist
+                    is discarded by the system before it ever reaches the screen.
+                </p>
+                <div class="status-blocks">
+                    <div class="status-label">
+                        <code>PT-</code> <strong>Scenario execution</strong>: outcome, duration and the participant's comment ·
+                        shown under <em>Experience during scenarios</em>
+                    </div>
+                    <div class="status-label">
+                        <code>NAV-</code> <strong>Navigation</strong>: a page load or tab switch, with page title,
+                        URL (Uniform Resource Locator) and timestamp ·
+                        shown under <em>Experience during scenarios</em>
+                    </div>
+                    <div class="status-label">
+                        <code>DBT-</code> <strong>Doubt</strong>: a question the participant wrote <em>while</em> running a scenario ·
+                        shown under <em>Questions raised during scenarios</em>
+                    </div>
+                    <div class="status-label">
+                        <code>ANS-</code> <strong>KSC answer</strong>: a rating on the VAS (Visual Analogue Scale), 0-100 ·
+                        shown under <em>Success criterion assessment</em>
+                    </div>
+                    <div class="status-label">
+                        <code>DQ-</code> <strong>Profile questionnaire</strong>: background, experience, segment and final feedback ·
+                        shown under <em>Participant profile &amp; feedback</em>
+                    </div>
+                    <div class="status-label">
+                        <code>HM-</code> <strong>Interaction heatmap</strong>: one page, aggregated across all sessions ·
+                        shown under <em>Interaction distribution by page</em>
+                    </div>
+                </div>
+                <p style="margin-top: 0.8rem;">
+                    <em>
+                        Heatmaps are context, never weight. They are aggregated per page, so they have no single owner: they do not
+                        count towards affected participants or confidence, and a finding supported <strong>only</strong> by heatmap
+                        evidence is rejected by the system. What they show is the spatial distribution of <strong>recorded
+                        interactions</strong>, not of attention: a cold region means no interaction was recorded there, not that it
+                        went unread.
+                    </em>
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Affected Participants</h4>
+                <p>
+                    How many <em>distinct people</em> appear in the evidence of a finding, out of the total number of participants in
+                    the evaluation (displayed as <code>3/8</code>). It is the most concrete measure the evaluation produces, because
+                    it counts people rather than records.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Recurrence</h4>
+                <p>
+                    The number of distinct (participant, scenario) pairs behind a finding. It is <strong>purely descriptive</strong>
+                    and enters no formula: counting occurrences would favour verbose signals, since navigation alone produces dozens
+                    of records per participant, and says little beyond what affected participants already says.
+                </p>
+            </div>
+
+            <h2>How Confidence Is Calculated</h2>
+
+            <div class="guideline-info-card">
+                <h4>Metric: Confidence</h4>
+                <p><strong>Definition.</strong> How well triangulated the evidence behind a finding is, not how certain the model feels.</p>
+                <p>
+                    <strong>How it's calculated.</strong> A two-entry rule, with no weights to tune: distinct participants ×
+                    distinct signal types. The raw number of evidence records is deliberately ignored, because five navigation records
+                    from the same participant do not support more than one comment from three different people. Aggregated evidence
+                    (heatmaps) does not count towards the signal types.
+                </p>
+                <p><strong>Bands.</strong> The following badge is displayed on the finding:</p>
+
+                <div class="status-blocks">
+                    <div class="status-label">
+                        🟢 <strong>HIGH</strong>: 2 or more distinct participants <strong>and</strong> 2 or more distinct evidence types.
+                    </div>
+                    <div class="status-label">
+                        🟡 <strong>MEDIUM</strong>: only one of the two conditions holds.
+                    </div>
+                    <div class="status-label">
+                        ⚪ <strong>LOW</strong>: neither condition holds.
+                    </div>
+                </div>
+
+                <details>
+                    <summary><strong>Examples</strong></summary>
+                    <ul>
+                        <li>3 participants · scenario comments + KSC answers (2 types) → <span class="badge badge-excellent">HIGH</span></li>
+                        <li>4 participants · scenario comments only (1 type) → <span class="badge badge-warning">MEDIUM</span></li>
+                        <li>1 participant · a doubt + navigation records (2 types) → <span class="badge badge-warning">MEDIUM</span></li>
+                        <li>1 participant · a scenario comment only (1 type) → <span class="badge badge-good">LOW</span></li>
+                    </ul>
+                </details>
+
+                <p style="margin-top: 0.8rem;">
+                    High confidence does not mean the problem is severe. It means the signal showed up through independent paths.
+                    A LOW finding is not necessarily wrong; it is a single-source observation that deserves confirmation before a
+                    large investment.
+                </p>
+            </div>
+
+            <h2>How Priority Is Calculated</h2>
+
+            <div class="guideline-info-card">
+                <h4>Metric: Priority</h4>
+                <p><strong>Definition.</strong> The order in which actions enter the queue. It is an operational ranking, not a severity score.</p>
+                <p><strong>How it's calculated.</strong></p>
+                <ul>
+                    <li><code>impact</code> = distinct participants affected by the findings this action resolves ÷ total participants</li>
+                    <li><code>confidence weight</code> = the <strong>highest</strong> confidence among those findings
+                        (HIGH = 1.0 · MEDIUM = 0.6 · LOW = 0.3)</li>
+                    <li><code>priority score = impact × confidence weight</code></li>
+                </ul>
+                <p>
+                    Two design decisions are worth knowing. The confidence factor is the <strong>maximum</strong> and not the average,
+                    because grouping must never demote an action: if one of the findings is well triangulated it already justifies
+                    acting, and absorbing a weaker related finding does not make the intervention less grounded. There is also no
+                    normalisation across actions, since each one is scored on its own.
+                </p>
+                <p><strong>Bands.</strong> The following badge is displayed on the action:</p>
+
+                <div class="status-blocks">
+                    <div class="status-label">
+                        🔴 <strong>HIGH</strong>: score ≥ 0.45. Broad reach, well-supported evidence.
+                    </div>
+                    <div class="status-label">
+                        🟠 <strong>MEDIUM</strong>: score between 0.20 and 0.44.
+                    </div>
+                    <div class="status-label">
+                        ⚪ <strong>LOW</strong>: score &lt; 0.20. Narrow reach or single-source evidence.
+                    </div>
+                </div>
+
+                <details>
+                    <summary><strong>Examples</strong></summary>
+                    <ul>
+                        <li>impact <strong>4/6</strong> (0.667) × HIGH (1.0) = <strong>0.667</strong> → <span class="badge badge-critical">HIGH</span></li>
+                        <li>impact <strong>2/8</strong> (0.25) × HIGH (1.0) = <strong>0.25</strong> → <span class="badge badge-warning">MEDIUM</span></li>
+                        <li>impact <strong>3/6</strong> (0.5) × MEDIUM (0.6) = <strong>0.3</strong> → <span class="badge badge-warning">MEDIUM</span></li>
+                        <li>impact <strong>1/8</strong> (0.125) × LOW (0.3) = <strong>0.037</strong> → <span class="badge badge-good">LOW</span></li>
+                    </ul>
+                </details>
+
+                <p style="margin-top: 0.8rem;">
+                    This is an operational formula for ordering the plan, not a validated model. Use it to decide where to start,
+                    not to measure how serious a transparency problem is in absolute terms.
+                </p>
+            </div>
+
+            <h2>Using the Action Plan</h2>
+            <p>
+                The Action Plan tab is a triage queue. Every action generated by the analysis starts as <em>pending</em>, and nothing is
+                applied to the portal automatically: the output is a proposal for you to review. For each action, you can do the
+                following.
+            </p>
+
+            <div class="guideline-info-card">
+                <h4>1. Read it</h4>
+                <p>
+                    The card shows the title, the description, the <strong>Where</strong> chips,
+                    <code>impact &lt;n&gt;/&lt;total&gt;</code> and a <strong>resolves F-01, F-02</strong> list. Each code links back
+                    to the finding it came from, so you can check the evidence before deciding.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>2. Edit action</h4>
+                <p>
+                    Opens a modal to rewrite the title, the description and the Where list (comma-separated). Useful for adapting the
+                    wording to your team's internal vocabulary before approving it.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>3. Approve action</h4>
+                <p>
+                    Moves the action into the <strong>Action Plan</strong> panel on the right. The plan contains
+                    <em>only approved actions</em>. Reversible with <strong>Revert to pending</strong>.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>4. Discard action</h4>
+                <p>
+                    Marks the action as dismissed. It stays visible in the queue, faded out, so nothing ever disappears from the screen
+                    and the decision remains auditable. Reversible with <strong>Restore to pending</strong>.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>5. Reorder</h4>
+                <p>
+                    The ▲ / ▼ arrows on each card. From the first manual move onwards the order is yours and stops following the
+                    priority score.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>6. Export plan (CSV)</h4>
+                <p>
+                    Downloads a CSV (Comma-Separated Values) spreadsheet named <code>action-plan-&lt;id&gt;.csv</code>,
+                    with the columns <code>code</code>, <code>title</code>,
+                    <code>description</code>, <code>where</code>, <code>impact</code>, <code>resolves</code>,
+                    <code>priority_band</code> and <code>decision</code>. Only approved actions are exported; if none are approved,
+                    nothing is downloaded.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>⚠️ Regenerating replaces the whole result</h4>
+                <p>
+                    Approvals, dismissals, text edits and the manual order belong to the <em>current</em> result. Running the analysis
+                    again produces a new set of findings and actions, and those decisions are not carried over.
+                    <strong>Export the CSV before regenerating</strong> if you want to keep the triage you have already done.
+                </p>
+            </div>
+
+            <h2>How the Analysis Works</h2>
+            <p>From the collected data to the reviewed plan, the analysis runs through seven steps:</p>
+
+            <div class="guideline-info-card">
+                <h4>Step 1: Context is assembled</h4>
+                <p>
+                    The platform builds an evidence catalogue from the evaluation data, giving every record a traceable ID, and adds
+                    the Key Success Criteria in scope for that evaluation plus the available heatmap pages.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Step 2: Findings are drafted</h4>
+                <p>
+                    The model receives the catalogue and writes findings, each one citing the evidence IDs that support it and the
+                    criterion it is anchored to. It is explicitly instructed not to compute priority, impact, recurrence or confidence,
+                    not to propose solutions at this stage, and to use calibrated language such as "low clarity", "was not identified"
+                    or "may indicate" rather than "does not exist", "prevents" or "always".
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Step 3: Findings are validated by the system</h4>
+                <p>
+                    A finding is dropped if its criterion is outside the evaluation scope, if none of the evidence IDs it cites exists
+                    in the catalogue, or if the only surviving evidence is a heatmap. Invented IDs are simply discarded.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Step 4: Measures are computed</h4>
+                <p>
+                    Affected participants, recurrence and confidence are derived from the evidence that survived validation, never
+                    from the model.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Step 5: Actions are drafted</h4>
+                <p>
+                    The model receives <em>all</em> the findings at once, precisely so it can group them, and answers a single question:
+                    what should we do? Every finding must appear in at least one action.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Step 6: Priority and ordering</h4>
+                <p>
+                    The system computes the impact and the priority score of each action and sorts the queue.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>Step 7: You review</h4>
+                <p>
+                    Approve, discard, edit and reorder. The analysis proposes; the decision is yours.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
+                <h4>What the analysis will not do</h4>
+                <ul>
+                    <li><strong>It will not invent problems.</strong> Zero findings is a valid result, and the screen says so explicitly
+                        rather than manufacturing issues out of weak signals.</li>
+                    <li><strong>It will not create criteria.</strong> Every finding is anchored to a Key Success Criterion that already
+                        exists in the framework.</li>
+                    <li><strong>It will not estimate numbers.</strong> Confidence, impact and priority are always computed from the
+                        evidence records.</li>
+                    <li><strong>It will not look beyond the scope.</strong> Only the criteria selected for that evaluation are analysed.</li>
+                    <li><strong>It will not update itself.</strong> Participant totals are frozen at generation time: sessions submitted
+                        afterwards do not change the denominators until the analysis is regenerated.</li>
+                </ul>
+            </div>
+        </section>
+
          <section id="glossary">
             <div class="container">
                 <h1>Glossary of Terms</h1>
@@ -450,6 +807,16 @@
                 <dt><strong>Acceptance Criteria</strong></dt>
                 <dd>
                     The conditions and quality requirements that contributions must satisfy in order to be reviewed, approved, and integrated into the ecosystem’s platform or repositories.
+                </dd>
+
+                <dt><strong>Action (AI Analysis)</strong></dt>
+                <dd>
+                    A concrete improvement recommendation produced by the AI layer, addressing one or more Findings and listing the specific places in the portal where it should be applied. Actions are labelled <code>A-01</code>, <code>A-02</code>, and so on, ordered by their <strong>Priority Score</strong>, and reviewed by the portal manager in the Action Plan tab.
+                </dd>
+
+                <dt><strong>AI Analysis</strong></dt>
+                <dd>
+                    The analytical layer that reads all data collected in an evaluation (scenario outcomes, navigation, questions raised during the scenarios, KSC scores, participant profiles and interaction heatmaps) and returns a list of <strong>Findings</strong> and an ordered <strong>Action Plan</strong>. The model is responsible only for what the problem is and what to do about it; every quantitative measure displayed is computed by the platform from the evidence records.
                 </dd>
 
                 <dt><strong>API (Application Programming Interface)</strong></dt>
@@ -502,6 +869,11 @@
                     Elements, characteristics, or actions that are necessary but not sufficient for the transparency of software ecosystems. A recent study identified and analyzed these factors through a systematic mapping and field study, structuring them around themes like access to information, communication channels, and requirements engineering (<a href="https://doi.org/10.5753/jserd.2024.4086" target="_blank">Zacarias et al., 2024</a>).
                 </dd>
 
+                <dt><strong>Confidence Band</strong></dt>
+                <dd>
+                    A measure of how well triangulated the evidence behind a Finding is, displayed as <strong>HIGH</strong>, <strong>MEDIUM</strong> or <strong>LOW</strong>. It combines two dimensions: distinct participants and distinct evidence types. HIGH requires at least two of each; MEDIUM requires only one of the two conditions; LOW requires neither. It expresses how independent the sources are, not how serious the problem is.
+                </dd>
+
                 <dt><strong>Data Collection</strong></dt>
                 <dd>
                     The process by which the platform gathers information from developers or their applications, including technical, behavioral, or usage-related data.
@@ -537,9 +909,29 @@
                     A practical scenario performed by developers in the portal to simulate real interactions and assess the level of transparency in a specific procedure.
                 </dd>
 
+                <dt><strong>Evidence (AI Analysis)</strong></dt>
+                <dd>
+                    An original record collected during the evaluation that supports a Finding, shown with a traceable ID so any claim can be checked against what a participant actually did or wrote. Evidence types are identified by their ID prefix: <code>PT-</code> scenario execution, <code>NAV-</code> navigation, <code>DBT-</code> a question raised during a scenario, <code>ANS-</code> a KSC answer, <code>DQ-</code> profile questionnaire, and <code>HM-</code> interaction heatmap.
+                </dd>
+
                 <dt><strong>External Integration</strong></dt>
                 <dd>
                     A connection between the platform and an outside system, service, or application that enables data exchange, process coordination, or extended functionality.
+                </dd>
+
+                <dt><strong>Finding</strong></dt>
+                <dd>
+                    A synthetic statement about a possible transparency failure observed during an evaluation, anchored to exactly one Key Success Criterion of the framework and supported by specific evidence. Findings are labelled <code>F-01</code>, <code>F-02</code>, and so on. A finding is an interpretation of the data, not a measurement: a completion time is data, whereas "official contact channels have low visibility" is a finding.
+                </dd>
+
+                <dt><strong>Impact (Action)</strong></dt>
+                <dd>
+                    The number of distinct participants reached by the Findings that an Action resolves, over the total number of participants in the evaluation (e.g. <code>4/6</code>). It is derived from the evidence records, never estimated by the model, and is one of the two factors of the <strong>Priority Score</strong>.
+                </dd>
+
+                <dt><strong>Interaction Heatmap</strong></dt>
+                <dd>
+                    A page capture with the spatial distribution of the interactions recorded on it, aggregated across all participant sessions. In the AI Analysis it is context evidence only: it does not count towards affected participants or confidence, and a Finding supported solely by a heatmap is rejected. It is not eye tracking: a cold region means no interaction was recorded there, not that it went unread.
                 </dd>
 
                 <dt><strong>Keystone</strong></dt>
@@ -575,6 +967,11 @@
                 <dt><strong>Portal</strong></dt>
                 <dd>
                     The ecosystem’s main web interface that centralizes documentation, tools, repositories, and resources required for developers to access and use the platform.
+                </dd>
+
+                <dt><strong>Priority Score</strong></dt>
+                <dd>
+                    The value used to order the Action Plan, computed as <code>impact × confidence weight</code>, where the confidence weight is the highest Confidence Band among the Findings the action resolves (HIGH = 1.0, MEDIUM = 0.6, LOW = 0.3). It is displayed as a band: <strong>HIGH</strong> (≥ 0.45), <strong>MEDIUM</strong> (0.20-0.44) and <strong>LOW</strong> (&lt; 0.20). It is an operational ranking to decide where to start, not a validated measure of how severe a problem is.
                 </dd>
 
                 <dt><strong>Privacy</strong></dt>
