@@ -66,13 +66,24 @@
 </div>
     </div>
 
-    <div class="eval-objective">
-        <p class="eval-eyebrow">Objective</p>
-        {% if eManagerObjective %}
-            <p class="eval-objective-text">{{ eManagerObjective }}</p>
-        {% else %}
-            <p class="eval-objective-text is-empty">No objective was set for this evaluation.</p>
-        {% endif %}
+    <div class="objective-and-filter-wrapper">
+        <div class="eval-objective">
+            <p class="eval-eyebrow">Objective</p>
+            {% if eManagerObjective %}
+                <p class="eval-objective-text">{{ eManagerObjective }}</p>
+            {% else %}
+                <p class="eval-objective-text is-empty">No objective was set for this evaluation.</p>
+            {% endif %}
+        </div>
+        <div class="experience-filter-wrapper">
+            <label for="experienceFilter">Developer Experience:</label>
+            <select id="experienceFilter" class="experience-dropdown" onchange="filterByExperience()">
+                <option value="all">All (No filter)</option>
+                <option value="beginner">Beginner (0-3 years)</option>
+                <option value="intermediate">Intermediate (3-8 years)</option>
+                <option value="senior">Senior (8+ years)</option>
+            </select>
+        </div>
     </div>
 
     <div class="dashboard-navbar">
