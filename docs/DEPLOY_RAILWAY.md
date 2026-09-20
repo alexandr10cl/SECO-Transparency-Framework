@@ -14,6 +14,11 @@ Plano de preparação e deploy do portal no **Railway**, com o app Flask e o MyS
 - [Custo](#custo)
 - [Riscos conhecidos](#riscos-conhecidos)
 
+> **Estado.** As fases 0 e 1 estão **implementadas** no repositório — o texto delas fica como registro
+> do porquê de cada mudança. A **fase 2 está adiada**: depende do domínio que só existe depois do
+> serviço criado. Falta, portanto: criar o projeto no Railway (ver [Provisionamento](#provisionamento))
+> e depois fechar a extensão.
+
 ## Por que Railway
 
 O portal rodou no Vercel numa avaliação real e o fluxo de coleta funcionava. O que quebrou depois foi a **camada de IA**, incompatível com serverless: `pipeline.schedule()` faz `_executor.submit(_run, ...)` e retorna `202` imediatamente (`services/ai/pipeline.py:91-92`) — em serverless a execução congela quando o handler retorna, a thread não termina e a avaliação fica `RUNNING` até o `STALE_AFTER` de 10 min marcá-la como **ERROR**. Tornar síncrono também não caberia: são duas chamadas LLM em sequência (`pipeline.py:220` e `:239`), cada uma com `AI_TIMEOUT_S=180` e 4 tentativas com backoff sobre 3 modelos (`services/ai/provider.py:131-148`).
@@ -137,17 +142,21 @@ O `exec` faz o gunicorn virar PID 1 e receber o `SIGTERM` do Railway para shutdo
 
 ### 9. `.dockerignore`
 
-Acrescentar `.git/`, `docs/`, `vercel.json`, `**/__pycache__/`, `.venv/`, `*.log` ao `tet-website/.dockerignore`. O contexto cai de ~180 MB para ~75 MB, o que acelera cada build. O ZIP de 63 MB permanece — `/download-extension` depende dele (`views/pages.py:37`).
+Acrescentar `**/__pycache__/`, `.venv/`, `*.log`, `.vercel/`, `vercel.json`, `instance/` e `.env.example` ao `tet-website/.dockerignore`.
+
+Note que **`.git/` e `docs/` não entram**: com **Root Directory** = `tet-website`, o contexto de build é só essa pasta, e nenhum dos dois existe lá dentro. `venv/` já estava ignorado, então o contexto fica em ~65 MB — dominado pelo ZIP de 60 MB, que permanece porque `/download-extension` depende dele (`views/pages.py:37`).
 
 ### 10. `.env.example`
 
-Documentar as variáveis novas: `FLASK_ENV`, `DB_SSL_REQUIRED`, `SMTP_TIMEOUT_S`, `HEATMAP_CACHE_MAX`, `HEATMAP_PREFETCH_WORKERS`.
+Documentar as variáveis novas: `FLASK_ENV`, `LOG_LEVEL`, `DB_SSL_REQUIRED`, `SMTP_TIMEOUT_S`, `HEATMAP_CACHE_MAX`, `HEATMAP_PREFETCH_WORKERS`.
 
 ## Fase 2 — Extensão Chrome
 
-`tet-extension/popup.js:11-17` está com `isDevelopment: true` (aponta para `127.0.0.1:5000`) e `PRODUCTION_URL` no Vercel legado. Corrigir para `isDevelopment: false`, apontar para o domínio do Railway e normalizar a barra final no getter (`base.replace(/\/+$/, "")`), já que os call sites concatenam `${API_BASE_URL}/rota`. Subir a versão em `manifest.json` (`0.0.1` → `0.1.0`), senão o Chrome não atualiza.
+> **Adiada.** Depende do domínio do Railway, que só existe depois do serviço criado. Fazer logo após o passo 4 do [Provisionamento](#provisionamento).
 
-O ZIP em `static/downloads/` precisa ser regerado com o `popup.js` corrigido — caso contrário o download entrega a versão apontando para localhost.
+`tet-extension/popup.js:11-17` está com `isDevelopment: true` (aponta para `127.0.0.1:5000`) e `PRODUCTION_URL` no Vercel legado. Corrigir para `isDevelopment: false`, apontar para o domínio do Railway e normalizar a barra final no getter (`base.replace(/\/+$/, "")`), já que os call sites concatenam `${API_BASE_URL}/rota` — hoje a URL de produção termina em `/` e produziria `//auth_evaluation`. São três: `popup.js:663`, `:698` e `:1219`. Subir a versão em `manifest.json` (`0.0.1` → `0.1.0`), senão o Chrome não atualiza.
+
+O ZIP em `static/downloads/` precisa ser regerado com o `popup.js` corrigido — caso contrário o download entrega a versão apontando para localhost. Ver a ressalva sobre Git LFS em [Riscos conhecidos](#riscos-conhecidos): a distribuição do ZIP provavelmente vai deixar de ser por esse caminho.
 
 ## Provisionamento
 
@@ -155,14 +164,15 @@ O ZIP em `static/downloads/` precisa ser regerado com o `popup.js` corrigido —
 
 **2. Criar o serviço web.** *Add Service* → *GitHub Repo* → este repositório. Em **Settings**:
 - **Root Directory**: `tet-website` (é onde estão o `Dockerfile` e o `railway.json`).
-- **Branch**: `main`.
+- **Branch**: `dev` — é a branch canônica deste repositório; `main` tem histórico não relacionado.
+- **Réplicas**: 1 (ver a nota em [Por que Railway](#por-que-railway)).
 - Builder é detectado como Dockerfile automaticamente.
 
 **3. Variáveis do serviço web.** O código monta a URI a partir de variáveis próprias (`database.py:16-23`), então usar **reference variables** apontando para o serviço MySQL — assim a senha nunca é copiada à mão e o tráfego fica na rede privada:
 
 ```
 SGBD=mysql+mysqlconnector
-SERVER=${{MySQL.RAILWAY_PRIVATE_DOMAIN}}:${{MySQL.MYSQLPORT}}
+SERVER=${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}
 DB_USER=${{MySQL.MYSQLUSER}}
 PASSW=${{MySQL.MYSQLPASSWORD}}
 DATABASE=${{MySQL.MYSQLDATABASE}}
@@ -170,6 +180,7 @@ DB_SSL_REQUIRED=false
 
 FLASK_ENV=production
 FLASK_APP=index.py
+LOG_LEVEL=INFO
 SECRET_KEY=<gerar: python -c "import secrets;print(secrets.token_urlsafe(64))">
 
 DEV_MODE=False
@@ -180,9 +191,11 @@ ADMIN_PASSWORD=<senha>
 AI_ANALYSIS=True
 AI_PROVIDER=gemini
 AI_MODEL=gemini-3.6-flash
-AI_FALLBACK_MODELS=gemini-3.5-flash,gemini-2.5-flash
+AI_FALLBACK_MODELS=gemini-3.5-flash
+AI_MODELS=gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash
 AI_TIMEOUT_S=180
 AI_ALLOW_REGENERATE=False
+AI_HEATMAP_MAX_PAGES=10
 GEMINI_API_KEY=<chave>
 
 HEATMAP_CACHE_MAX=8
@@ -195,8 +208,12 @@ SENDER_EMAIL=<remetente>
 SENDER_PASSWORD=<app password>
 ```
 
-> `UXT_INTEGRATION` tem default **`True`** quando ausente — configure explicitamente.
+> `UXT_INTEGRATION` tem default **`True`** quando ausente — configure explicitamente. `config_flags._env_bool` só reconhece `1/true/yes/on`; qualquer outro valor (`y`, `enabled`) **desliga** a integração em silêncio.
 > `ADMIN_EMAIL` / `ADMIN_PASSWORD` é a conta **SUPERVISOR da UXT**, não o admin do portal: sem ela o cadastro de gestor falha.
+> `AI_FALLBACK_MODELS` fica **só com Gemini 3**: os heatmaps vão como imagem com `media_resolution` por parte, que é recurso do Gemini 3 — um modelo 2.x pode recusá-los e queimar a cadeia inteira antes do retry texto-só.
+> `AI_MODELS` é a allow-list de `resolve_model()` (`provider.py:81`), não só o que aparece no seletor.
+> `MYSQLDATABASE` no template do Railway é **`railway`**, não `tool_portal`.
+> As reference variables usam o nome do serviço: se o MySQL não se chamar exatamente `MySQL`, ajuste `${{MySQL.*}}`.
 > Não definir `PORT` — o Railway injeta.
 
 **4. Gerar o domínio.** Em *Settings → Networking → Generate Domain*. O Railway detecta a porta pelo bind do processo.
@@ -210,25 +227,37 @@ Rodar **antes** do primeiro deploy; o `flask db upgrade` do `preDeployCommand` e
 
 ## Verificação
 
-1. **Build e smoke local** (Docker disponível na máquina):
-   ```bash
-   docker compose up -d db
-   docker build -t tet-website:prod ./tet-website
-   docker run --rm -p 8000:8000 --env-file tet-website/.env \
-     -e SERVER=host.docker.internal:3307 -e FLASK_ENV=production \
-     -e SECRET_KEY=<gerado> -e PORT=8000 tet-website:prod
-   ```
-   Confirmar que o aviso "This is a development server" sumiu e que o gunicorn subiu.
-2. `curl http://localhost:8000/api/ping` → `{"status":"ok",...}`.
-3. `docker run --rm tet-website:prod id` → uid 10001 (não-root).
-4. **No Railway, após o deploy** — não há suíte de testes no repositório, então este roteiro é a única rede de proteção:
-   - Nos logs do build: `preDeployCommand` executou `db upgrade` e `seed` sem erro.
-   - Login.
-   - Cadastro: o link de verificação sai como `https://` (valida o ProxyFix).
-   - Dashboard com heatmap (valida que os 120s da UXT cabem no timeout).
-   - **Gerar uma análise de IA e confirmar que chega a `DONE`** — é o motivo da migração.
-   - `/download-extension`: valida que o Git LFS foi resolvido e o ZIP não é um ponteiro de texto (ver `.gitattributes`).
-5. Acompanhar a aba **Metrics** do serviço na primeira análise de IA e no primeiro heatmap para calibrar `HEATMAP_CACHE_MAX` — a RAM é cobrada por uso.
+### Já executado localmente
+
+Tudo abaixo foi rodado contra a imagem de produção e o MySQL do `docker-compose`, e passou:
+
+| O que | Como | Resultado |
+|---|---|---|
+| Imagem builda | `docker build -t tet-website:prod ./tet-website` | ok |
+| Não roda como root | `docker run --rm tet-website:prod id` | `uid=10001(appuser)` |
+| Gunicorn no lugar do Werkzeug | logs do container | `Starting gunicorn 23.0.0`, `Using worker: gthread`; sem o aviso "This is a development server" |
+| `SECRET_KEY` obrigatória em produção | subir sem a variável e com `FLASK_ENV=production` | `RuntimeError`, worker não sobe |
+| `SECRET_KEY` não é mais sobrescrita | `app.config["SECRET_KEY"]` | não é `None` |
+| ProxyFix | request com `X-Forwarded-Proto/Host` | `https://<host>/verify/<token>`; sem os headers, `http://localhost/...` |
+| Opções de pool | `app.config["SQLALCHEMY_ENGINE_OPTIONS"]` | `pool_pre_ping`, `pool_recycle=240`, `pool_size=5`, `max_overflow=10` |
+| `preDeployCommand` | `flask db upgrade && flask seed` no container | ok, e idempotente na segunda execução |
+| CORS restrito | `OPTIONS /auth_evaluation` vs `GET /api/ping` | `Access-Control-Allow-Origin` só na primeira |
+| Rotas com banco | `GET /` e `GET /signin` | HTTP 200 |
+| Fluxo de dev intacto | `docker compose up -d --build` | app responde em `localhost:5000` |
+
+> **`.env` já existente precisa de uma linha.** `FLASK_ENV` passou a ter default `production`, que liga `SESSION_COOKIE_SECURE` — e cookie seguro não trafega em `http://localhost`, então o login local falharia em silêncio. O `docker-compose.yml` já força `FLASK_ENV: development`; para o fluxo com venv, acrescente `FLASK_ENV=development` ao seu `.env` (o `.env.example` já traz).
+
+### No Railway, após o deploy
+
+Não há suíte de testes no repositório, então este roteiro é a única rede de proteção:
+
+1. Nos logs: `preDeployCommand` executou `db upgrade` e `seed` sem erro.
+2. Login.
+3. Cadastro: o link de verificação sai como `https://` com o host do Railway (valida o ProxyFix em produção).
+4. Dashboard com heatmap (valida que os 120s da UXT cabem no timeout).
+5. **Gerar uma análise de IA e confirmar que chega a `DONE`** — é o motivo da migração.
+6. `/download-extension`: confirmar que vem um ZIP e não um ponteiro de texto de 133 bytes (ver o risco do Git LFS abaixo).
+7. Acompanhar a aba **Metrics** na primeira análise de IA e no primeiro heatmap para calibrar `HEATMAP_CACHE_MAX` — a RAM é cobrada por uso.
 
 ## Custo
 
@@ -257,6 +286,10 @@ O custo da API do Gemini é separado: com `gemini-3.6-flash`, uma análise conso
 **Rede privada só em runtime.** Não está disponível durante o build — o que não afeta este plano, já que o `preDeployCommand` roda depois do build, com acesso à rede privada.
 
 **Cold start do DNS privado.** A documentação não garante o tempo até o DNS interno resolver no start do container. Se o `preDeployCommand` falhar por DNS na primeira execução, basta redeployar; se virar recorrente, adicionar um retry ao comando.
+
+**Git LFS no ZIP da extensão.** `tet-website/static/downloads/tet-extension.zip` (60 MB) é rastreado por LFS (`.gitattributes`), e o checkout do GitHub feito pelo Railway historicamente **não resolve LFS** — nesse caso `/download-extension` entrega o arquivo-ponteiro de 133 bytes em vez do ZIP. O irmão `UX-Tracking-Extension-v2-main.zip` não está em LFS (a regra é por caminho literal) e não tem esse problema.
+
+Conferir no passo 6 da verificação. A decisão é resolver depois, provavelmente tirando o ZIP do repositório e servindo por link externo — o que também encerra a necessidade de regerá-lo a cada mudança no `popup.js` (ver [Fase 2](#fase-2--extensão-chrome)).
 
 ## Fora do escopo
 

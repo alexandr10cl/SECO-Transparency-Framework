@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Iterable, Optional
 
@@ -10,7 +11,12 @@ from models import Evaluation
 from services.heatmap_cache import get_cached_payload, set_cached_payload
 from services.heatmap_service import build_scenarios_payload, is_cacheable
 
-_prefetch_executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix='heatmap-prefetch')
+# Every worker can hold a full heatmap payload in memory while it builds, and these
+# threads are all fired at once on login.
+_prefetch_executor = ThreadPoolExecutor(
+    max_workers=int(os.getenv("HEATMAP_PREFETCH_WORKERS", "3")),
+    thread_name_prefix='heatmap-prefetch',
+)
 
 
 def schedule_heatmap_prefetch(

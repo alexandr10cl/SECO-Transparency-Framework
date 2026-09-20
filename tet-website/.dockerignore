@@ -1,6 +1,17 @@
+# The build context is this folder only (Railway Root Directory = tet-website), so
+# there is no .git/ or docs/ here to exclude.
 venv/
+.venv/
 __pycache__/
+**/__pycache__/
 *.pyc
+*.log
 .env
+.env.example
 .dockerignore
 Dockerfile
+instance/
+
+# Legacy Vercel deploy, superseded by railway.json
+.vercel/
+vercel.json

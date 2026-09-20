@@ -1,7 +1,12 @@
+import logging
+import os
+from datetime import timedelta
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # Load environment variables from .env file
@@ -10,19 +15,46 @@ load_dotenv()
 # Initialize the Flask app
 app = Flask(__name__)
 
-import os
-from datetime import timedelta
+# The platform terminates TLS at the edge and forwards over plain HTTP. Without this
+# the scheme and host come from that internal hop, and url_for(_external=True) builds
+# the e-mail verification link in views/auth.py as http:// with the wrong host.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+# Defaults to production so a missing variable errs on the strict side: it used to
+# silently turn SESSION_COOKIE_SECURE off.
+FLASK_ENV = os.environ.get("FLASK_ENV", "production")
+IS_PRODUCTION = FLASK_ENV == "production"
+
+# from_pyfile first: it feeds app.config from database.py, and running it after the
+# SECRET_KEY assignment is what used to overwrite the key.
+app.config.from_pyfile('database.py')
 
 # Security configurations
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
-app.config.from_pyfile('database.py')
+# The "dev-secret" fallback is public in this repository and the session cookie carries
+# the UX-Tracking JWT (services/uxt_service.py), so production has to fail loudly.
+_secret_key = os.environ.get("SECRET_KEY")
+if not _secret_key:
+    if IS_PRODUCTION:
+        raise RuntimeError(
+            "SECRET_KEY is required when FLASK_ENV=production. "
+            'Generate one with: python -c "import secrets;print(secrets.token_urlsafe(64))"'
+        )
+    _secret_key = "dev-secret"
+app.config["SECRET_KEY"] = _secret_key
 
 # Fix #1: Add session timeout (24 hours)
 # Sessions will expire after 24 hours of inactivity for security
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=24)
-app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FLASK_ENV") == "production"  # HTTPS only in production
+app.config["SESSION_COOKIE_SECURE"] = IS_PRODUCTION  # HTTPS only in production
 app.config["SESSION_COOKIE_HTTPONLY"] = True  # Prevent JavaScript access to session cookie
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # CSRF protection
+
+# Under gunicorn, app.logger has no handler of its own and inherits the root level
+# (WARNING), which hides every app.logger.info - the heatmap prefetch among them.
+_gunicorn_logger = logging.getLogger("gunicorn.error")
+if _gunicorn_logger.handlers:
+    app.logger.handlers = _gunicorn_logger.handlers
+app.logger.setLevel(os.environ.get("LOG_LEVEL", "INFO").upper())
 
 # Initialize the database
 db = SQLAlchemy(app)
