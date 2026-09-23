@@ -54,16 +54,13 @@
         </div>
         <div class="evaluation-info-card">
             <h3>Overall Score</h3>
-
-        <div class="score-display">
-            <div class="score-number">{{ score_geral }}</div>
-
-            <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
-                {{ transparency_badge_overall }}
+            <div class="score-display">
+                <div class="score-number">{{ score_geral }}</div>
+                <div class="transparency-badge {{ transparency_badge_overall|lower|replace(' ', '-') }}">
+                    {{ transparency_badge_overall }}
+                </div>
             </div>
         </div>
-    </div>
-</div>
     </div>
 
     <div class="objective-and-filter-wrapper">
@@ -76,7 +73,17 @@
             {% endif %}
         </div>
         <div class="experience-filter-wrapper">
-            <label for="experienceFilter">Developer Experience:</label>
+            <span class="experience-filter-icon material-symbols-outlined" aria-hidden="true">tune</span>
+            <label for="experienceFilter">Participants' Experience Level:</label>
+            <span class="experience-filter-help" tabindex="0" role="button" aria-label="What this filter does">
+                <span class="material-symbols-outlined" aria-hidden="true">info</span>
+                <span class="experience-filter-tip" role="tooltip">
+                    Filters the dashboard by the years of experience in software development each
+                    participant reported in the questionnaire. Scores, charts and scenarios below are
+                    recalculated for the selected group only. Participants who left that question blank
+                    are excluded whenever a specific level is selected.
+                </span>
+            </span>
             <select id="experienceFilter" class="experience-dropdown" onchange="filterByExperience()">
                 <option value="all" {% if experience_filter == 'all' %}selected{% endif %}>All (No filter)</option>
                 <option value="beginner" {% if experience_filter == 'beginner' %}selected{% endif %}>Beginner (0-3 years)</option>
@@ -395,8 +402,9 @@
 </div>
 
                     <p>
-                        Participants with less than 3 years of professional experience were categorized in the low experience group,
-                        those with 3 to 5 years in the medium experience group, and those with more than 5 years in the high experience group.
+                        Participants with less than 3 years of professional experience are grouped as beginner, those with
+                        3 to 8 years as intermediate, and those with 8 years or more as senior — the same ranges used by the
+                        experience level filter at the top of this dashboard.
                     </p>
                 </div>
             </div>
