@@ -69,8 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Restore data on page load
-  restoreFormData()
+  // So restaura se o servidor devolveu valores; senao o storage esta velho
+  if (window.prefilledKscWeights && Object.keys(window.prefilledKscWeights).length > 0) {
+    restoreFormData()
+  } else {
+    clearFormData()
+  }
   
   // Save data whenever form changes
   form.addEventListener('input', saveFormData)
