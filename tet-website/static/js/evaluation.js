@@ -77,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('change', saveFormData)
   
   // Clear data on successful submission
-  form.addEventListener('submit', () => {
+  form.addEventListener('submit', function() {
     // Wait a bit before clearing to ensure submission succeeded
-    setTimeout(clearFormData, 1000)
+    clearFormData();
   })
   
   // Fix #6: Character counter for manager objective textarea
@@ -107,30 +107,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Apple-level Process Card Interactions
   const processCards = document.querySelectorAll('.process-card')
+
   processCards.forEach(card => {
-    const checkbox = card.querySelector('.process-checkbox')
-    
-    // Skip disabled cards
-    if (card.classList.contains('disabled') || checkbox.disabled) {
-      return
-    }
-    
-    // Handle card click
-    card.addEventListener('click', (e) => {
-      // Don't trigger if clicking the checkbox directly
-      if (e.target === checkbox) return
-      
-      checkbox.checked = !checkbox.checked
+      const checkbox = card.querySelector('.process-checkbox')
+
+      if (!checkbox || checkbox.disabled) {
+          return
+      }
+
+      // Atualiza o visual quando o checkbox muda
+      checkbox.addEventListener('change', () => {
+          updateCardState(card, checkbox.checked)
+      })
+
+      // Estado visual inicial
       updateCardState(card, checkbox.checked)
-    })
-    
-    // Handle checkbox change
-    checkbox.addEventListener('change', (e) => {
-      updateCardState(card, e.target.checked)
-    })
-    
-    // Initialize card state
-    updateCardState(card, checkbox.checked)
   })
 
   function updateCardState(card, isChecked) {

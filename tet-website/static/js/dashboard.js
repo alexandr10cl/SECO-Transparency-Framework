@@ -154,6 +154,48 @@ function initTaskAccordions() {
 const pathParts = window.location.pathname.split('/')
 const id = pathParts[pathParts.length - 1];
 
+//função para filtrar por experiência do desenvolvedor
+async function filterByExperience() {
+  const select = document.getElementById('experienceFilter');
+  if (!select) return;
+
+  const value = select.value;
+  const url = new URL(window.location.href);
+
+  if (value === 'all') {
+    url.searchParams.delete('experience');
+  } else {
+    url.searchParams.set('experience', value);//muda a url de acordo com o filtro selecionado
+  }
+
+  //busca a MESMA rota que a página já usa, só que via fetch em vez de navegar
+  const answer = await fetch(url);
+  const html = await answer.text();
+
+  //o fetch devolve o HTML completo da página como texto puro.
+  //DOMParser transforma esse texto numa "página fantasma" que dá pra
+  //consultar com getElementById, sem ela nunca aparecer na tela.
+  const novoDoc = new DOMParser().parseFromString(html, 'text/html');
+
+  //troca só os 3 pedaços que realmente dependem do filtro mas o resto da página (menu, dropdown, gráficos, abas) se mantém
+  const idsToAtt = ['header-stats', 'filterable-dimensions', 'filterable-scenarios', 'filterable-comments'];
+  idsToAtt.forEach((elId) => {
+    const atual = document.getElementById(elId);
+    const novo = novoDoc.getElementById(elId);
+    if (atual && novo) {
+      atual.innerHTML = novo.innerHTML;
+    }
+  });
+
+  //atualiza a URL na barra do navegador sem recarregar a página, assim dá pra copiar o link ou dar F5 mantendo o filtro.
+  history.pushState({}, '', url);
+
+  //innerHTML apaga os elementos antigos e cria elementos novos do zero, então precisamos reativar os accordions e os rows expansíveis
+  window.initExpandableRows();
+  initGuidelinesAccordion();
+  initTaskAccordions();
+}
+
 // Modern Pie Chart Configuration for Developer Emotions
 const pieChartConfig = {
   responsive: true,
