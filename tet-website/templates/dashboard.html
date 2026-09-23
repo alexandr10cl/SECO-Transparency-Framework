@@ -34,7 +34,7 @@
     </div>
     <hr>
 
-    <div class="evaluation-info">
+    <div class="evaluation-info" id="header-stats">
         <div class="evaluation-info-card">
             <h3>Evaluated portal</h3>
             {# id: gancho estavel para o portalName() da camada de IA (ai_analysis.js) #}
@@ -78,10 +78,10 @@
         <div class="experience-filter-wrapper">
             <label for="experienceFilter">Developer Experience:</label>
             <select id="experienceFilter" class="experience-dropdown" onchange="filterByExperience()">
-                <option value="all">All (No filter)</option>
-                <option value="beginner">Beginner (0-3 years)</option>
-                <option value="intermediate">Intermediate (3-8 years)</option>
-                <option value="senior">Senior (8+ years)</option>
+                <option value="all" {% if experience_filter == 'all' %}selected{% endif %}>All (No filter)</option>
+                <option value="beginner" {% if experience_filter == 'beginner' %}selected{% endif %}>Beginner (0-3 years)</option>
+                <option value="intermediate" {% if experience_filter == 'intermediate' %}selected{% endif %}>Intermediate (3-8 years)</option>
+                <option value="senior" {% if experience_filter == 'senior' %}selected{% endif %}>Senior (8+ years)</option>
             </select>
         </div>
     </div>
@@ -137,7 +137,7 @@
                     </div>
                 </div>
 
-                <div class="dimensions-table-section">
+                <div class="dimensions-table-section" id="filterable-dimensions"> <!-- id usado pelo dashboard.js para trocar o innerHTML quando o filtro de experiência muda -->
 
                     <h3>Dimensions & DX Categories</h3>
 
@@ -413,7 +413,7 @@
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
-            <div class="developer-comments">
+            <div class="developer-comments" id="filterable-comments"> <!-- id usado pelo dashboard.js para trocar o innerHTML quando o filtro de experiência muda -->
                 <h3>Developer Comments</h3>
                 <p>Developers’ open feedback on transparency and experience.</p>
                 <div class="comments">
@@ -427,7 +427,7 @@
         </div>
     </div>
 
-    <div class="evaluated-scenarios-container">
+    <div class="evaluated-scenarios-container" id="filterable-scenarios"> <!-- id usado pelo dashboard.js para trocar o innerHTML quando o filtro de experiência muda -->
 
         {% if processed_tasks %}
         
@@ -1067,24 +1067,33 @@
             }
         });
 
-        const expandableRows = document.querySelectorAll('.expandable-row')
+        //função que pode ser rechamada depois que o filtro de experiência
+        //trocar o innerHTML de #filterable-dimensions (o que apaga os listeners antigos).
+        function initExpandableRows() {
+            const expandableRows = document.querySelectorAll('.expandable-row')
 
-        expandableRows.forEach(function(row) {
-            row.addEventListener('click', function() {
-                const detailsId = row.dataset.detailsId;
-                const detailsRow = document.getElementById(detailsId);
+            expandableRows.forEach(function(row) {
+                row.addEventListener('click', function() {
+                    const detailsId = row.dataset.detailsId;
+                    const detailsRow = document.getElementById(detailsId);
 
-                const isExpanded = row.getAttribute('aria-expanded') === 'true';
+                    const isExpanded = row.getAttribute('aria-expanded') === 'true';
 
-                if (isExpanded) {
-                    detailsRow.style.display = 'none';
-                    row.setAttribute('aria-expanded', 'false');
-                } else {
-                    detailsRow.style.display = 'table-row';
-                    row.setAttribute('aria-expanded', 'true');
-                }
+                    if (isExpanded) {
+                        detailsRow.style.display = 'none';
+                        row.setAttribute('aria-expanded', 'false');
+                    } else {
+                        detailsRow.style.display = 'table-row';
+                        row.setAttribute('aria-expanded', 'true');
+                    }
+                });
             });
-        });
+        }
+
+        //A função começa aqui dentro do closure do DOMContentLoaded
+        //precisa ser chamável de fora (pelo dashboard.js) depois de cada troca de filtro.
+        window.initExpandableRows = initExpandableRows;
+        initExpandableRows();
 
     </script>
 {% endblock %}

@@ -715,12 +715,52 @@ def eval_dashboard(id):
         Question.question_id.in_(question_ids)
     ).all() if question_ids else []
                 
-    count_collected_data = len(collected_data)
-
     participant_labels = {}
 
     for index, participant in enumerate(collected_data, start=1):
         participant_labels[participant.collected_data_id] = f"Participant {index}"
+
+    #Developer Experience filter
+    def participant_filter(anos, filtro):
+        """Decide se um participante entra no filtro de experiência escolhido."""
+        if filtro == 'all':
+            return True
+        if anos is None:
+            return False
+        if filtro == 'beginner':
+            return anos < 3
+        if filtro == 'intermediate':
+            return 3 <= anos < 8
+        if filtro == 'senior':
+            return anos >= 8
+        return True  # filtro desconhecido -> não filtra nada
+
+
+    experience_filter = request.args.get('experience', 'all')
+    #se no url o usuario escrever algo diferente das opções o filtro volta para all
+    if experience_filter not in ('all', 'beginner', 'intermediate', 'senior'):
+        experience_filter = 'all'
+
+    #monta um dicionário com a experiencia de cada dev
+    participant_experience = {
+        cd.collected_data_id: (
+            cd.developer_questionnaire.experience 
+            if
+                cd.developer_questionnaire
+            else
+                None
+        )
+        for cd in collected_data
+    }
+
+    filtered_collected_data = [
+        cd for cd in collected_data
+        if participant_filter(participant_experience.get(cd.collected_data_id), experience_filter)
+    ]
+    # Everything below (guideline/KSC scoring, dimension scores, DX categories,
+    # task stats) is driven off filtered_collected_data / evaluation_collected_data_ids,
+    # so filtering here cascades through the whole dashboard automatically.
+    count_collected_data = len(filtered_collected_data)
     
     # Scenario summaries sourced from Rodrigo's spreadsheet (Scenario Context column)
     scenario_context_lookup = {
@@ -783,8 +823,8 @@ def eval_dashboard(id):
 
     dimensions = SECO_dimension.query.all()
     
-    # Criar lista de IDs dos collected_data desta avaliação
-    evaluation_collected_data_ids = [cd.collected_data_id for cd in collected_data]
+    # Criar lista de IDs dos collected_data desta avaliação ------>  modificada para respeitar o filtro de experiência
+    evaluation_collected_data_ids = [cd.collected_data_id for cd in filtered_collected_data]
     
     # Processar pontuação dos ksc e guidelines
     result = []
@@ -960,13 +1000,21 @@ def eval_dashboard(id):
     # o historico da tela de evaluations usa exatamente a mesma conta — duas copias
     # divergiriam na primeira vez que uma delas fosse ajustada.
     # O service devolve None quando nao ha nenhuma resposta; aqui o template espera 0.
-    score_geral = compute_overall_score(evaluation) or 0
+    if experience_filter == 'all':
+        score_geral = compute_overall_score(evaluation) or 0
+    else:
+        # compute_overall_score(evaluation) reads all of the evaluation's collected_data,
+        # so it can't respect this filter. Recompute the same "mean of guideline averages"
+        # formula (see services/score_service.py) from `result`, which is already
+        # restricted to filtered_collected_data via evaluation_collected_data_ids above.
+        guideline_averages = [g['average_score'] for g in result if g['average_score'] is not None]
+        score_geral = round(sum(guideline_averages) / len(guideline_averages)) if guideline_averages else 0
 
     # Processamento das tasks para facilitar o jinja
     # Reunir tasks únicas
     task_map = {}  # task_id → { title, comments[], avg_time, completion_rate }
 
-    for data in collected_data:
+    for data in filtered_collected_data:
         for pt in data.performed_tasks:
             task_id = pt.task_id
             task_title = pt.task.title
@@ -1340,7 +1388,7 @@ def eval_dashboard(id):
                             guidelines=guidelines,
                             tasks=tasks,
                             scenario_cards=scenario_cards,
-                            collected_data=collected_data,
+                            collected_data=filtered_collected_data,
                             questions=questions,
                             eName=eName,
                             eId=eId,
@@ -1358,6 +1406,8 @@ def eval_dashboard(id):
                             dimension_scores=dimension_scores,
                             dx_categories=dx_categories,
                             participant_labels=participant_labels,
+                            participant_experience=participant_experience,
+                            experience_filter=experience_filter,
                             ai_analysis_enabled=AI_ANALYSIS)
     
 
