@@ -148,6 +148,7 @@ def ai_analyze_command(evaluation_id, model, dry_run):
     """
     from services.ai import pipeline
     from services.ai.context_builder import EvaluationNotAnalyzable
+    from services.ai.provider import resolve_model
 
     try:
         if dry_run:
@@ -162,6 +163,17 @@ def ai_analyze_command(evaluation_id, model, dry_run):
             )
             click.echo(f"Catalogo por tipo: {result['catalog_by_type']}")
             return
+
+        # `resolve_model` e allow-list: um --model fora de AI_MODELS cai calado no
+        # padrao. Sem este aviso, o primeiro sinal de que o modelo pedido nao foi usado
+        # so viria depois de rodar, no "modelo usado" do relatorio de debug.
+        if model:
+            effective = resolve_model(model)
+            if effective != model.strip():
+                click.echo(
+                    f"AVISO: modelo '{model}' nao esta em AI_MODELS; "
+                    f"usando o padrao '{effective}'."
+                )
 
         click.echo(f"Analisando a avaliacao {evaluation_id}...")
         payload = pipeline.run_sync(evaluation_id, model=model)

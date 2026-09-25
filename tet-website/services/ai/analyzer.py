@@ -137,6 +137,14 @@ repetir o dado.
    portais, segmento) para descrever a quem o problema afeta. Continue valendo a regra 5:
    descreva a abrangência com exatidão, sem transformar um subgrupo em "os participantes".
 
+   `supporting_data_ids` SÓ leva evidência de quem foi afetado pelo problema — é a partir
+   dela que o sistema conta quantos participantes o finding atinge. Uma nota que CONTRADIZ
+   o finding (ex.: 90/100 num KSC que outros deram nota baixa) é o contraste que prova que
+   o problema é de um subgrupo, e vale mencionar na `observation` para dar esse contexto —
+   mas cite-a em PROSA ("enquanto P2 deu 90"), NUNCA pelo ID entre colchetes. Colocar o ID
+   dessa nota em `supporting_data_ids` faz o sistema contar esse participante como afetado,
+   o oposto do que a nota mostra.
+
 10. Escreva `title` e `observation` NO IDIOMA dos participantes. Mantenha os títulos de KSC e
     Guideline em inglês quando precisar citá-los, como estão no banco SEMPRE.
 

@@ -1,18 +1,23 @@
 """`call_ai()` — a unica porta de saida para qualquer LLM.
 
 Nenhum modulo fora de services/ai/providers/ importa o SDK de um provedor. Trocar de modelo ou de provedor
-é mexer no .env; trocar de SDK e escrever um arquivo novo em `providers/` e somar uma linha em `_PROVIDERS`.
+é mexer no .env; trocar de SDK é escrever um arquivo novo em `providers/` e somar uma entrada em
+`_PROVIDERS` (generate, modelos, default, fallbacks e os prefixos de nome do provider).
 
 A divisao que faz a abstracao valer:
 
     provider.py  ->  politica de retry, backoff e cadeia de fallback   (agnostica)
     providers/*  ->  uma chamada e a traducao do erro do SDK           (especifica)
 
+O provider de uma chamada e derivado do MODELO, nao so de `AI_PROVIDER`: `available_models()`
+e a uniao dos modelos de todos os providers, e `provider_for()` roteia cada um ao seu dono.
+`AI_PROVIDER` só decide o provider de um `AI_MODEL` customizado, fora de toda tabela.
+
 Configuracao:
 
-    AI_PROVIDER          gemini
+    AI_PROVIDER          gemini (so importa para modelo fora da tabela de nenhum provider)
     AI_MODEL             modelo padrao
-    AI_FALLBACK_MODELS   usados em ordem quando o padrao esta indisponivel
+    AI_FALLBACK_MODELS   usados em ordem quando o padrao esta indisponivel (mesmo provider)
     AI_MODELS            lista oferecida no <select> da tela
 
 """
@@ -21,22 +26,50 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 from pydantic import BaseModel
 
-from services.ai.providers import gemini
+from services.ai.providers import gemini, openai_provider
 from services.ai.providers.base import AIProviderError
 
 DEFAULT_PROVIDER = "gemini"
-DEFAULT_MODEL = "gemini-3.6-flash"
-DEFAULT_FALLBACK_MODELS = ["gemini-3.5-flash"]
 
-DEFAULT_PICKER_MODELS = [DEFAULT_MODEL, "gemini-3.7-flash"] + DEFAULT_FALLBACK_MODELS
 
-# Registry. O segundo provider e uma linha aqui mais um arquivo em providers/.
-_PROVIDERS = {
-    "gemini": gemini.generate,
+class _Provider(NamedTuple):
+    generate: Callable[..., Tuple[BaseModel, Dict[str, Any]]]
+    models: List[str]
+    default_model: str
+    fallback_models: List[str]
+    # Prefixos que identificam um nome de modelo como "deste provider" — so para o aviso
+    # de (b): nome que NAO casa com prefixo nenhum e modelo customizado legitimo, e passa
+    # calado. Nome que casa com o prefixo de OUTRO provider registrado e o typo provavel.
+    model_prefixes: Tuple[str, ...]
+
+
+# Registry. Um segundo provider e um arquivo em providers/ mais uma entrada aqui.
+_PROVIDERS: Dict[str, _Provider] = {
+    "gemini": _Provider(
+        generate=gemini.generate,
+        models=["gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.5-flash"],
+        default_model="gemini-3.6-flash",
+        fallback_models=["gemini-3.5-flash"],
+        model_prefixes=("gemini",),
+    ),
+    "openai": _Provider(
+        generate=openai_provider.generate,
+        # Rotulos do seletor, nao nomes de modelo da API — a traducao (e o esforco de
+        # raciocinio de cada um) vive inteira em `openai_provider.MODELS`.
+        models=list(openai_provider.MODELS),
+        default_model="gpt-6-luna",
+        fallback_models=[],  # decisao deliberada: sem escalada de custo por falha
+        model_prefixes=("gpt-", "o1", "o3", "ft:gpt"),
+    ),
+}
+
+# {modelo -> provider}: e o seletor da tela que escolhe o provider, nao so a env.
+_PROVIDER_BY_MODEL: Dict[str, str] = {
+    model: name for name, entry in _PROVIDERS.items() for model in entry.models
 }
 
 _logger = logging.getLogger(__name__)
@@ -64,21 +97,44 @@ def provider_name() -> str:
     return (os.getenv("AI_PROVIDER") or DEFAULT_PROVIDER).strip().lower()
 
 
+def _active() -> _Provider:
+    """O provider de `provider_name()`, ou o padrao quando o nome e desconhecido.
+
+    NUNCA levanta — so `call_ai` pode falhar por provider invalido.
+    """
+    return _PROVIDERS.get(provider_name(), _PROVIDERS[DEFAULT_PROVIDER])
+
+
+def provider_for(model: str) -> str:
+    """Provider dono deste modelo pela tabela; sem dono, cai na env `AI_PROVIDER`."""
+    return _PROVIDER_BY_MODEL.get(model) or provider_name()
+
+
 def default_model() -> str:
-    return (os.getenv("AI_MODEL") or DEFAULT_MODEL).strip()
+    return (os.getenv("AI_MODEL") or _active().default_model).strip()
 
 
-def fallback_models() -> List[str]:
-    return _env_list("AI_FALLBACK_MODELS") or list(DEFAULT_FALLBACK_MODELS)
+def fallback_models(model: str) -> List[str]:
+    """Cadeia de fallback para `model`, restrita ao SEU provider (`AI_FALLBACK_MODELS` e
+    um unico campo de texto, sem nocao de qual provider cada nome pertence)."""
+    provider = provider_for(model)
+    configured = _env_list("AI_FALLBACK_MODELS")
+    if configured:
+        return [m for m in configured if provider_for(m) == provider]
+    entry = _PROVIDERS.get(provider)
+    return list(entry.fallback_models) if entry else []
 
 
 def available_models() -> List[str]:
     """Modelos oferecidos no seletor da tela.
 
-    Sem `AI_MODELS`, cai para uma lista util de fabrica. O modelo configurado entra
-    sempre — senao o seletor mostraria uma opcao diferente da que esta em uso.
+    Sem `AI_MODELS`, e a UNIAO dos modelos de todos os providers registrados — e como os
+    modelos OpenAI passam a aparecer ao lado dos do Gemini sem tocar em JS. O modelo
+    configurado entra sempre — senao o seletor mostraria uma opcao diferente da em uso.
     """
-    models = _env_list("AI_MODELS") or list(DEFAULT_PICKER_MODELS)
+    models = _env_list("AI_MODELS") or [
+        model for entry in _PROVIDERS.values() for model in entry.models
+    ]
     return list(dict.fromkeys([default_model()] + models))  # dedup preservando ordem
 
 
@@ -91,6 +147,21 @@ def resolve_model(requested: Optional[str]) -> str:
     if requested and requested.strip() in available_models():
         return requested.strip()
     return default_model()
+
+
+def _warn_if_cross_provider(model: str, resolved_provider: str) -> None:
+    """Avisa SO quando o nome casa com o prefixo de OUTRO provider registrado — nome
+    desconhecido pode ser um AI_MODEL customizado legitimo, e nao gera aviso."""
+    for name, entry in _PROVIDERS.items():
+        if name == resolved_provider:
+            continue
+        if any(model.startswith(prefix) for prefix in entry.model_prefixes):
+            _log(
+                "ai: modelo '%s' parece ser do provider '%s', mas foi roteado para '%s' "
+                "— confira AI_MODEL/AI_MODELS/AI_FALLBACK_MODELS no .env.",
+                model, name, resolved_provider,
+            )
+            return
 
 
 def call_ai(
@@ -115,18 +186,14 @@ def call_ai(
     transitorio: tentamos o mesmo modelo algumas vezes com backoff exponencial e, se
     ele continuar indisponivel, descemos a cadeia. Erro nao-retryable (chave invalida,
     modelo inexistente para a chave) pula direto para o proximo modelo.
-    """
-    name = provider_name()
-    generate = _PROVIDERS.get(name)
-    if generate is None:
-        raise AIProviderError(
-            f"AI_PROVIDER='{name}' desconhecido. Disponiveis: {sorted(_PROVIDERS)}",
-            retryable=False,
-        )
 
+    O provider de CADA candidato da cadeia e resolvido individualmente por
+    `provider_for()` — a cadeia pode, em tese, misturar modelos de providers diferentes
+    (nao acontece hoje: nenhum provider tem fallback cross-provider configurado).
+    """
     requested = model or default_model()
     chain = [requested] + [
-        m for m in (fallbacks if fallbacks is not None else fallback_models())
+        m for m in (fallbacks if fallbacks is not None else fallback_models(requested))
         if m != requested
     ]
 
@@ -134,9 +201,22 @@ def call_ai(
     last_error: Optional[AIProviderError] = None
 
     for candidate in chain:
+        provider = provider_for(candidate)
+        _warn_if_cross_provider(candidate, provider)
+        entry = _PROVIDERS.get(provider)
+        if entry is None:
+            last_error = AIProviderError(
+                f"AI_PROVIDER='{provider}' desconhecido (modelo '{candidate}'). "
+                f"Disponiveis: {sorted(_PROVIDERS)}",
+                retryable=False,
+            )
+            _log("ai: %s -> provider '%s' desconhecido, indo para o proximo modelo.",
+                 candidate, provider)
+            continue
+
         for attempt in range(1, attempts + 1):
             try:
-                parsed, meta = generate(
+                parsed, meta = entry.generate(
                     system_instruction, prompt, schema, candidate, images=images
                 )
             except AIProviderError as exc:
@@ -155,7 +235,7 @@ def call_ai(
                 time.sleep(wait)
                 continue
 
-            meta["provider"] = name
+            meta["provider"] = provider
             meta["model_requested"] = requested
             # Tempo de parede da cadeia inteira, incluindo as esperas — e o numero que
             # interessa para comparar custo entre modelos.
