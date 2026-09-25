@@ -87,7 +87,7 @@ def test_texto_da_pagina_e_truncado_no_limite():
     ])
     resultado = estruturar(coleta)
 
-    assert len(resultado["paginas_coletadas"][0]["texto"]) == 6000
+    assert len(resultado["paginas_coletadas"][0]["texto"]) == 3000
 
 
 def test_links_internos_filtram_por_dominio_e_deduplicam():

@@ -79,6 +79,12 @@ def _serialize_scenario(scenario: PersonalizedScenario, task, guideline) -> dict
         "provider": scenario.provider,
         "model": scenario.model,
         "approval_history": [_serialize_log(e) for e in scenario.approval_log],
+        # Progresso da chamada de IA (tentativas, trocas de modelo) - a tela mostra
+        # isso ao vivo enquanto RUNNING (via polling) e como resumo quando termina.
+        "progress_log": scenario.progress_log or [],
+        "ai_duration_s": scenario.ai_duration_s,
+        "model_switches": scenario.model_switches,
+        "final_attempt": scenario.final_attempt,
     }
 
 
@@ -177,6 +183,10 @@ def api_scenarios(evaluation_id: int):
             "provider": None,
             "model": None,
             "approval_history": [],
+            "progress_log": [],
+            "ai_duration_s": None,
+            "model_switches": None,
+            "final_attempt": None,
         })
     payload_scenarios.sort(key=lambda s: s["task_id"])
 

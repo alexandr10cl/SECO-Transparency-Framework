@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -30,7 +30,7 @@ from services.ai.providers.base import AIProviderError
 
 DEFAULT_PROVIDER = "gemini"
 DEFAULT_MODEL = "gemini-3.6-flash"
-DEFAULT_FALLBACK_MODELS = ["gemini-3.5-flash"]
+DEFAULT_FALLBACK_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
 
 DEFAULT_PICKER_MODELS = [DEFAULT_MODEL, "gemini-3.7-flash"] + DEFAULT_FALLBACK_MODELS
 
@@ -102,6 +102,7 @@ def call_ai(
     attempts: int = 4,
     images: Optional[List[Tuple[str, bytes, str]]] = None,
     temperature: float = 0,
+    on_progress: Optional[Callable[[Dict[str, Any]], None]] = None,
 ) -> Tuple[BaseModel, Dict[str, Any]]:
     """Uma chamada estruturada a um LLM, com retry e fallback de modelo.
 
@@ -122,6 +123,13 @@ def call_ai(
     transitorio: tentamos o mesmo modelo algumas vezes com backoff exponencial e, se
     ele continuar indisponivel, descemos a cadeia. Erro nao-retryable (chave invalida,
     modelo inexistente para a chave) pula direto para o proximo modelo.
+
+    `on_progress`, se passado, e chamado de forma SINCRONA (bloqueia a mesma thread que
+    esta esperando a API) a cada evento da cadeia - antes de cada tentativa, quando um
+    modelo e trocado pelo proximo, e quando a cadeia inteira se esgota. Existe pra quem
+    chama poder mostrar isso na tela (personalizacao de cenarios) enquanto a chamada
+    ainda esta rodando, sem esperar o resultado final. Nunca deve levantar - quem
+    implementa e responsavel por nao derrubar a chamada de IA por causa de um log.
     """
     name = provider_name()
     generate = _PROVIDERS.get(name)
@@ -137,11 +145,31 @@ def call_ai(
         if m != requested
     ]
 
+    def _progress(event: Dict[str, Any]) -> None:
+        if on_progress is None:
+            return
+        try:
+            on_progress(event)
+        except Exception:  # noqa: BLE001 - um erro no callback de UI nunca pode derrubar a chamada de IA
+            _log("ai: on_progress levantou, ignorando.")
+
     started = time.time()
     last_error: Optional[AIProviderError] = None
+    previous_candidate: Optional[str] = None
 
-    for candidate in chain:
+    for chain_index, candidate in enumerate(chain):
+        if previous_candidate is not None:
+            _progress({
+                "event": "model_switch", "from": previous_candidate, "to": candidate,
+                "chain_index": chain_index,
+            })
+        previous_candidate = candidate
+
         for attempt in range(1, attempts + 1):
+            _progress({
+                "event": "attempt", "model": candidate, "attempt": attempt,
+                "attempts_max": attempts, "chain_index": chain_index,
+            })
             try:
                 parsed, meta = generate(
                     system_instruction, prompt, schema, candidate,
@@ -151,25 +179,44 @@ def call_ai(
                 last_error = exc
                 if not exc.retryable:
                     _log("ai: %s respondeu %s, indo para o proximo modelo.", candidate, exc.code)
+                    _progress({
+                        "event": "model_failed", "model": candidate, "attempt": attempt,
+                        "code": exc.code, "retryable": False,
+                    })
                     break
                 if attempt == attempts:
                     _log("ai: %s indisponivel apos %s tentativas.", candidate, attempts)
+                    _progress({
+                        "event": "model_failed", "model": candidate, "attempt": attempt,
+                        "code": exc.code, "retryable": True,
+                    })
                     break
                 wait = 2 ** attempt  # 2s, 4s, 8s
                 _log(
                     "ai: %s respondeu %s (%s/%s); nova tentativa em %ss...",
                     candidate, exc.code, attempt, attempts, wait,
                 )
+                _progress({
+                    "event": "retry_wait", "model": candidate, "attempt": attempt,
+                    "attempts_max": attempts, "code": exc.code, "wait_s": wait,
+                })
                 time.sleep(wait)
                 continue
 
             meta["provider"] = name
             meta["model_requested"] = requested
+            meta["attempt"] = attempt
+            meta["model_switches"] = chain_index
             # Tempo de parede da cadeia inteira, incluindo as esperas — e o numero que
             # interessa para comparar custo entre modelos.
             meta["elapsed_s"] = round(time.time() - started, 2)
+            _progress({
+                "event": "success", "model": candidate, "attempt": attempt,
+                "chain_index": chain_index,
+            })
             return parsed, meta
 
+    _progress({"event": "chain_exhausted", "chain": chain})
     raise AIProviderError(
         f"Nenhum modelo respondeu. Tentados: {', '.join(chain)}. Ultimo erro: {last_error}",
         code=getattr(last_error, "code", None),

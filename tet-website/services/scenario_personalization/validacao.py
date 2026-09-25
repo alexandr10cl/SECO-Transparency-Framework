@@ -14,11 +14,15 @@ Duas checagens, nesta ordem, por etapa:
      correspondencia textual aproximada - normalizacao (sem acento, minusculo)
      e intersecao de tokens - nunca por chamada a IA.
 
-Uma etapa que falhar em QUALQUER uma das duas e removida por inteiro do
-cenario personalizado, nao so o nome do recurso: a chamada 2 constroi a frase
-em torno da citacao, entao nao ha como podar so o nome sem outra chamada de
-IA, o que quebraria a garantia acima. O motivo da remocao e sempre registrado
-(RF17) para entrar no log de origem.
+Um item que falhar em QUALQUER uma das duas e removido por inteiro da
+enumeracao do cenario personalizado. Isso so e seguro sem outra chamada de IA
+porque a chamada 2 (personalizacao.py) NUNCA costura os recursos confirmados
+numa frase so - devolve `persona_e_contexto`/`frase_objetivo`/`fechamento`
+(a moldura do paragrafo, generica, sem citar nenhum recurso) separados de
+`itens_objetivo` (um por recurso). Remover um item da enumeracao e so tirar
+da lista antes de `_montar_paragrafo` juntar tudo - nunca corta uma frase pela
+metade, nunca quebra a gramatica do resto. O motivo da remocao e sempre
+registrado (RF17) para entrar no log de origem.
 """
 
 from __future__ import annotations
@@ -135,55 +139,113 @@ def validar_etapa(etapa: Dict[str, Any], dados_portal: dict) -> Tuple[bool, str]
 
 
 def validar(
-    etapas_personalizadas: List[Dict[str, Any]],
+    itens_objetivo: List[Dict[str, Any]],
     dados_portal: dict,
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    """Aplica `validar_etapa` a cada etapa personalizada.
+    """Aplica `validar_etapa` a cada item confirmado (um por recurso).
 
-    Devolve `(etapas_validadas, recursos_removidos)` - a segunda lista ja no
+    Devolve `(itens_validados, recursos_removidos)` - a segunda lista ja no
     formato que `PersonalizedScenario.recursos_removidos_validacao` guarda.
     """
-    validadas: List[Dict[str, Any]] = []
+    validados: List[Dict[str, Any]] = []
     removidos: List[Dict[str, Any]] = []
 
-    for etapa in etapas_personalizadas:
-        confirmada, motivo = validar_etapa(etapa, dados_portal)
+    for item in itens_objetivo:
+        confirmada, motivo = validar_etapa(item, dados_portal)
         if confirmada:
-            validadas.append(etapa)
+            validados.append(item)
         else:
             removidos.append({
-                "recurso": etapa.get("recurso_real"),
-                "fonte": etapa.get("campo_fonte"),
+                "recurso": item.get("recurso_real"),
+                "fonte": item.get("campo_fonte"),
                 "motivo": motivo,
             })
-    return validadas, removidos
+    return validados, removidos
+
+
+def _com_ponto_final(frase: str) -> str:
+    """Garante pontuacao final sem chamada de IA - a moldura do paragrafo
+    (persona/fechamento) e escrita pela IA como frase completa, mas nao ha
+    garantia estrutural disso (nao e um contrato do schema), entao normaliza
+    aqui em vez de arriscar duas frases coladas sem separador."""
+    frase = (frase or "").strip()
+    if not frase:
+        return frase
+    return frase if frase[-1] in ".!?" else frase + "."
+
+
+def _montar_paragrafo(
+    persona_e_contexto: str,
+    frase_objetivo: str,
+    itens_texto: List[str],
+    fechamento: str,
+    conectivo_final: str = "e",
+) -> str:
+    """Junta a moldura do paragrafo (escrita pela IA, nunca validada porque
+    nunca cita um recurso especifico) com os itens confirmados (validados
+    item a item) numa unica enumeracao - sem chamada de IA. E essa
+    enumeracao, montada aqui e nao pela IA, que permite remover um recurso
+    reprovado na validacao sem quebrar a gramatica do resto do paragrafo.
+
+    `conectivo_final` vem da propria chamada de IA (a palavra "e"/"and"/"y" no
+    idioma do cenario-base) - o cenario-base pode estar em qualquer idioma, e
+    um conectivo fixo em portugues quebraria a fluencia de um cenario em
+    ingles (ou em qualquer outro idioma).
+    """
+    partes = []
+    abertura = _com_ponto_final(persona_e_contexto)
+    if abertura:
+        partes.append(abertura)
+
+    itens_limpos = [t.strip().rstrip(".") for t in itens_texto if t and t.strip()]
+    if itens_limpos:
+        conectivo = (conectivo_final or "e").strip() or "e"
+        lista = itens_limpos[0] if len(itens_limpos) == 1 else (
+            ", ".join(itens_limpos[:-1]) + f" {conectivo} " + itens_limpos[-1]
+        )
+        objetivo = frase_objetivo.strip()
+        frase = f"{objetivo} {lista}." if objetivo else f"{lista[0].upper()}{lista[1:]}."
+        partes.append(frase)
+
+    fechamento_final = _com_ponto_final(fechamento)
+    if fechamento_final:
+        partes.append(fechamento_final)
+
+    return " ".join(partes)
 
 
 def montar_resultado_validado(resultado_modulo3: dict, dados_portal: dict) -> dict:
     """Ponto de entrada do modulo 4 para quem orquestra o pipeline
     (services/scenario_personalization/pipeline.py, Fase 3).
 
-    Recebe o resultado ainda por etapa de `personalizacao.personalizar()` e
+    Recebe o resultado ainda por item de `personalizacao.personalizar()` e
     devolve o JSON final da etapa 4 do metodo (CLAUDE.md): `cenario_personalizado`
-    ja e o texto definitivo, com as etapas nao confirmadas removidas, e
+    ja e o paragrafo definitivo (persona + objetivo + fechamento, no formato do
+    cenario-base), com os recursos nao confirmados removidos da enumeracao, e
     `recursos_confirmados`/`justificativas` refletem so o que sobreviveu.
     `etapas_omitidas` (chamada 1 - sem correspondencia nenhuma) e
     `recursos_removidos_validacao` (aqui - correspondencia alegada mas nao
     confirmada) ficam separados de proposito: sao motivos diferentes, e o log
     de origem (etapa 7) precisa distingui-los.
     """
-    etapas_validadas, recursos_removidos = validar(
-        resultado_modulo3["etapas_personalizadas"], dados_portal
+    itens_validados, recursos_removidos = validar(
+        resultado_modulo3["itens_objetivo"], dados_portal
     )
-    etapas_validadas.sort(key=lambda e: e["ordem"])
+    itens_validados.sort(key=lambda e: e["ordem"])
 
     return {
-        "cenario_personalizado": "\n\n".join(e["texto"] for e in etapas_validadas),
+        "cenario_personalizado": _montar_paragrafo(
+            resultado_modulo3.get("persona_e_contexto", ""),
+            resultado_modulo3.get("frase_objetivo", ""),
+            [e["texto"] for e in itens_validados],
+            resultado_modulo3.get("fechamento", ""),
+            resultado_modulo3.get("conectivo_final", "e"),
+        ),
         "etapas_omitidas": resultado_modulo3["etapas_omitidas"],
-        "recursos_confirmados": [e["recurso_real"] for e in etapas_validadas],
+        "recursos_confirmados": [e["recurso_real"] for e in itens_validados],
         "justificativas": [
             {"recurso": e["recurso_real"], "fonte": e["campo_fonte"]}
-            for e in etapas_validadas
+            for e in itens_validados
         ],
         "recursos_removidos_validacao": recursos_removidos,
     }

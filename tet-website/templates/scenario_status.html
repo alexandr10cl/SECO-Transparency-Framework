@@ -24,12 +24,17 @@
             <p class="page-subtitle">
                 We're anchoring each scenario in real content collected from
                 <a href="{{ evaluation.seco_portal_url }}" target="_blank" rel="noopener">{{ evaluation.seco_portal }}</a>.
-                This runs once, automatically, and can take a few minutes depending on the portal and how many
-                scenarios were selected. You can leave this page and come back anytime from the
+                This runs once, automatically. You can leave this page and come back anytime from the
                 <a href="{{ url_for('evaluation', id=evaluation.evaluation_id) }}">evaluation page</a> - nothing is
                 lost if you navigate away.
             </p>
         </div>
+    </div>
+
+    <div id="scenario-timing-notice" class="scenario-timing-notice scenario-timing-notice-lg" hidden>
+        <span class="scenario-timing-icon">⏳</span>
+        <span><strong>This can take a few minutes</strong> - depending on the portal and how many scenarios
+        were selected. It's running in the background, so feel free to navigate away and check back later.</span>
     </div>
 
     <ol class="pipeline-stepper" id="pipeline-stepper">

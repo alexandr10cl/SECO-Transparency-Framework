@@ -55,6 +55,103 @@
 
     var DECISION_LABEL = { APPROVED: 'Approved', REJECTED: 'Rejected & regenerated' };
 
+    // Progresso da chamada de IA (services/ai/provider.py:call_ai, eventos gravados
+    // por services/scenario_personalization/pipeline.py:_make_progress_logger). Cada
+    // objeto tem "event" + "stage" ("mapeamento"/"adaptacao") + campos especificos.
+    var STAGE_LABEL = { mapeamento: 'Mapping call', adaptacao: 'Adaptation call' };
+
+    function formatProgressEvent(e) {
+        var stage = STAGE_LABEL[e.stage] || e.stage || '';
+        var prefix = stage ? '[' + esc(stage) + '] ' : '';
+        switch (e.event) {
+            case 'attempt':
+                return prefix + 'Trying ' + esc(e.model) + ' — attempt ' + e.attempt + '/' + e.attempts_max;
+            case 'retry_wait':
+                return prefix + esc(e.model) + ' failed (code ' + esc(e.code) + ') — retrying in ' + e.wait_s + 's';
+            case 'model_failed':
+                return prefix + esc(e.model) + ' unavailable after attempt ' + e.attempt +
+                    (e.code ? ' (code ' + esc(e.code) + ')' : '') + ' — moving to the next model';
+            case 'model_switch':
+                return prefix + 'Switched model: ' + esc(e.from) + ' → ' + esc(e.to);
+            case 'success':
+                return prefix + esc(e.model) + ' responded on attempt ' + e.attempt;
+            case 'chain_exhausted':
+                return prefix + 'No model responded (tried: ' + (e.chain || []).map(esc).join(', ') + ')';
+            default:
+                return prefix + e.event;
+        }
+    }
+
+    // Uma chamada de IA por etapa (mapeamento, adaptacao) - cada uma com seu proprio
+    // modelo final e tentativa, ja que a cadeia de fallback roda independente em cada
+    // uma. Deriva do evento "success" (um por etapa que de fato chamou a API - a
+    // adaptacao pode nao ter nenhum, se o mapeamento nao confirmou nenhum recurso).
+    var STAGE_ORDER = ['mapeamento', 'adaptacao'];
+
+    function computeStageResults(events) {
+        var result = {};
+        events.forEach(function (e) {
+            if (e.event === 'success' && e.stage) {
+                result[e.stage] = { model: e.model, attempt: e.attempt };
+            }
+        });
+        return result;
+    }
+
+    // Ao vivo (RUNNING): lista todos os eventos, mais recente por ultimo - a tela
+    // atualiza a cada poll (4s). O modelo de cada etapa aparece assim que aquela
+    // chamada termina (nao so no final das duas). Terminado: some a lista ao vivo,
+    // fica o resumo (modelo por etapa, tempo total, trocas) + o log inteiro dentro
+    // de um <details>, pra nao ocupar espaco depois que ja nao importa mais tanto.
+    function renderProgress(s) {
+        var events = s.progress_log || [];
+        var isBusy = s.status === 'PENDING' || s.status === 'RUNNING';
+        var html = '';
+
+        if (isBusy && events.length) {
+            html += '<div class="scenario-progress">' +
+                events.map(function (e) {
+                    return '<div class="scenario-progress-line">' + formatProgressEvent(e) + '</div>';
+                }).join('') +
+                '</div>';
+        }
+
+        var stageResults = computeStageResults(events);
+        var modelLines = STAGE_ORDER
+            .filter(function (stage) { return stageResults[stage]; })
+            .map(function (stage) {
+                var r = stageResults[stage];
+                return esc(STAGE_LABEL[stage]) + ': ' + esc(r.model) + ' (attempt ' + r.attempt + ')';
+            });
+
+        if (modelLines.length) {
+            html += '<p class="scenario-progress-summary">' + modelLines.join(' · ') + '</p>';
+        } else if (s.model && !isBusy) {
+            // Cenarios gerados antes deste log de progresso existir - so tem o
+            // modelo agregado (chamada de adaptacao), sem o detalhe por etapa.
+            html += '<p class="scenario-progress-summary">Model: ' + esc(s.model) + '</p>';
+        }
+
+        if (s.ai_duration_s !== null && s.ai_duration_s !== undefined) {
+            var switches = (s.model_switches === null || s.model_switches === undefined) ? '—' : s.model_switches;
+            html += '<p class="scenario-progress-summary">' +
+                'Total time: ' + Number(s.ai_duration_s).toFixed(1) + 's' +
+                ' · Model switches: ' + switches +
+                '</p>';
+        }
+
+        if (!isBusy && events.length) {
+            html += '<details class="scenario-details"><summary>AI call log (' + events.length + ' event(s))</summary>' +
+                '<div class="scenario-progress scenario-progress-log">' +
+                events.map(function (e) {
+                    return '<div class="scenario-progress-line">' + formatProgressEvent(e) + '</div>';
+                }).join('') +
+                '</div></details>';
+        }
+
+        return html;
+    }
+
     // RF22/RNF05: log de origem - de onde veio o cenario e o historico de decisoes
     // do gestor sobre ele. Mesma tela da aprovacao (CLAUDE.md: nao precisa de
     // interface separada), so como uma secao retratil a mais no cartao.
@@ -111,6 +208,8 @@
             '</span>' +
             (s.guideline_title ? '<span class="scenario-guideline">Guideline: ' + esc(s.guideline_title) + '</span>' : '') +
             '</div>';
+
+        html += renderProgress(s);
 
         if (s.status === 'ERROR') {
             html += '<p class="scenario-error">Something went wrong generating this scenario. ' +
@@ -226,20 +325,32 @@
         });
     }
 
+    function isPending(data) {
+        return (data.scenarios || []).some(function (s) {
+            return s.status === 'PENDING' || s.status === 'RUNNING';
+        }) || data.collection.status === 'PENDING' || data.collection.status === 'RUNNING';
+    }
+
+    // So existe no card embutido em eval.html (scenario_status.html ja tem o
+    // mesmo aviso como texto estatico na propria pagina, entao o elemento nem
+    // existe la - o guard `if (!el) return` cobre isso). Some sozinho assim
+    // que a coleta/personalizacao terminar, sem depender de outra visita a
+    // pagina.
+    function renderTimingNotice(data) {
+        var el = document.getElementById('scenario-timing-notice');
+        if (!el) return;
+        el.hidden = !isPending(data);
+    }
+
     function render(data) {
         renderCollectionInfo(data.collection);
+        renderTimingNotice(data);
         renderStepper(data);
         (data.scenarios || []).forEach(function (s) {
             var panel = document.querySelector('.scenario-panel[data-task-id="' + s.task_id + '"]');
             if (!panel) return;
             panel.innerHTML = renderScenario(s);
         });
-    }
-
-    function isPending(data) {
-        return (data.scenarios || []).some(function (s) {
-            return s.status === 'PENDING' || s.status === 'RUNNING';
-        }) || data.collection.status === 'PENDING' || data.collection.status === 'RUNNING';
     }
 
     function load() {

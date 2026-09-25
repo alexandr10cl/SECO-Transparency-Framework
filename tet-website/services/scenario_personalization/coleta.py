@@ -40,6 +40,15 @@ class ConfigColeta:
     # Tempo maximo de espera por pagina (ms).
     timeout_ms: int = 20_000
 
+    # Teto de espera por "networkidle" (ms) - deliberadamente bem menor que
+    # timeout_ms: e so uma tentativa extra de deixar SPAs assentarem antes da
+    # extracao, nunca o sinal principal de pagina pronta (isso e
+    # domcontentloaded, em `page.goto`). Portais com analytics/chat/ads
+    # fazendo polling continuo nunca atingem "rede ociosa" de verdade, e sem
+    # este teto separado cada uma dessas paginas prendia a coleta pelo
+    # timeout_ms inteiro (ate 20s) so esperando por um sinal que nao ia vir.
+    timeout_networkidle_ms: int = 3_000
+
     # Espera adicional apos o load, para SPAs que renderizam em duas etapas.
     espera_render_ms: int = 1_500
 
@@ -168,7 +177,7 @@ def _visitar(page, url: str, cfg: ConfigColeta) -> tuple[PaginaBruta, dict]:
         page.goto(url, wait_until="domcontentloaded", timeout=cfg.timeout_ms)
         # SPAs costumam renderizar depois do domcontentloaded.
         try:
-            page.wait_for_load_state("networkidle", timeout=cfg.timeout_ms)
+            page.wait_for_load_state("networkidle", timeout=cfg.timeout_networkidle_ms)
         except PWTimeout:
             pass  # networkidle nem sempre chega em paginas com polling
         page.wait_for_timeout(cfg.espera_render_ms)

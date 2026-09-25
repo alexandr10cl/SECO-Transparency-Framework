@@ -51,9 +51,23 @@ class PersonalizedScenario(db.Model):
     tokens_total = db.Column(db.Integer, nullable=True)
     ai_duration_s = db.Column(db.Float, nullable=True)
 
+    # Resumo da cadeia de retry/fallback (services/ai/provider.py:call_ai) desta
+    # geracao: quantas vezes o modelo mudou ao todo (mapeamento + adaptacao) e em
+    # qual tentativa do modelo final a ULTIMA chamada que rodou teve sucesso.
+    model_switches = db.Column(db.Integer, nullable=True)
+    final_attempt = db.Column(db.Integer, nullable=True)
+
     error_message = db.Column(db.Text, nullable=True)
     started_at = db.Column(db.DateTime, nullable=True)
     generated_at = db.Column(db.DateTime, nullable=True)
+
+    # Log de progresso da chamada de IA em andamento (tentativas, trocas de
+    # modelo) - lista de eventos de `services/ai/provider.py:call_ai`, tageados
+    # por etapa (mapeamento/adaptacao) em `personalizacao.py`. Reiniciado a
+    # cada geracao (ver `_mark_scenario_running`, pipeline.py); a tela do
+    # gestor faz poll e mostra isso enquanto RUNNING, e um resumo (tempo
+    # total, modelo final, trocas, tentativa final) quando termina.
+    progress_log = db.Column(db.JSON, nullable=True)
 
     # Foreign keys
     evaluation_id = db.Column(db.BigInteger, db.ForeignKey('evaluation.evaluation_id'), nullable=False, index=True)

@@ -31,8 +31,14 @@ _RUIDO = {
     "twitter", "facebook", "instagram", "linkedin", "youtube", "github",
 }
 
-_LIMITE_TEXTO = 6_000  # corta textos muito longos por pagina
+_LIMITE_TEXTO = 3_000  # corta textos muito longos por pagina
 _MIN_TEXTO_PAGINA = 120  # abaixo disso, a pagina nao entra como coletada
+
+# Teto de recursos_mencionados: sem isso a lista cresce com o numero de
+# paginas (cada uma pode contribuir links novos), e vira a parte que mais
+# infla o prompt da chamada 1 (personalizacao.py) sem trazer informacao nova
+# depois de cobrir a navegacao principal do portal.
+_MAX_RECURSOS_MENCIONADOS = 150
 
 
 def _slug(texto: str) -> str:
@@ -127,7 +133,7 @@ def estruturar(coleta: ColetaBruta) -> dict:
             "lang": coleta.metadados.get("lang", ""),
             "sitemap_encontrado": coleta.sitemap_encontrado,
         },
-        "recursos_mencionados": recursos,
+        "recursos_mencionados": recursos[:_MAX_RECURSOS_MENCIONADOS],
         "modo_coleta": coleta.modo,
         "motivos_degradacao": coleta.motivos_degradacao,
         "timestamp_coleta": coleta.timestamp,

@@ -15,7 +15,7 @@ from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
     DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor,
     EvaluationCriterionWheight, CollectedData, PerformedTask, Answer,
-    Navigation, Task
+    Navigation, Task, PersonalizedScenario, StatusScenario
 )
 from services.heatmap_prefetch import schedule_heatmap_prefetch
 from services.score_service import compute_overall_score, parse_answer_to_fraction
@@ -118,12 +118,25 @@ def evaluations():
     token = get_gestor_token()
     prefetch_ids = [evaluation.evaluation_id for evaluation in evaluations[:5]]
     schedule_heatmap_prefetch(prefetch_ids, token)
-    
-    return render_template('evaluations.html', 
+
+    # Personalizacao de cenarios (RF18/RF21): so precisa saber QUAIS avaliacoes
+    # desta pagina tem pelo menos um cenario esperando aprovacao do gestor -
+    # uma unica query agregada, nao uma por avaliacao.
+    page_ids = [evaluation.evaluation_id for evaluation in evaluations]
+    evaluations_awaiting_scenario_approval = set()
+    if page_ids:
+        rows = db.session.query(PersonalizedScenario.evaluation_id).filter(
+            PersonalizedScenario.evaluation_id.in_(page_ids),
+            PersonalizedScenario.status == StatusScenario.AWAITING_APPROVAL,
+        ).distinct().all()
+        evaluations_awaiting_scenario_approval = {row[0] for row in rows}
+
+    return render_template('evaluations.html',
                          evaluations=evaluations,
                          pagination=pagination,
                          search_query=search_query,
-                         sort_by=sort_by)
+                         sort_by=sort_by,
+                         evaluations_awaiting_scenario_approval=evaluations_awaiting_scenario_approval)
 
 @app.route('/evaluations/create_evaluation', methods=['GET'])
 @login_required  # Fix #3: Protect evaluation creation from unauthenticated access

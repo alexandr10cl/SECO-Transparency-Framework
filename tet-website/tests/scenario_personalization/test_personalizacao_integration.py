@@ -69,12 +69,16 @@ def test_personalizar_roda_as_duas_chamadas_e_devolve_o_schema_esperado():
         dados_portal=DADOS_PORTAL,
     )
 
-    assert "etapas_personalizadas" in resultado
+    assert "persona_e_contexto" in resultado
+    assert "frase_objetivo" in resultado
+    assert "fechamento" in resultado
+    assert "conectivo_final" in resultado
+    assert "itens_objetivo" in resultado
     assert "etapas_omitidas" in resultado
-    assert isinstance(resultado["etapas_personalizadas"], list)
+    assert isinstance(resultado["itens_objetivo"], list)
 
-    for etapa in resultado["etapas_personalizadas"]:
-        assert set(etapa.keys()) == {"ordem", "texto", "recurso_real", "campo_fonte"}
+    for item in resultado["itens_objetivo"]:
+        assert set(item.keys()) == {"ordem", "texto", "recurso_real", "campo_fonte"}
 
     assert meta["provider"] == "gemini"
     assert meta["model"]

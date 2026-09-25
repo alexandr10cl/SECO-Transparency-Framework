@@ -1619,6 +1619,21 @@
     font-size: var(--text-xs);
 }
 
+/* Evaluation card notice: reuses .scenario-badge (same "awaiting approval"
+   look as the scenario approval screen) but as a standalone, clickable row
+   between card-header and card-content - only rendered when the evaluation
+   has a personalized scenario waiting on the manager. */
+.card-scenario-notice {
+    text-decoration: none;
+    margin-bottom: var(--space-4);
+    width: fit-content;
+    cursor: pointer;
+}
+
+.card-scenario-notice:hover {
+    filter: brightness(0.96);
+}
+
 .scenario-spinner {
     width: 9px;
     height: 9px;
@@ -1750,6 +1765,43 @@
     resize: vertical;
 }
 
+/* Aviso de tempo enquanto a coleta/personalizacao roda (eval.html - some
+   sozinho quando tudo terminar, ver renderTimingNotice em scenario_approval.js) */
+.scenario-timing-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    background-color: var(--color-primary-light);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.scenario-timing-icon {
+    flex-shrink: 0;
+}
+
+/* Variante de maior destaque: a tela dedicada (scenario_status.html) e a
+   propria razao da pagina existir, entao o aviso merece mais peso visual do
+   que a versao compacta dentro do card de eval.html - fundo/borda ambar
+   (mesma cor de "awaiting approval") em vez do azul neutro, fonte maior. */
+.scenario-timing-notice-lg {
+    background-color: var(--color-warning-light);
+    border: 1px solid var(--color-warning);
+    border-width: 1px 1px 1px 4px;
+    font-size: var(--text-base);
+    padding: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.scenario-timing-notice-lg .scenario-timing-icon {
+    font-size: var(--text-xl);
+}
+
 /* Collection-level info (once per evaluation, RF22 log de origem) */
 .collection-info {
     margin-bottom: var(--space-3);
@@ -1762,6 +1814,42 @@
 .scenario-meta-inline {
     color: var(--gray-500);
     font-size: var(--text-xs);
+}
+
+/* Progresso da chamada de IA ao vivo (tentativas, trocas de modelo) - ver
+   renderProgress em scenario_approval.js. */
+.scenario-progress {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.scenario-progress-line {
+    font-family: var(--font-mono, monospace);
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+    line-height: 1.6;
+    white-space: normal;
+}
+
+.scenario-progress-line:last-child {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.scenario-progress-summary {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+.scenario-progress-log {
+    max-height: 200px;
 }
 
 /* Origin log (Phase 5) - retratil dentro de cada cartao de cenario */

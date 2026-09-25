@@ -122,6 +122,7 @@ def _mark_scenario_running(evaluation_id: int, task_id: int, portal_collection_i
     scenario.status = StatusScenario.RUNNING
     scenario.started_at = datetime.utcnow()
     scenario.error_message = None
+    scenario.progress_log = []
     db.session.commit()
     return scenario
 
@@ -283,6 +284,36 @@ def _run_single_scenario(evaluation_id: int, task_id: int, model: Optional[str])
             _fail_scenario(evaluation_id, task_id, exc)
 
 
+def _make_progress_logger(evaluation_id: int, task_id: int):
+    """Devolve um `on_progress` (contrato de `services/ai/provider.py:call_ai`)
+    que persiste cada evento (tentativa, troca de modelo) na linha do
+    cenario, pra tela do gestor (scenario_approval.js) mostrar via polling
+    enquanto a geracao ainda esta rodando - sem isso ela so saberia RUNNING,
+    sem nenhuma pista de quanto falta ou por que esta demorando.
+
+    Roda SINCRONO, na mesma thread/app_context de `_generate_scenario`, cada
+    vez que `call_ai` tenta ou troca de modelo - e por isso que e so um
+    commit pequeno por evento, nao uma query cara: o proximo poll da tela so
+    ve o evento se ele estiver no banco antes dele chegar.
+    """
+    def _on_progress(event: Dict[str, Any]) -> None:
+        try:
+            scenario = _get_scenario(evaluation_id, task_id)
+            if scenario is None:
+                return
+            entry = {**event, "at": datetime.utcnow().isoformat() + "Z"}
+            scenario.progress_log = (scenario.progress_log or []) + [entry]
+            db.session.commit()
+        except Exception:  # noqa: BLE001 - log de progresso nunca pode derrubar a geracao
+            db.session.rollback()
+            app.logger.exception(
+                "scenario-personalization: falha ao gravar progresso (avaliacao %s, task %s)",
+                evaluation_id, task_id,
+            )
+
+    return _on_progress
+
+
 def _generate_scenario(evaluation_id: int, task_id: int, model: Optional[str]) -> None:
     """Modulos 3-4 (personalizacao + validacao) de UMA task e persistencia.
 
@@ -306,12 +337,15 @@ def _generate_scenario(evaluation_id: int, task_id: int, model: Optional[str]) -
     cenario_base = personalizacao.CenarioBase(titulo=task.title, descricao=task.description)
     diretriz = serialize_guideline(guideline)
 
+    on_progress = _make_progress_logger(evaluation_id, task_id)
+
     resultado_modulo3, meta = personalizacao.personalizar(
         cenario_base=cenario_base,
         diretriz=diretriz,
         descricao_gestor=evaluation.seco_portal_description or "",
         dados_portal=collection.dados_portal,
         model=model,
+        on_progress=on_progress,
     )
     resultado_final = validacao.montar_resultado_validado(resultado_modulo3, collection.dados_portal)
 
@@ -329,6 +363,8 @@ def _generate_scenario(evaluation_id: int, task_id: int, model: Optional[str]) -
     scenario.model = meta.get("model")
     scenario.tokens_total = meta.get("tokens_total")
     scenario.ai_duration_s = meta.get("ai_duration_s")
+    scenario.model_switches = meta.get("model_switches")
+    scenario.final_attempt = meta.get("final_attempt")
     scenario.error_message = None
     scenario.generated_at = datetime.utcnow()
     db.session.commit()

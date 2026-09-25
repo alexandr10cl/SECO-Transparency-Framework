@@ -139,7 +139,14 @@
                                     <span class="dashboard-icon">📊</span>
                                 </a>
                             </div>
-                            
+
+                            {% if e.evaluation_id in evaluations_awaiting_scenario_approval %}
+                            <a href="{{ url_for('evaluation', id=e.evaluation_id) }}" class="scenario-badge scenario-badge-review card-scenario-notice" title="A personalized scenario is waiting for your approval">
+                                <span>⏳</span>
+                                <span>Scenario awaiting approval</span>
+                            </a>
+                            {% endif %}
+
                             <div class="card-content">
                                 <div class="info-item">
                                     <label class="info-label">Portal</label>
