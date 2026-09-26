@@ -89,8 +89,13 @@ def generate(
     schema: type[BaseModel],
     model: str,
     images: Optional[List[Tuple[str, bytes, str]]] = None,
+    temperature: float = 0,
 ) -> Tuple[BaseModel, Dict[str, Any]]:
-    """Uma tentativa contra a API da OpenAI. Ver o contrato em `providers/base.py`."""
+    """Uma tentativa contra a API da OpenAI. Ver o contrato em `providers/base.py`.
+
+    `temperature` e aceito para cumprir o contrato (base.py) e ignorado: a familia GPT-6
+    rejeita o parametro com raciocinio ligado (ver docstring do modulo).
+    """
     import openai
     from openai import OpenAI
 

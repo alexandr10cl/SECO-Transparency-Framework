@@ -225,7 +225,6 @@ def call_ai(
             })
         previous_candidate = candidate
 
-    for candidate in chain:
         provider = provider_for(candidate)
         _warn_if_cross_provider(candidate, provider)
         entry = _PROVIDERS.get(provider)
@@ -246,7 +245,8 @@ def call_ai(
             })
             try:
                 parsed, meta = entry.generate(
-                    system_instruction, prompt, schema, candidate, images=images
+                    system_instruction, prompt, schema, candidate,
+                    images=images, temperature=temperature,
                 )
             except AIProviderError as exc:
                 last_error = exc
