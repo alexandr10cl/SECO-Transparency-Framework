@@ -14,7 +14,14 @@ from models.enums import (
 from services.heatmap_cache import clear_cache_entry
 from flask_cors import CORS
 
-CORS(app)
+# Scoped to the three routes the Chrome extension calls (popup.js), instead of the
+# whole app - CORS(app) was also answering for /admin/* and /auth. origins stays "*"
+# because an extension's origin is chrome-extension://<id>, which differs per install.
+CORS(app, resources={
+    r"/auth_evaluation": {"origins": "*"},
+    r"/load_tasks": {"origins": "*"},
+    r"/submit_tasks": {"origins": "*"},
+})
 
 
 def _ready_for_evaluators(evaluation: Evaluation) -> bool:

@@ -154,6 +154,48 @@ function initTaskAccordions() {
 const pathParts = window.location.pathname.split('/')
 const id = pathParts[pathParts.length - 1];
 
+//função para filtrar por experiência do desenvolvedor
+async function filterByExperience() {
+  const select = document.getElementById('experienceFilter');
+  if (!select) return;
+
+  const value = select.value;
+  const url = new URL(window.location.href);
+
+  if (value === 'all') {
+    url.searchParams.delete('experience');
+  } else {
+    url.searchParams.set('experience', value);//muda a url de acordo com o filtro selecionado
+  }
+
+  //busca a MESMA rota que a página já usa, só que via fetch em vez de navegar
+  const answer = await fetch(url);
+  const html = await answer.text();
+
+  //o fetch devolve o HTML completo da página como texto puro.
+  //DOMParser transforma esse texto numa "página fantasma" que dá pra
+  //consultar com getElementById, sem ela nunca aparecer na tela.
+  const novoDoc = new DOMParser().parseFromString(html, 'text/html');
+
+  //troca só os 3 pedaços que realmente dependem do filtro mas o resto da página (menu, dropdown, gráficos, abas) se mantém
+  const idsToAtt = ['header-stats', 'filterable-dimensions', 'filterable-scenarios', 'filterable-comments'];
+  idsToAtt.forEach((elId) => {
+    const atual = document.getElementById(elId);
+    const novo = novoDoc.getElementById(elId);
+    if (atual && novo) {
+      atual.innerHTML = novo.innerHTML;
+    }
+  });
+
+  //atualiza a URL na barra do navegador sem recarregar a página, assim dá pra copiar o link ou dar F5 mantendo o filtro.
+  history.pushState({}, '', url);
+
+  //innerHTML apaga os elementos antigos e cria elementos novos do zero, então precisamos reativar os accordions e os rows expansíveis
+  window.initExpandableRows();
+  initGuidelinesAccordion();
+  initTaskAccordions();
+}
+
 // Modern Pie Chart Configuration for Developer Emotions
 const pieChartConfig = {
   responsive: true,
@@ -302,92 +344,93 @@ function getChartHeight() {
 }
 
 // Modern Chart.js configuration shared by all charts
+const PROFILE_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+// Serie unica nos tres graficos de perfil: uma cor so, a mesma nos tres.
+const PROFILE_BAR_COLOR = '#2563eb';
+
+// Escreve a contagem na ponta da barra, para nenhum valor depender de hover.
+const barValueLabels = {
+  id: 'barValueLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    const values = chart.data.datasets[0].data;
+    ctx.save();
+    ctx.font = `600 12px ${PROFILE_FONT}`;
+    ctx.fillStyle = '#404040';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    chart.getDatasetMeta(0).data.forEach((bar, i) => {
+      ctx.fillText(String(values[i] ?? 0), bar.x + 8, bar.y);
+    });
+    ctx.restore();
+  }
+};
+
 const modernChartConfig = {
+  indexAxis: 'y',
   responsive: true,
   maintainAspectRatio: false,
   animation: {
-    duration: 1000,
+    duration: 600,
     easing: 'easeOutQuart'
   },
-  onResize: function(chart, size) {
-    // Adjust chart height on resize
-    if (size.width < 480) {
-      chart.canvas.parentElement.style.height = '220px';
-    } else if (size.width < 768) {
-      chart.canvas.parentElement.style.height = '250px';
-    } else if (size.width < 1024) {
-      chart.canvas.parentElement.style.height = '280px';
-    } else {
-      chart.canvas.parentElement.style.height = '300px';
-    }
+  // folga a direita para o rotulo da ponta caber sem ser cortado
+  layout: {
+    padding: { right: 32, left: 2, top: 2, bottom: 2 }
   },
   plugins: {
+    // serie unica nao leva legenda: a legenda do card ja diz o que esta sendo contado
     legend: {
-      display: true,
-      position: 'top',
-      labels: {
-        usePointStyle: true,
-        padding: window.innerWidth < 480 ? 10 : 15,
-        font: {
-          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          size: window.innerWidth < 480 ? 11 : window.innerWidth < 768 ? 12 : 13,
-          weight: '500'
-        },
-        color: '#404040'
-      }
+      display: false
     },
     tooltip: {
       backgroundColor: 'rgba(0, 0, 0, 0.85)',
-      padding: window.innerWidth < 480 ? 8 : 12,
-      titleFont: {
-        size: window.innerWidth < 480 ? 12 : 14,
-        weight: '600'
-      },
-      bodyFont: {
-        size: window.innerWidth < 480 ? 11 : 13
-      },
+      padding: 10,
+      titleFont: { size: 13, weight: '600' },
+      bodyFont: { size: 12 },
       cornerRadius: 8,
-      displayColors: true,
+      displayColors: false,
       callbacks: {
         label: function(context) {
-          return `${context.dataset.label}: ${context.parsed.y} developer${context.parsed.y !== 1 ? 's' : ''}`;
+          const v = context.parsed.x;
+          return `${v} developer${v !== 1 ? 's' : ''}`;
         }
       }
     }
   },
   scales: {
+    // eixo de valor: as contagens ja aparecem na ponta das barras
     x: {
-      grid: {
-        display: false
-      },
-      ticks: {
-        font: {
-          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          size: window.innerWidth < 480 ? 10 : window.innerWidth < 768 ? 11 : 12
-        },
-        color: '#737373',
-        padding: window.innerWidth < 480 ? 6 : 10,
-        maxRotation: window.innerWidth < 480 ? 45 : 0,
-        minRotation: window.innerWidth < 480 ? 45 : 0
-      }
-    },
-    y: {
       beginAtZero: true,
-      grid: {
-        color: 'rgba(0, 0, 0, 0.05)',
-        drawBorder: false
-      },
+      border: { display: false },
+      grid: { display: false },
+      ticks: { display: false }
+    },
+    // eixo de categoria
+    y: {
+      border: { display: false },
+      grid: { display: false },
       ticks: {
-        font: {
-          family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          size: window.innerWidth < 480 ? 10 : window.innerWidth < 768 ? 11 : 12
-        },
-        color: '#737373',
-        padding: window.innerWidth < 480 ? 6 : 10,
-        stepSize: 1
+        font: { family: PROFILE_FONT, size: 12 },
+        color: '#525252',
+        padding: 6,
+        crossAlign: 'near'
       }
     }
   }
+};
+
+// Barra fina, ponta arredondada so no extremo do valor; a base fica reta na linha zero.
+const profileBarStyle = {
+  backgroundColor: PROFILE_BAR_COLOR,
+  borderWidth: 0,
+  // raio zerado quando a contagem e 0: com raio a barra vazia ainda desenha uma lasca,
+  // que se le como "tem um pouco" em vez de "nao tem ninguem"
+  borderRadius: (ctx) => (Number(ctx.raw) > 0 ? 4 : 0),
+  borderSkipped: 'start',
+  barThickness: 18,
+  maxBarThickness: 22
 };
 
 // Gráfico de barras - Anos de experiência (Modern Professional Design)
@@ -401,12 +444,8 @@ fetch(`/api/experience-data/${id}`)
           labels: ['0-1 year', '2-3 years', '4-5 years', '6-10 years', '10+ years'],
           datasets: [{
             label: 'Number of developers',
-          data: data.values,
-          backgroundColor: 'rgba(37, 99, 235, 0.85)', // Modern blue
-          borderColor: 'rgba(37, 99, 235, 1)',
-          borderWidth: 0,
-          borderRadius: 8,
-          borderSkipped: false
+            data: data.values,
+            ...profileBarStyle
           }]
         },
         options: {
@@ -417,7 +456,8 @@ fetch(`/api/experience-data/${id}`)
             display: false // Remove default title, use HTML heading instead
             }
           }
-        }
+        },
+        plugins: [barValueLabels]
     });
     chartInstances.experience = experienceChart;
   })
@@ -436,11 +476,7 @@ fetch(`/api/grau-academico/${id}`)
           datasets: [{
             label: 'Number of developers',
             data: data.values,
-          backgroundColor: 'rgba(139, 92, 246, 0.85)', // Modern purple
-          borderColor: 'rgba(139, 92, 246, 1)',
-          borderWidth: 0,
-          borderRadius: 8,
-          borderSkipped: false
+            ...profileBarStyle
           }]
         },
         options: {
@@ -451,7 +487,8 @@ fetch(`/api/grau-academico/${id}`)
             display: false
             }
           }
-        }
+        },
+        plugins: [barValueLabels]
     });
     chartInstances.education = educationChart;
   })
@@ -468,21 +505,8 @@ fetch(`/api/portal-familiarity/${id}`)
           datasets: [{
             label: 'Number of developers',
             data: data.values,
-            backgroundColor: [
-            'rgba(239, 68, 68, 0.85)',   // Red - Never
-            'rgba(245, 158, 11, 0.85)',  // Orange - Rarely
-            'rgba(59, 130, 246, 0.85)',  // Blue - Often
-            'rgba(34, 197, 94, 0.85)'    // Green - Always
-            ],
-            borderColor: [
-              'rgba(239, 68, 68, 1)',
-              'rgba(245, 158, 11, 1)',
-              'rgba(59, 130, 246, 1)',
-              'rgba(34, 197, 94, 1)'
-            ],
-          borderWidth: 0,
-          borderRadius: 8,
-          borderSkipped: false
+            // mesma cor das outras: frequencia de uso e perfil do participante, nao nota
+            ...profileBarStyle
           }]
         },
         options: {
@@ -493,7 +517,8 @@ fetch(`/api/portal-familiarity/${id}`)
             display: false
             }
           }
-        }
+        },
+        plugins: [barValueLabels]
     });
     chartInstances.familiarity = familiarityChart;
   })

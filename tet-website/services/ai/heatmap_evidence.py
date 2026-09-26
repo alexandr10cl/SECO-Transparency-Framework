@@ -186,7 +186,11 @@ def _apply_budget(
         if image is None:
             meta["dropped"]["bad_image"] += 1
             continue
-        with_image.append(_normalize(raw, image, sessions, grid))
+        mime = _sniff_mime(image, raw.get("mime"))
+        if mime is None:
+            meta["dropped"]["bad_image"] += 1
+            continue
+        with_image.append(_normalize(raw, image, mime, sessions, grid))
 
     if not with_image:
         raise _Unavailable("no_images")
@@ -215,6 +219,7 @@ def _apply_budget(
 def _normalize(
     raw: Dict[str, Any],
     image: bytes,
+    mime: str,
     sessions: int,
     grid: str,
 ) -> Dict[str, Any]:
@@ -228,7 +233,7 @@ def _normalize(
         "scenarios": _scenarios(raw),
         "hotspots": _hotspots(raw),
         "image": image,
-        "mime": raw.get("mime") or "image/jpeg",
+        "mime": mime,  # ja sniffado por assinatura em _apply_budget, nunca o rotulo cru
     }
 
 
@@ -287,6 +292,36 @@ def _decode(encoded: str) -> Optional[bytes]:
         return base64.b64decode(encoded)
     except (binascii.Error, ValueError, TypeError):
         return None
+
+
+# Formatos que os dois providers aceitam como imagem inline (gif exclui o animado, que
+# nenhum dos dois suporta — mas identificar isso exigiria decodificar o GIF inteiro, e o
+# risco pratico aqui e zero: a UXT so produz PNG/JPEG a partir de canvas renderizado).
+ALLOWED_MIMES = frozenset({"image/png", "image/jpeg", "image/webp", "image/gif"})
+
+# Assinaturas de magic bytes -> mime real. A UXT declara o mime como string livre e sem
+# validacao; sniff por assinatura evita confiar nele.
+_MAGIC_BYTES: Tuple[Tuple[bytes, str], ...] = (
+    (b"\x89PNG\r\n\x1a\n", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"GIF87a", "image/gif"),
+    (b"GIF89a", "image/gif"),
+    (b"RIFF", "image/webp"),  # WEBP tem "WEBP" nos bytes 8-12; RIFF sozinho basta aqui
+)
+
+
+def _sniff_mime(image: bytes, declared: Optional[str]) -> Optional[str]:
+    """Mime real por assinatura; cai no rotulo declarado so se ele estiver na allow-list.
+
+    `None` quando nao da para confiar no mime de jeito nenhum — o chamador descarta a
+    pagina como `bad_image`, o mesmo destino de um base64 que nao decodifica.
+    """
+    for signature, mime in _MAGIC_BYTES:
+        if image.startswith(signature):
+            return mime
+    if declared in ALLOWED_MIMES:
+        return declared
+    return None
 
 
 def _detail(exc: Exception) -> str:

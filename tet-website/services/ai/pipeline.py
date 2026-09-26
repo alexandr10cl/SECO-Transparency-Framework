@@ -282,6 +282,7 @@ def _analyze(
     except AIProviderError:
         # Um 400 INVALID_ARGUMENT (imagem grande demais, mime errado) nao e retryable: a
         # cadeia so avancaria de modelo, que receberia as mesmas imagens e falharia igual,
+        # entao o unico jeito de recuperar e tirar as imagens da jogada.
         if not image_parts:
             raise
         app.logger.warning(
@@ -289,8 +290,11 @@ def _analyze(
             "repetindo a etapa 1 texto-so.", evaluation_id,
         )
         heatmap_meta["fallback_text_only"] = True
+        # Rebuild SEM heatmap_pages: `context["prompt"]` ainda cita [HM-n] e imagens que
+        # nao serao mais enviadas.
+        text_only_prompt = build_context(evaluation_id)["prompt"]
         findings_raw, meta1 = call_ai(
-            analyzer.SYSTEM_FINDINGS, context["prompt"], analyzer.FindingsResponse,
+            analyzer.SYSTEM_FINDINGS, text_only_prompt, analyzer.FindingsResponse,
             model=model,
         )
 

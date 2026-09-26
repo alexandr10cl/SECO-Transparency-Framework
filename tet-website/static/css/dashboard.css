@@ -98,6 +98,9 @@ body {
     border: 1px solid hsl(var(--border));
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
     */
+    /* teto de largura: sem ele o conteudo acompanha a viewport e esparrama em tela larga.
+       o 96vw garante folga lateral tambem nas telas menores que o teto. */
+    max-width: min(1800px, 96vw);
     margin: 20px auto;
     transition: all 0.3s ease;
     overflow-y: auto;
@@ -163,6 +166,7 @@ body {
 .eval-objective {
     border-left: 2px solid #2563eb;
     padding-left: 16px;
+    margin-left: 20px;
 }
 
 /* Rotulo utilitario: identifica o campo, nunca compete com o valor. */
@@ -192,7 +196,7 @@ body {
     color: hsl(var(--muted-foreground));
     border-radius: 10px;
     padding: 8px 16px;
-    margin-top: 20px;
+    margin: 20px auto 0;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
     width: 100%;
     max-width: 780px;
@@ -228,11 +232,19 @@ body {
 }
 
 .overview-container,
-  .evaluated-scenarios-container,
-  .developer-journey-container,
-  .hotspots-container {
+.evaluated-scenarios-container,
+.developer-journey-container,
+.hotspots-container {
     display: none;
-  }
+}
+
+.hotspots-header h2 {
+    margin-bottom: 10px;
+}
+
+.hotspots-header > p:first-of-type {
+    margin-top: 0;
+}
 
 .active-container {
     display: block;
@@ -543,10 +555,11 @@ body {
     line-height: 1.6;
 }
 
+/* tres graficos do mesmo tipo, tres colunas iguais: nenhum deles e mais importante */
 .profilecharts {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 32px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
     margin-top: 24px;
     margin-bottom: 24px;
 }
@@ -564,18 +577,9 @@ body {
     transform: translateY(-2px);
 }
 
-.profilecharts .familiarity {
-    grid-column: 1 / -1;
-    max-width: 700px;
-    margin: 0 auto;
-    width: 100%;
-}
-
 /* Chart containers */
 .profilecharts canvas {
-    max-height: 300px !important;
     width: 100% !important;
-    height: auto !important;
 }
 
 /* Empty state styling */
@@ -750,14 +754,6 @@ body {
 }
 
 
-.dimensions{
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 50px;
-}
 
 .subWrite{
     color: gray;
@@ -765,29 +761,8 @@ body {
     font-size: 14px;
 }
 
-.score{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    width: 32.5%;
-}
 
-.score h4{
-    font-size: 17px;
-    font-weight: 500;
-    margin-bottom: 10px;
-    width: 100%;
-}
 
-.score p{
-    width: 100%;
-    font-size: 30px;
-    font-weight: 700;
-}
 
 .view-guidelines{
     text-align: center;
@@ -813,32 +788,8 @@ body {
     background-color: rgb(0, 102, 255)
 }
 
-.overall_score{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background-color: var(--card);
-    margin-top: 20px;
-    margin-bottom: 75px;
-}
 
-.overall{
-    transform: scale(1.5);
-    background-color: var(--card);
-    max-width: 500px;
-}
 
-.dx_categorys{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 50px;
-    gap: 15px
-}
 
 .aside{
     display: flex;
@@ -956,61 +907,19 @@ body {
     }
 }
 
-.d1 .percentage-bar div{
-    background-color: rgb(117, 0, 0);
-}
 
-.d1 a{
-    background-color: rgb(117, 0, 0);
-}
 
-.d2 .percentage-bar div{
-    background-color: green;
-}
 
-.d2 a{
-    background-color: green;
-}
 
-.d3 .percentage-bar div{
-    background-color: rgb(121, 121, 1);
-}
 
-.d3 a{
-    background-color: rgb(121, 121, 1);
-}
 
-.c1 .percentage-bar div{
-    background-color: purple;
-}
 
-.c1 a{
-    background-color: purple;
-}
 
-.c2 .percentage-bar div{
-    background-color: rgb(1, 122, 122);
-}
 
-.c2 a{
-    background-color: rgb(1, 122, 122);
-}
 
-.c3 .percentage-bar div{
-    background-color: orange;
-}
 
-.c3 a{
-    background-color: orange;
-}
 
-.c4 .percentage-bar div{
-    background-color: crimson;
-}
 
-.c4 a{
-    background-color: crimson;
-}
 
 .process{
     max-width: 300px;
@@ -1451,9 +1360,6 @@ body {
 
 @media (max-width: 768px) {
   .dashboard-container { padding: 16px; }
-  .dimensions, .dx_categorys { flex-direction: column; gap: 12px; }
-  .score { width: 100%; }
-  .overall { transform: none; max-width: 100%; }
   .profilecharts { 
     grid-template-columns: 1fr; 
     gap: 20px; 
@@ -2634,7 +2540,7 @@ body {
 .scenarios-content {
     padding: 24px;
     overflow-y: auto;
-    max-height: 800px;
+    
 }
 
 /* Responsive adjustments for Evaluated Scenarios tab */
@@ -2957,7 +2863,7 @@ body {
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
     line-height: 1.2;
     max-width: 100%;
     box-sizing: border-box;
@@ -3189,6 +3095,13 @@ body {
 }
 
 /* KSC Table */
+
+/* em tela pequena a tabela pode rolar sem quebrar as colunas */
+.ksc-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
 .ksc-explanation {
     font-size: 0.75rem;
     color: hsl(var(--muted-foreground));
@@ -3206,6 +3119,7 @@ body {
     overflow: hidden;
     margin-top: 0.5rem;
     table-layout: fixed;
+    min-width: 750px;
 }
 
 .ksc-table thead {
@@ -3223,9 +3137,24 @@ body {
 
 .ksc-table th:nth-child(1) { width: 25%; } /* Criterion */
 .ksc-table th:nth-child(2) { width: 15%; } /* Score */
-.ksc-table th:nth-child(3) { width: 12%; } /* Weight */
-.ksc-table th:nth-child(4) { width: 18%; } /* Status */
-.ksc-table th:nth-child(5) { width: 30%; } /* Insight */
+.ksc-table th:nth-child(3) { width: 10%; } /* Weight */
+.ksc-table th:nth-child(4) { width: 22%; } /* Status */
+.ksc-table th:nth-child(5) { width: 28%; } /* Insight */
+
+/* centraliza score e weight nas respectivas colunas */
+.ksc-table th:nth-child(2),
+.ksc-table td:nth-child(2),
+.ksc-table th:nth-child(3),
+.ksc-table td:nth-child(3) {
+    text-align: center;
+}
+
+/* evita o texto do status sair do badge */
+.ksc-table td:nth-child(4) {
+    white-space: nowrap;
+}
+
+
 
 .ksc-table td {
     padding: 1rem 0.875rem;
@@ -3255,6 +3184,14 @@ body {
 
 .ksc-table tbody tr:hover {
     background-color: rgba(59, 130, 246, 0.02);
+}
+
+/* evita o estilo de ksc-score dos cards afetar a celula da tabela */
+.ksc-table td.ksc-score {
+    display: table-cell;
+    margin-top: 0;
+    white-space: nowrap;
+    vertical-align: middle;
 }
 
 .ksc-name {
@@ -5051,5 +4988,390 @@ body {
 
     .journey-detail {
         max-height: none;
+    }
+}
+
+/* Dimensions and DX Categories table */
+/* tabela nova que junta as dimensoes SECO e as categorias DX */
+.dimensions-table-section {
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.dimensions-table-subtitle {
+    margin: 4px 0 16px;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
+}
+
+.dimensions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/*==========================FILTRO DE EXP=============================*/
+.objective-and-filter-wrapper{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+.experience-filter-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: hsl(var(--muted));
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid hsl(var(--border));
+    width: fit-content;
+}
+
+.experience-filter-wrapper label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    /* sem isso o rotulo quebra em tres linhas e estica a caixa inteira */
+    white-space: nowrap;
+}
+
+/* !important para vencer o .material-symbols-outlined global, que fixa 50px */
+.experience-filter-icon,
+.experience-filter-help .material-symbols-outlined {
+    font-size: 18px !important;
+    line-height: 1;
+    color: hsl(var(--muted-foreground)) !important;
+}
+
+.experience-filter-help {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: -4px;
+    cursor: help;
+    border-radius: 50%;
+}
+
+.experience-filter-help:hover .material-symbols-outlined,
+.experience-filter-help:focus-visible .material-symbols-outlined {
+    color: #2563eb;
+}
+
+/* balao some do fluxo ate ser chamado, entao nao empurra o dropdown */
+.experience-filter-tip {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    width: 300px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background-color: hsl(var(--foreground));
+    color: hsl(var(--card));
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.5;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease;
+}
+
+.experience-filter-help:hover .experience-filter-tip,
+.experience-filter-help:focus-visible .experience-filter-tip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* seta apontando para o icone */
+.experience-filter-tip::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: hsl(var(--foreground));
+}
+
+/* em tela estreita o balao encosta na borda direita se ficar centrado no icone */
+@media (max-width: 700px) {
+    .experience-filter-tip {
+        left: auto;
+        right: -12px;
+        transform: none;
+        width: min(280px, calc(100vw - 48px));
+    }
+
+    .experience-filter-tip::before {
+        left: auto;
+        right: 14px;
+        transform: none;
+    }
+}
+
+.experience-dropdown {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.experience-dropdown:focus {
+    border-color: #2563eb;
+}
+
+/*===================================================================*/
+
+.dimensions-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.dimensions-table td {
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.dimensions-table td:first-child {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.dimensions-table td:nth-child(2) {
+    font-weight: 600;
+}
+
+.table-score {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.table-score-bar {
+    width: 85px;
+    height: 6px;
+    background-color: hsl(var(--muted));
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.table-score-fill {
+    height: 100%;
+    background-color: #2563eb;
+    border-radius: 999px;
+}
+
+.procedure-badge {
+    display: inline-block;
+    padding: 3px 7px;
+    margin: 2px;
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.expandable-row {
+    cursor: pointer;
+}
+
+.expandable-row:hover {
+    background-color: hsl(var(--muted) / 0.4);
+}
+
+.expandable-name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.expand-chevron {
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.expandable-row[aria-expanded="true"] .expand-chevron {
+    transform: rotate(180deg);
+}
+
+/* linha que abre quando clica na dimensao/categoria */
+.participant-details-row td {
+    padding: 8px 12px 12px;
+    background-color: transparent;
+}
+
+.participant-label {
+    font-size: 0.85rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.participant-score {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.participant-score-value {
+    min-width: 28px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.participant-score-bar {
+    width: 100px;
+    height: 6px;
+    background-color: white;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.participant-score-fill {
+    height: 100%;
+    background-color: #2563eb;
+    border-radius: 999px;
+}
+
+.participant-scores-container {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 52px;
+
+    background-color: hsl(var(--muted));
+    border-radius: 10px;
+}
+
+.participant-score-item {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 6px 0;
+}
+
+.scenarios-empty-state {
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.scenarios-empty-state .material-symbols-outlined {
+    font-size: 48px !important;
+    margin-bottom: 16px;
+}
+
+.scenarios-empty-state h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+.scenarios-empty-state p {
+    margin: 0;
+    color: #737373;
+    font-size: 14px;
+}
+
+/* evita a tabela ficar toda espremida em tela menor */
+.dimensions-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dimensions-table {
+    min-width: 750px;
+}
+
+/* quebra os cards antes deles começarem a ficar apertados */
+@media (max-width: 1100px) {
+    .evaluation-info {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .evaluation-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* card de cada grafico */
+.profilecharts > div {
+    display: flex;
+    flex-direction: column;
+    height: auto !important;
+    min-height: 0;
+    padding: 20px !important;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/* conteudo do grafico */
+.chart-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Barra horizontal de 18px: a altura e o numero de categorias que mandam, nao um valor
+   de tela cheia. 150px acomoda as 5 faixas de experiencia, o maior dos tres. */
+.chart-content canvas {
+    display: block;
+    width: 100% !important;
+    height: 150px !important;
+    max-height: 150px !important;
+}
+
+/* legenda do grafico */
+.chart-content .chart-legend {
+    display: block;
+    width: 100%;
+    margin: 14px 0 0 0 !important;
+    padding: 0;
+    position: static !important;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #525252;
+    box-sizing: border-box;
+}
+
+/* abaixo de 1024px os tres nao cabem lado a lado sem espremer os rotulos */
+@media (max-width: 1024px) {
+    .profilecharts {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .profilecharts > div {
+        padding: 16px !important;
+    }
+
+    .chart-content canvas {
+        height: 160px !important;
+        max-height: 160px !important;
     }
 }

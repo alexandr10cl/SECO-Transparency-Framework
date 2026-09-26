@@ -50,8 +50,11 @@ UXT_INTEGRATION = _env_bool("UXT_INTEGRATION", True)
 AI_ANALYSIS = _env_bool("AI_ANALYSIS", False)
 AI_ALLOW_REGENERATE = _env_bool("AI_ALLOW_REGENERATE", False)
 
-# O teto e decisao de custo, nao formalidade: cada pagina custa uma imagem inteira, hoje
-# 1.120 tokens (ver MEDIA_RESOLUTION em services/ai/providers/gemini.py), entao 10 paginas
-# ~= 11k tokens. O que ele NAO custa e tempo de UX-Tracking: `fetch_pages` faz uma unica
-# chamada, que ja devolve todas as paginas, e o corte acontece depois, em memoria.
+# O teto e decisao de custo, nao formalidade: cada pagina custa uma imagem inteira. No
+# Gemini isso e fixo, hoje 1.120 tokens (MEDIA_RESOLUTION em services/ai/providers/
+# gemini.py), entao 10 paginas ~= 11k tokens; no OpenAI (IMAGE_DETAIL em
+# services/ai/providers/openai_provider.py) o custo varia com os pixels da captura, entao
+# esse numero nao se aplica ali. O que o teto NAO custa e tempo de UX-Tracking:
+# `fetch_pages` faz uma unica chamada, que ja devolve todas as paginas, e o corte
+# acontece depois, em memoria.
 AI_HEATMAP_MAX_PAGES = _env_int("AI_HEATMAP_MAX_PAGES", 10)

@@ -38,6 +38,10 @@ services:
       SERVER: db:3306
       DB_USER: seco_dev
       PASSW: seco_dev_123
+      # This compose file is development-only. FLASK_ENV defaults to production in
+      # index.py, which turns on SESSION_COOKIE_SECURE - and a secure cookie is never
+      # sent over http://localhost, so login would silently fail here.
+      FLASK_ENV: development
     depends_on:
       db:
         condition: service_healthy

@@ -10,9 +10,9 @@ let questions_page = document.getElementById("questionsPage");
 // API Configuration
 // Change isDevelopment to false for production deployment
 const CONFIG = {
-  isDevelopment: true, // Set to false for production
+  isDevelopment: false, // Set to false for production
   DEVELOPMENT_URL: "http://127.0.0.1:5000",
-  PRODUCTION_URL: "https://seco-tranp-website.vercel.app/", // deployed URL
+  PRODUCTION_URL: "https://seco-transparency-framework-production.up.railway.app", // deployed URL
   get API_BASE_URL() {
     return this.isDevelopment ? this.DEVELOPMENT_URL : this.PRODUCTION_URL;
   }
@@ -548,7 +548,7 @@ document.getElementById("syncButton").addEventListener("click", function () {
     overlay.style.display = 'none';
   }, 5000);
 
-  let uxt_mode = false; // Opção de fazer a avaliação com UX-Tracking o não
+  let uxt_mode = true; // Opção de fazer a avaliação com UX-Tracking o não
 
   if (uxt_mode) {
     fetch("https://uxt.liis.com.br/data/syncsession", {

@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import os
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Lock
 from typing import Any, Dict, Optional, Tuple
 
 DEFAULT_TTL_HOURS = 6
-MAX_CACHE_SIZE = 50  # Maximum number of cached evaluations (prevents unbounded memory growth)
+# Maximum number of cached evaluations (prevents unbounded memory growth). Each entry
+# holds one base64 JPEG per page of the evaluation, so the ceiling is in megabytes, not
+# entries - hence the env var, on a platform that bills RAM by usage.
+MAX_CACHE_SIZE = int(os.getenv("HEATMAP_CACHE_MAX", "8"))
 
 _CacheKey = Tuple[int, str]
 _CacheValue = Tuple[datetime, Dict[str, Any]]

@@ -19,6 +19,10 @@ class EmailService:
         self.smtp_port = int(os.getenv('SMTP_PORT', '587'))
         self.sender_email = os.getenv('SENDER_EMAIL')
         self.sender_password = os.getenv('SENDER_PASSWORD')
+        # Without a timeout the socket default is None (wait forever), and _send_email
+        # runs synchronously inside the signup request - a stalled SMTP server would
+        # hold a worker thread until the process restarts.
+        self.timeout = int(os.getenv('SMTP_TIMEOUT_S', '20'))
 
     def _send_email(self, to_email, subject, body):
         """
@@ -45,13 +49,13 @@ class EmailService:
 
             msg.attach(MIMEText(body, 'plain'))
 
-            # Send email
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port)
-            server.starttls()
-            server.login(self.sender_email, self.sender_password)
-            text = msg.as_string()
-            server.sendmail(self.sender_email, to_email, text)
-            server.quit()
+            # Send email. The context manager closes the socket on any exception -
+            # the previous explicit quit() was skipped whenever starttls, login or
+            # sendmail raised, leaking a connection per failed e-mail.
+            with smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=self.timeout) as server:
+                server.starttls()
+                server.login(self.sender_email, self.sender_password)
+                server.sendmail(self.sender_email, to_email, msg.as_string())
 
             print(f"Email sent successfully to {to_email}")
             return True

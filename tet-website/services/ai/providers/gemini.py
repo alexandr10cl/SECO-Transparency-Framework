@@ -9,12 +9,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 from pydantic import BaseModel
 
+from services.ai.providers import base
 from services.ai.providers.base import RETRYABLE_CODES, AIProviderError
-
-# Sem timeout uma chamada pode ficar pendurada indefinidamente num socket, segurando
-# uma das threads do executor ate o processo reiniciar — e o `status=RUNNING` no banco
-# so seria destravado pela guarda de execucao travada, sem ninguem trabalhando.
-DEFAULT_TIMEOUT_S = 180
 
 # Quantos tokens o modelo gasta olhando CADA imagem. Tabela do Gemini 3, por imagem:
 #
@@ -23,11 +19,9 @@ MEDIA_RESOLUTION = "MEDIA_RESOLUTION_HIGH"
 
 
 def _timeout_ms() -> int:
-    try:
-        seconds = float(os.getenv("AI_TIMEOUT_S") or DEFAULT_TIMEOUT_S)
-    except ValueError:
-        seconds = DEFAULT_TIMEOUT_S
-    return int(seconds * 1000)  # HttpOptions.timeout e em milissegundos
+    # `base.timeout_seconds()` e a leitura agnostica de AI_TIMEOUT_S, sempre em segundos;
+    # so aqui ela vira milissegundos, porque e o que `HttpOptions.timeout` espera.
+    return int(base.timeout_seconds() * 1000)
 
 
 def _build_contents(prompt: str, images, types):
