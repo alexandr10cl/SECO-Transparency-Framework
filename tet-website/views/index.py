@@ -15,11 +15,12 @@ from models import (
     User, Admin, SECO_MANAGER, Evaluation, SECO_process, Question,
     DeveloperQuestionnaire, SECO_dimension, SECOType, Guideline, DX_factor,
     EvaluationCriterionWheight, CollectedData, PerformedTask, Answer,
-    Navigation, Task
+    Navigation, Task, PersonalizedScenario, StatusScenario
 )
 from services.heatmap_prefetch import schedule_heatmap_prefetch
 from services.score_service import compute_overall_score, parse_answer_to_fraction
 from services.uxt_service import get_gestor_token, generate_evaluation_code
+from services.scenario_personalization.pipeline import schedule_evaluation as schedule_scenario_personalization
 
 # PERFORMANCE: Cache for static/rarely-changing data
 @lru_cache(maxsize=1)
@@ -117,12 +118,25 @@ def evaluations():
     token = get_gestor_token()
     prefetch_ids = [evaluation.evaluation_id for evaluation in evaluations[:5]]
     schedule_heatmap_prefetch(prefetch_ids, token)
-    
-    return render_template('evaluations.html', 
+
+    # Personalizacao de cenarios (RF18/RF21): so precisa saber QUAIS avaliacoes
+    # desta pagina tem pelo menos um cenario esperando aprovacao do gestor -
+    # uma unica query agregada, nao uma por avaliacao.
+    page_ids = [evaluation.evaluation_id for evaluation in evaluations]
+    evaluations_awaiting_scenario_approval = set()
+    if page_ids:
+        rows = db.session.query(PersonalizedScenario.evaluation_id).filter(
+            PersonalizedScenario.evaluation_id.in_(page_ids),
+            PersonalizedScenario.status == StatusScenario.AWAITING_APPROVAL,
+        ).distinct().all()
+        evaluations_awaiting_scenario_approval = {row[0] for row in rows}
+
+    return render_template('evaluations.html',
                          evaluations=evaluations,
                          pagination=pagination,
                          search_query=search_query,
-                         sort_by=sort_by)
+                         sort_by=sort_by,
+                         evaluations_awaiting_scenario_approval=evaluations_awaiting_scenario_approval)
 
 @app.route('/evaluations/create_evaluation', methods=['GET'])
 @login_required  # Fix #3: Protect evaluation creation from unauthenticated access
@@ -182,6 +196,7 @@ def add_evaluation():
     # read form data
     name = request.form.get('name', '').strip()
     seco_portal = request.form.get('seco_portal', '').strip()
+    seco_portal_description = request.form.get("seco_portal_description", '').strip()
     seco_portal_url = request.form.get('seco_portal_url', '').strip()
     seco_process_ids = request.form.getlist('seco_process_ids')
     seco_type_str = request.form.get('seco_type')
@@ -280,6 +295,7 @@ def add_evaluation():
     form_values = {
         "name": name,
         "seco_portal": seco_portal,
+        "seco_portal_description": seco_portal_description,
         "seco_portal_url": seco_portal_url,
         "seco_type": seco_type_str,
         "manager_objective": manager_objective,
@@ -386,6 +402,7 @@ def add_evaluation():
         print(f"name: {name}")
         print(f"user_id: {user.user_id}")
         print(f"seco_portal: {seco_portal}")
+        print(f"seco_portal_description: '{seco_portal_description}'")
         print(f"seco_portal_url: {seco_portal_url}")
         print(f"seco_type: {seco_type}")
         print(f"manager_objective: '{manager_objective}'")
@@ -398,6 +415,7 @@ def add_evaluation():
             user_id=user.user_id,
             seco_processes=seco_processes,
             seco_portal=seco_portal,
+            seco_portal_description=seco_portal_description,
             seco_portal_url=seco_portal_url,
             seco_type=seco_type,
             manager_objective=manager_objective
@@ -432,6 +450,7 @@ def add_evaluation():
                 values = {
                     "name": name,
                     "seco_portal": seco_portal,
+                    "seco_portal_description": seco_portal_description,
                     "seco_portal_url": seco_portal_url,
                     "seco_type": seco_type_str,
                     "manager_objective": manager_objective
@@ -493,6 +512,11 @@ def add_evaluation():
             else:
                 print("\nDEBUG: WARNING - Could not find evaluation in database after save!")
 
+            # RF21: dispara a personalizacao de cenarios uma unica vez, aqui no
+            # cadastro do portal. Assincrono (RNF01) - nao bloqueia esta resposta;
+            # o gestor ve os cenarios prontos na tela de aprovacao (Fase 4).
+            schedule_scenario_personalization(new_evaluation.evaluation_id)
+
         except IntegrityError as e:
             # Fix #5: Handle race condition/duplicate evaluation gracefully
             print(f"\nDEBUG: ERROR - IntegrityError occurred: {str(e)}")
@@ -514,8 +538,8 @@ def add_evaluation():
             abort(500, description="Failed to save evaluation. Please try again.")
 
     # Fix #26: Add success flash message
-    flash('Evaluation created successfully! Share the evaluation code with participants.', 'success')
-    return redirect(url_for('evaluations'))
+    flash('Evaluation created successfully! Personalizing its scenarios now.', 'success')
+    return redirect(url_for('evaluation_scenarios', evaluation_id=new_evaluation.evaluation_id))
 
 
 @app.route('/evaluations/<int:id>/edit')
@@ -533,6 +557,7 @@ def update_evaluation(id):
     # getting the form data
     name = request.form.get('name')
     seco_portal = request.form.get('seco_portal')
+    seco_portal_description = request.form.get('seco_portal_description', '').strip()
     seco_portal_url = request.form.get('seco_portal_url')
     seco_type_str = request.form.get('seco_type')
     manager_objective = request.form.get('manager_objective', '')
@@ -553,6 +578,7 @@ def update_evaluation(id):
     evaluation = Evaluation.query.get_or_404(id)
     evaluation.name = name
     evaluation.seco_portal = seco_portal
+    evaluation.seco_portal_description = seco_portal_description
     evaluation.seco_portal_url = seco_portal_url
     evaluation.seco_processes = seco_processes
     evaluation.seco_type = seco_type

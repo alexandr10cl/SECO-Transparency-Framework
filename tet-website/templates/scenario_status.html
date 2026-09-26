@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/eval.css">
+<link rel="stylesheet" href="/static/css/scenario_status.css">
+{% endblock %}
+
+{% block title %}Personalizing scenarios - {{ evaluation.name }}{% endblock %}
+
+{% block content %}
+<p id="id-avaliacao" style="display:none">{{ evaluation.evaluation_id }}</p>
+
+<div class="scenario-status-page">
+    <div class="page-header">
+        <div class="page-header-content">
+            <nav class="breadcrumbs">
+                <a href="{{ url_for('index') }}" class="breadcrumb-link">Home</a>
+                <span class="breadcrumb-separator">›</span>
+                <a href="{{ url_for('evaluations') }}" class="breadcrumb-link">Evaluations</a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-current">{{ evaluation.name }}</span>
+            </nav>
+            <h1 class="page-title">Personalizing your evaluation scenarios</h1>
+            <p class="page-subtitle">
+                We're anchoring each scenario in real content collected from
+                <a href="{{ evaluation.seco_portal_url }}" target="_blank" rel="noopener">{{ evaluation.seco_portal }}</a>.
+                This runs once, automatically. You can leave this page and come back anytime from the
+                <a href="{{ url_for('evaluation', id=evaluation.evaluation_id) }}">evaluation page</a> - nothing is
+                lost if you navigate away.
+            </p>
+        </div>
+    </div>
+
+    <div id="scenario-timing-notice" class="scenario-timing-notice scenario-timing-notice-lg" hidden>
+        <span class="scenario-timing-icon">⏳</span>
+        <span><strong>This can take a few minutes</strong> - depending on the portal and how many scenarios
+        were selected. It's running in the background, so feel free to navigate away and check back later.</span>
+    </div>
+
+    <ol class="pipeline-stepper" id="pipeline-stepper">
+        <li class="pipeline-step" data-step="collect">
+            <span class="pipeline-step-dot"></span>
+            <div>
+                <div class="pipeline-step-label">Collecting portal data</div>
+                <div class="pipeline-step-detail">Visiting the portal to gather real navigation, pages and content.</div>
+            </div>
+        </li>
+        <li class="pipeline-step" data-step="personalize">
+            <span class="pipeline-step-dot"></span>
+            <div>
+                <div class="pipeline-step-label">Personalizing scenarios</div>
+                <div class="pipeline-step-detail">Anchoring each selected scenario in what was actually found on the portal.</div>
+            </div>
+        </li>
+        <li class="pipeline-step" data-step="review">
+            <span class="pipeline-step-dot"></span>
+            <div>
+                <div class="pipeline-step-label">Ready for your review</div>
+                <div class="pipeline-step-detail">Approve or reject each scenario below before it reaches developers.</div>
+            </div>
+        </li>
+    </ol>
+
+    <div id="collection-info" class="collection-info" hidden></div>
+
+    <div class="related-card">
+        <h3 class="card-title">
+            <span class="card-icon">✅</span>
+            Procedures & Scenarios
+        </h3>
+        <div class="procedures-tasks">
+            {% for proc_data in procedures_data %}
+            <div class="procedure-task-group">
+                <div class="procedure-header">
+                    <span class="procedure-id">P{{ proc_data.process.seco_process_id }}</span>
+                    <span class="procedure-description">{{ proc_data.process.description }}</span>
+                </div>
+
+                {% if proc_data.guideline %}
+                <div class="procedure-guideline">
+                    <div class="guideline-label">Guideline</div>
+                    <div class="guideline-item">{{ proc_data.guideline.title }}</div>
+                </div>
+                {% endif %}
+
+                <div class="procedure-tasks">
+                    {% for task in proc_data.tasks %}
+                    <div class="task-item">
+                        <div class="task-item-title">{{ task.title }}</div>
+                        <div class="scenario-panel" data-task-id="{{ task.task_id }}">
+                            <span class="scenario-loading">Loading personalized scenario…</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="scenario-status-footer">
+        <a href="{{ url_for('evaluation', id=evaluation.evaluation_id) }}" class="scenario-btn scenario-btn-retry">
+            Go to evaluation details
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/scenario_approval.js"></script>
+{% endblock %}

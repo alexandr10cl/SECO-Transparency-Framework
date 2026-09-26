@@ -1,0 +1,142 @@
+/* Tela dedicada de personalizacao de cenarios - abre logo apos o cadastro do
+   portal. Reaproveita as variaveis e os componentes .scenario-* de eval.css
+   (ja linkado antes deste arquivo); aqui so o layout proprio da pagina e o
+   stepper do pipeline. */
+
+.scenario-status-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4) var(--space-10);
+}
+
+.scenario-status-page .page-header {
+    background: none;
+    padding: 0 0 var(--space-6);
+}
+
+.scenario-status-page .page-title {
+    margin: var(--space-2) 0 var(--space-2);
+}
+
+.page-subtitle {
+    color: var(--gray-600);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    max-width: 65ch;
+}
+
+.page-subtitle a {
+    color: var(--color-primary);
+}
+
+/* Stepper */
+.pipeline-stepper {
+    list-style: none;
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    display: flex;
+    gap: var(--space-4);
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+    padding: var(--space-4) var(--space-5);
+}
+
+.pipeline-step {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.pipeline-step-dot {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--gray-200);
+    border: 2px solid var(--gray-200);
+    margin-top: 2px;
+    position: relative;
+}
+
+.pipeline-step-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+.pipeline-step-detail {
+    font-size: var(--text-xs);
+    color: var(--gray-400);
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+/* Estado: em andamento - ponto azul pulsando */
+.pipeline-step.is-active .pipeline-step-dot {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 4px var(--color-primary-light);
+    animation: pipeline-pulse 1.6s ease-in-out infinite;
+}
+
+.pipeline-step.is-active .pipeline-step-label {
+    color: var(--color-primary-dark);
+}
+
+/* Estado: concluido - ponto verde com check */
+.pipeline-step.is-done .pipeline-step-dot {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+}
+
+.pipeline-step.is-done .pipeline-step-dot::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.pipeline-step.is-done .pipeline-step-label {
+    color: var(--gray-700);
+}
+
+/* Estado: erro - ponto vermelho */
+.pipeline-step.is-error .pipeline-step-dot {
+    background-color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+.pipeline-step.is-error .pipeline-step-label {
+    color: var(--color-danger);
+}
+
+@keyframes pipeline-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px var(--color-primary-light); }
+    50% { box-shadow: 0 0 0 7px var(--color-primary-light); }
+}
+
+.scenario-status-footer {
+    margin-top: var(--space-6);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.scenario-status-footer .scenario-btn-retry {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+@media (max-width: 720px) {
+    .pipeline-stepper {
+        flex-direction: column;
+    }
+}

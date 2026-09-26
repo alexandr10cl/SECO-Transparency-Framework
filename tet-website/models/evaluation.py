@@ -24,6 +24,7 @@ class Evaluation(db.Model):
     evaluation_id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     seco_portal = db.Column(db.String(100), nullable=False)
+    seco_portal_description = db.Column(db.Text, nullable=True)
     seco_portal_url = db.Column(db.String(500), nullable=False)
     seco_type = db.Column(db.Enum(SECOType, name="seco_type_enum"), nullable=False, index=True)
     manager_objective = db.Column(db.Text, nullable=True)  # Manager's main objective for this evaluation

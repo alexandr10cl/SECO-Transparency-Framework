@@ -3,7 +3,8 @@ from index import app, db
 from datetime import datetime
 from models import (
     User, Task, Evaluation, CollectedData, Guideline, SECO_process,
-    PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question, Doubt
+    PerformedTask, DeveloperQuestionnaire, Navigation, Answer, Question, Doubt,
+    PersonalizedScenario, PortalCollection, StatusScenario,
 )
 from models.task import task_seco_type
 from models.enums import (
@@ -21,6 +22,38 @@ CORS(app, resources={
     r"/load_tasks": {"origins": "*"},
     r"/submit_tasks": {"origins": "*"},
 })
+
+
+def _ready_for_evaluators(evaluation: Evaluation) -> bool:
+    """RF21: o codigo so fica valido para o avaliador depois que TODAS as tasks
+    selecionadas tiverem cenario aprovado pelo gestor (Fase 4 - tela de aprovacao).
+
+    Avaliacoes anteriores a personalizacao de cenarios nunca ganham uma linha de
+    PortalCollection (o pipeline so roda a partir do cadastro, nao retroativamente) -
+    para essas, mantem o comportamento de sempre em vez de bloquear retroativamente
+    quem ja usava a ferramenta.
+    """
+    if PortalCollection.query.filter_by(evaluation_id=evaluation.evaluation_id).first() is None:
+        return True
+
+    task_ids = {task.task_id for process in evaluation.seco_processes for task in process.tasks}
+    if not task_ids:
+        return True
+
+    approved_ids = {
+        row.task_id for row in PersonalizedScenario.query.filter_by(
+            evaluation_id=evaluation.evaluation_id, status=StatusScenario.APPROVED
+        ).all()
+    }
+    return task_ids.issubset(approved_ids)
+
+
+def _approved_scenarios(evaluation_id: int) -> dict:
+    """{task_id: cenario_personalizado} so das tasks ja aprovadas."""
+    rows = PersonalizedScenario.query.filter_by(
+        evaluation_id=evaluation_id, status=StatusScenario.APPROVED
+    ).all()
+    return {row.task_id: row.cenario_personalizado for row in rows if row.cenario_personalizado}
 
 collections_data = []
 
@@ -346,10 +379,11 @@ def load_tasks():
     # Query no db para verificar se o código existe
     evaluation = Evaluation.query.filter_by(evaluation_id=evaluation_code).first()
 
-    if evaluation:
+    if evaluation and _ready_for_evaluators(evaluation):
         result = []
         evaluation_seco_type = evaluation.seco_type  # Obtém o seco_type da avaliação
-        
+        approved_scenarios = _approved_scenarios(evaluation.evaluation_id)
+
         seen_question_texts = set()
         for process in evaluation.seco_processes:
             process_obj = {
@@ -373,14 +407,14 @@ def load_tasks():
                         process_obj["process_tasks"].append({
                             "task_id": task.task_id,
                             "task_title": task.title,
-                            "task_description": task.description
+                            "task_description": approved_scenarios.get(task.task_id, task.description)
                         })
                 else:
                     # Se a task não tem seco_types definidos, inclui por compatibilidade
                     process_obj["process_tasks"].append({
                         "task_id": task.task_id,
                         "task_title": task.title,
-                        "task_description": task.description
+                        "task_description": approved_scenarios.get(task.task_id, task.description)
                     })
             # Adiciona perguntas de review (questions dos Key Success Criteria das guidelines do processo)
             # Evita duplicatas entre processos por texto de pergunta
@@ -418,7 +452,7 @@ def auth_evaluation():
     # Query no db para verificar se o código existe
     evaluation = Evaluation.query.filter_by(evaluation_id=evaluation_code).first()
 
-    if evaluation: 
+    if evaluation and _ready_for_evaluators(evaluation):
         return jsonify({"message": "Valid"}), 200
     else:
         return jsonify({"message": "Invalid"}), 401

@@ -1551,6 +1551,331 @@
     transform: translateX(2px);
 }
 
+.task-item-title {
+    font-weight: 500;
+}
+
+/* ============================================
+   AI-personalized scenario approval (Phase 4)
+   ============================================ */
+
+.scenario-panel {
+    margin-top: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px dashed var(--gray-200);
+}
+
+.scenario-loading {
+    color: var(--gray-500);
+    font-size: var(--text-xs);
+    font-style: italic;
+}
+
+.scenario-status-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.scenario-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 600;
+}
+
+.scenario-badge-pending {
+    background-color: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.scenario-badge-running {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary-dark);
+}
+
+.scenario-badge-review {
+    background-color: var(--color-warning-light);
+    color: #92400e;
+}
+
+.scenario-badge-approved {
+    background-color: var(--color-success-light);
+    color: #065f46;
+}
+
+.scenario-badge-error {
+    background-color: var(--color-danger-light);
+    color: #991b1b;
+}
+
+.scenario-guideline {
+    color: var(--gray-500);
+    font-size: var(--text-xs);
+}
+
+/* Evaluation card notice: reuses .scenario-badge (same "awaiting approval"
+   look as the scenario approval screen) but as a standalone, clickable row
+   between card-header and card-content - only rendered when the evaluation
+   has a personalized scenario waiting on the manager. */
+.card-scenario-notice {
+    text-decoration: none;
+    margin-bottom: var(--space-4);
+    width: fit-content;
+    cursor: pointer;
+}
+
+.card-scenario-notice:hover {
+    filter: brightness(0.96);
+}
+
+.scenario-spinner {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: scenario-spin 0.7s linear infinite;
+}
+
+@keyframes scenario-spin {
+    to { transform: rotate(360deg); }
+}
+
+.scenario-text {
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--text-primary);
+    white-space: normal;
+}
+
+.scenario-details {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+}
+
+.scenario-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+.scenario-sublist {
+    margin: var(--space-2) 0 0;
+    padding-left: var(--space-5);
+}
+
+.scenario-sublist li {
+    margin-bottom: var(--space-1);
+}
+
+.scenario-error {
+    color: #991b1b;
+    font-size: var(--text-sm);
+    margin: 0 0 var(--space-2);
+}
+
+.scenario-meta {
+    color: var(--gray-500);
+    font-size: var(--text-xs);
+    margin: var(--space-2) 0 0;
+}
+
+.scenario-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.scenario-btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.scenario-btn-approve {
+    background-color: var(--color-success);
+    color: white;
+}
+
+.scenario-btn-approve:hover {
+    background-color: #059669;
+}
+
+.scenario-btn-reject,
+.scenario-btn-reject-confirm {
+    background-color: white;
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+}
+
+.scenario-btn-reject:hover,
+.scenario-btn-reject-confirm:hover {
+    background-color: var(--color-danger-light);
+}
+
+.scenario-btn-retry {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.scenario-btn-retry:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.scenario-btn-cancel {
+    background-color: var(--gray-100);
+    color: var(--gray-600);
+}
+
+.scenario-btn-cancel:hover {
+    background-color: var(--gray-200);
+}
+
+.scenario-reject-form:not([hidden]) {
+    margin-top: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.scenario-reject-comment {
+    width: 100%;
+    min-height: 60px;
+    padding: var(--space-2);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    resize: vertical;
+}
+
+/* Aviso de tempo enquanto a coleta/personalizacao roda (eval.html - some
+   sozinho quando tudo terminar, ver renderTimingNotice em scenario_approval.js) */
+.scenario-timing-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    background-color: var(--color-primary-light);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+.scenario-timing-icon {
+    flex-shrink: 0;
+}
+
+/* Variante de maior destaque: a tela dedicada (scenario_status.html) e a
+   propria razao da pagina existir, entao o aviso merece mais peso visual do
+   que a versao compacta dentro do card de eval.html - fundo/borda ambar
+   (mesma cor de "awaiting approval") em vez do azul neutro, fonte maior. */
+.scenario-timing-notice-lg {
+    background-color: var(--color-warning-light);
+    border: 1px solid var(--color-warning);
+    border-width: 1px 1px 1px 4px;
+    font-size: var(--text-base);
+    padding: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.scenario-timing-notice-lg .scenario-timing-icon {
+    font-size: var(--text-xl);
+}
+
+/* Collection-level info (once per evaluation, RF22 log de origem) */
+.collection-info {
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+}
+
+.scenario-meta-inline {
+    color: var(--gray-500);
+    font-size: var(--text-xs);
+}
+
+/* Progresso da chamada de IA ao vivo (tentativas, trocas de modelo) - ver
+   renderProgress em scenario_approval.js. */
+.scenario-progress {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.scenario-progress-line {
+    font-family: var(--font-mono, monospace);
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+    line-height: 1.6;
+    white-space: normal;
+}
+
+.scenario-progress-line:last-child {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.scenario-progress-summary {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+.scenario-progress-log {
+    max-height: 200px;
+}
+
+/* Origin log (Phase 5) - retratil dentro de cada cartao de cenario */
+.scenario-origin-log summary {
+    color: var(--color-primary);
+}
+
+.scenario-origin-block {
+    margin-top: var(--space-2);
+}
+
+.scenario-origin-label {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: var(--space-1);
+}
+
+.scenario-origin-value {
+    font-size: var(--text-xs);
+    color: var(--gray-700);
+    margin-bottom: 2px;
+}
+
 /* ============================================
    🍎 APPLE-LEVEL MICRO-INTERACTIONS
    ============================================ */
