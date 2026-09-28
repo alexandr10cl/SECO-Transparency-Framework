@@ -2,7 +2,7 @@
 
 Um provider implementa **uma funcao so**:
 
-    generate(system_instruction, prompt, schema, model, images=None, temperature=0)
+    generate(system_instruction, prompt, schema, model, images=None)
         -> tuple[BaseModel, dict]
 
 Regras do contrato:
