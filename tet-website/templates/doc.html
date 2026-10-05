@@ -695,6 +695,16 @@
             </div>
 
             <div class="guideline-info-card">
+                <h4>Responsible and deadline</h4>
+                <p>
+                    Each card has a <strong>Responsible</strong> field (free text: a person or a team) and a
+                    <strong>Deadline</strong> date, edited directly on the card or in the Edit modal and saved as soon as they change.
+                    Both start empty: the AI never fills them in. Approved actions show them in the plan panel, and a deadline in the
+                    past is highlighted in red.
+                </p>
+            </div>
+
+            <div class="guideline-info-card">
                 <h4>5. Reorder</h4>
                 <p>
                     The ▲ / ▼ arrows on each card. From the first manual move onwards the order is yours and stops following the
@@ -708,7 +718,8 @@
                     Downloads a CSV (Comma-Separated Values) spreadsheet named <code>action-plan-&lt;id&gt;.csv</code>,
                     with the columns <code>code</code>, <code>title</code>,
                     <code>description</code>, <code>where</code>, <code>impact</code>, <code>resolves</code>,
-                    <code>priority_band</code> and <code>decision</code>. Only approved actions are exported; if none are approved,
+                    <code>priority_band</code>, <code>decision</code>, <code>responsible</code> and <code>deadline</code>.
+                    Only approved actions are exported; if none are approved,
                     nothing is downloaded.
                 </p>
             </div>
@@ -716,7 +727,7 @@
             <div class="guideline-info-card">
                 <h4>⚠️ Regenerating replaces the whole result</h4>
                 <p>
-                    Approvals, dismissals, text edits and the manual order belong to the <em>current</em> result. Running the analysis
+                    Approvals, dismissals, text edits, responsibles, deadlines and the manual order belong to the <em>current</em> result. Running the analysis
                     again produces a new set of findings and actions, and those decisions are not carried over.
                     <strong>Export the CSV before regenerating</strong> if you want to keep the triage you have already done.
                 </p>

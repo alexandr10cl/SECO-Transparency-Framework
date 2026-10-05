@@ -122,6 +122,30 @@
         return isNaN(date.getTime()) ? iso : date.toLocaleString();
     }
 
+    function pad2(n) {
+        return n < 10 ? '0' + n : String(n);
+    }
+
+    // Data local em AAAA-MM-DD — o mesmo formato do <input type="date"> e da API, entao
+    // a comparacao com o prazo e lexicografica e nao sofre com fuso.
+    function todayISO() {
+        var d = new Date();
+        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    }
+
+    function isOverdue(deadline) {
+        return !!deadline && deadline < todayISO();
+    }
+
+    // "2026-10-12" -> "12 Oct 2026". T00:00 forca meia-noite local: new Date("2026-10-12")
+    // seria UTC e, a oeste de Greenwich, viraria o dia anterior.
+    function formatDeadline(iso) {
+        var date = new Date(iso + 'T00:00:00');
+        return isNaN(date.getTime()) ? iso : date.toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'short', year: 'numeric'
+        });
+    }
+
     function formatTokens(total) {
         if (!total) return null;
         return total >= 1000 ? (total / 1000).toFixed(1) + 'k tokens' : total + ' tokens';
@@ -735,6 +759,26 @@
         '</div>';
     }
 
+    // Responsavel e prazo: preenchidos so pelo gestor (a IA nunca gera). Editaveis direto
+    // no card — salvam no `change` (saveOwnerField), sem abrir o modal.
+    function ownerRowHTML(action) {
+        var id = esc(action.id);
+        return '<div class="ai-owner-row">' +
+            '<label class="ai-owner-chip' + (action.responsible ? ' is-filled' : '') + '" title="Responsible">' +
+                '<span class="material-symbols-outlined">person</span>' +
+                '<input type="text" maxlength="255" data-ai-owner-field="responsible" data-ai-owner-id="' + id + '"' +
+                    ' value="' + esc(action.responsible || '') + '" placeholder="Assign responsible"' +
+                    ' aria-label="Responsible">' +
+            '</label>' +
+            '<label class="ai-owner-chip' + (action.deadline ? ' is-filled' : '') +
+                (isOverdue(action.deadline) ? ' is-overdue' : '') + '" title="Deadline">' +
+                '<span class="material-symbols-outlined">event</span>' +
+                '<input type="date" data-ai-owner-field="deadline" data-ai-owner-id="' + id + '"' +
+                    ' value="' + esc(action.deadline || '') + '" aria-label="Deadline">' +
+            '</label>' +
+        '</div>';
+    }
+
     function actionCard(action, index, total) {
         var m = action.metrics || {};
         var where = (action.where || []).map(function (place) {
@@ -772,6 +816,7 @@
                 '</span>' +
                 (resolves ? '<span>resolves ' + resolves + '</span>' : '') +
             '</div>' +
+            ownerRowHTML(action) +
             actionFooter(action) +
             '</div>' +
             '</article>';
@@ -792,6 +837,23 @@
                     : 'No actions — there are no findings to act on.'));
     }
 
+    function planOwnerHTML(action) {
+        var chips = [];
+        if (action.responsible) {
+            chips.push('<span class="plan-owner-chip"><span class="material-symbols-outlined">person</span>' +
+                esc(action.responsible) + '</span>');
+        }
+        if (action.deadline) {
+            chips.push('<span class="plan-owner-chip' + (isOverdue(action.deadline) ? ' is-overdue' : '') + '">' +
+                '<span class="material-symbols-outlined">event</span>' + esc(formatDeadline(action.deadline)) + '</span>');
+        }
+        if (!chips.length) {
+            chips.push('<span class="plan-owner-chip is-empty">' +
+                '<span class="material-symbols-outlined">person_off</span>Unassigned</span>');
+        }
+        return '<span class="plan-item-owner">' + chips.join('') + '</span>';
+    }
+
     function planItemHTML(action, index) {
         var resolves = (action.resolves || []).join(', ');
         return '<div class="plan-item" data-ai-action-jump="' + esc(action.code) + '">' +
@@ -800,6 +862,7 @@
                 '<span class="plan-item-title">' + esc(action.title) + '</span>' +
                 '<span class="plan-item-chips">' + esc(action.code) +
                     (resolves ? ' · resolves ' + esc(resolves) : '') + '</span>' +
+                planOwnerHTML(action) +
             '</div>' +
             '<span class="' + priorityBadgeClass(action.priority_band) + '">' +
                 esc(action.priority_band) + '</span>' +
@@ -850,7 +913,8 @@
         var actions = (lastData.actions || []).filter(function (a) { return a.decision === 'ACCEPTED'; });
         if (!actions.length) return;
 
-        var header = csvRow(['code', 'title', 'description', 'where', 'impact', 'resolves', 'priority_band', 'decision']);
+        var header = csvRow(['code', 'title', 'description', 'where', 'impact', 'resolves', 'priority_band', 'decision',
+            'responsible', 'deadline']);
         var rows = actions.map(function (action) {
             var m = action.metrics || {};
             return csvRow([
@@ -861,7 +925,9 @@
                 m.impact || '',
                 (action.resolves || []).join('; '),
                 action.priority_band,
-                action.decision
+                action.decision,
+                action.responsible,
+                action.deadline
             ]);
         });
 
@@ -995,6 +1061,40 @@
             .catch(function (error) { console.error('ai-analysis:', error); });
     }
 
+    // Salva responsavel/prazo editados direto no card. Re-renderiza so o painel do plano:
+    // um render() completo recriaria a fila e tiraria o foco de quem esta tabulando do
+    // responsavel para o prazo. O proprio campo ja mostra o valor novo.
+    function saveOwnerField(input) {
+        var field = input.dataset.aiOwnerField;
+        var chip = input.closest('.ai-owner-chip');
+        var value = input.value.trim() || null;
+        var payload = {};
+        payload[field] = value;
+
+        chip.classList.remove('is-saved', 'is-error');
+        fetch('/api/ai-analysis/' + evaluationId + '/actions/' + input.dataset.aiOwnerId, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(function (response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(function (data) {
+                lastData = data;
+                renderPlanPanel(data);
+                chip.classList.toggle('is-filled', !!value);
+                if (field === 'deadline') chip.classList.toggle('is-overdue', isOverdue(value));
+                chip.classList.add('is-saved');
+                setTimeout(function () { chip.classList.remove('is-saved'); }, 1200);
+            })
+            .catch(function (error) {
+                chip.classList.add('is-error');
+                console.error('ai-analysis:', error);
+            });
+    }
+
     // ---------------------------------------------------------------- modal de edicao
 
     var editModalEl = null;
@@ -1023,6 +1123,15 @@
             '<label class="ai-field">Where' +
                 '<input type="text" data-ai-field="where" value="' + esc((action.where || []).join(', ')) +
                     '" placeholder="e.g. /support, navbar"></label>' +
+            '<div class="ai-field-row">' +
+                '<label class="ai-field">' +
+                    '<span class="ai-field-label"><span class="material-symbols-outlined">person</span>Responsible</span>' +
+                    '<input type="text" maxlength="255" data-ai-field="responsible" value="' +
+                        esc(action.responsible || '') + '" placeholder="Name or team"></label>' +
+                '<label class="ai-field">' +
+                    '<span class="ai-field-label"><span class="material-symbols-outlined">event</span>Deadline</span>' +
+                    '<input type="date" data-ai-field="deadline" value="' + esc(action.deadline || '') + '"></label>' +
+            '</div>' +
             '<div class="ai-modal-stats">' +
                 '<div class="ai-modal-stat ai-stat-help" tabindex="0" data-help="' + esc(IMPACT_HELP) + '">' +
                     '<span>Impact <span class="material-symbols-outlined ai-stat-info">info</span></span>' +
@@ -1070,7 +1179,9 @@
             body: JSON.stringify({
                 title: body.querySelector('[data-ai-field="title"]').value,
                 description: body.querySelector('[data-ai-field="description"]').value,
-                where: where
+                where: where,
+                responsible: body.querySelector('[data-ai-field="responsible"]').value.trim() || null,
+                deadline: body.querySelector('[data-ai-field="deadline"]').value || null
             })
         })
             .then(function (response) { return response.json(); })
@@ -1288,6 +1399,12 @@
     });
 
     document.addEventListener('change', function (event) {
+        var ownerInput = event.target.closest('[data-ai-owner-field]');
+        if (ownerInput) {
+            saveOwnerField(ownerInput);
+            return;
+        }
+
         var select = event.target.closest('[data-ai-model]');
         if (!select) return;
         selectedModel = select.value;

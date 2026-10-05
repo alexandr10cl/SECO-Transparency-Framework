@@ -94,10 +94,11 @@ def api_ai_analysis_generate(evaluation_id: int):
 
 @app.route('/api/ai-analysis/<int:evaluation_id>/actions/<int:action_id>', methods=['PATCH'])
 def api_ai_action_update(evaluation_id: int, action_id: int):
-    """Edita titulo/descricao/where e/ou decisao (aprovar/descartar/resetar) de uma action.
+    """Edita titulo/descricao/where/responsible/deadline e/ou decisao de uma action.
 
     Campos omitidos no body ficam como estavam. `decision` aceita os valores do enum
-    AIReviewStatus (NEW/ACCEPTED/DISMISSED).
+    AIReviewStatus (NEW/ACCEPTED/DISMISSED). `responsible` (texto livre) e `deadline`
+    (AAAA-MM-DD) aceitam null ou "" para limpar.
     """
     error = _guard(evaluation_id)
     if error:
@@ -112,6 +113,8 @@ def api_ai_action_update(evaluation_id: int, action_id: int):
             description=body.get("description"),
             where=body.get("where"),
             decision=body.get("decision"),
+            responsible=body["responsible"] if "responsible" in body else pipeline.UNSET,
+            deadline=body["deadline"] if "deadline" in body else pipeline.UNSET,
         )
     except pipeline.ActionNotFound as exc:
         return jsonify({"error": "Action not found", "details": str(exc)}), 404

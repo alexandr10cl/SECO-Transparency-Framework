@@ -149,6 +149,11 @@ class AIAction(db.Model):
     # automatica por priority_score; regenerar a analise recria as actions com NULL.
     manual_rank = db.Column(db.Integer, nullable=True)
 
+    # Responsavel (texto livre) e prazo do plano, preenchidos so pelo gestor na UI — a IA
+    # nunca gera esses campos. Regenerar a analise recria as actions com ambos NULL.
+    responsible = db.Column(db.String(255), nullable=True)
+    deadline = db.Column(db.Date, nullable=True)
+
     findings = db.relationship(
         'AIFinding',
         secondary=ai_action_finding,
