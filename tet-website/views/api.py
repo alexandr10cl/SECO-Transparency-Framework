@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
@@ -78,9 +80,6 @@ def _execute_with_token(callback):
             clear_session_uxt_token()
             return None, _token_error_response()
         raise
-
-
-# spaCy removido - usando método básico de stopwords para economizar espaço no servidor
 
 
 @app.route('/api/heatmap-scenarios/<int:evaluation_id>')
@@ -315,33 +314,74 @@ def api_satisfaction(id):
     return jsonify({"values": counts})
 
 
+# Stopwords da nuvem de palavras (EN, PT e NL — os comentarios podem vir em qualquer uma).
+# A comparacao e feita sem acento (`_fold`), entao cada palavra aparece uma vez so, sem
+# acento: "nao" cobre "não" e "nao", "voce" cobre "você". Contracoes inglesas entram com
+# o apostrofo, como o tokenizador as produz ("don't").
+_WORDCLOUD_STOPWORDS_RAW = """
+    the be to of and a in that have i it for not on with he as you do at this but his by from
+    they we say her she or an will my one all would there their what so up out if about who get
+    which go me when make can like time no just him know take into year your good some could them
+    see other than then now look only come its over also back after use two how our work first
+    well way even new want because any these give day most us is was are were been has had did
+    does am being having very should shall may might must really much many more such same own
+    each both few why where here through before under again once off too while those then than
+    until upon within without yet still ever never always often maybe quite rather thing things
+    something anything nothing everything got getting went done think thought felt feel lot bit
+    let let's i'm i've i'd i'll it's that's there's what's you're you've they're we're he's she's
+    don't didn't doesn't isn't wasn't aren't weren't can't cannot couldn't wouldn't shouldn't won't
+    haven't hasn't hadn't im ive dont didnt doesnt isnt wasnt cant couldnt wouldnt shouldnt wont
+    myself yourself itself themselves ourselves himself herself whom whose whatever whether etc
+
+    de het een van en op dat die voor met te zijn er aan wordt als ook maar door bij naar om tot
+    uit werd dan kan heeft niet meer dit deze ze al nog wel hij over moet twee geen zoals worden
+    alle veel
+
+    o a e que do da em um para e com nao uma os no se na por mais as dos como mas foi ao ele das
+    tem a seu sua ou ser quando muito ha nos ja esta eu tambem so pelo pela ate isso ela entre era
+    porque pois sem sobre sob esse essa esses essas este esta estes estas aquele aquela aqueles
+    aquelas aquilo isto aqui ali la ai entao ainda mesmo mesma mesmos mesmas onde qual quais quem
+    cujo cuja tudo todo toda todos todas cada algum alguma alguns algumas nenhum nenhuma outro
+    outra outros outras pode podem poderia podia ter tinha tinham tenho temos tive teve fazer faz
+    fiz feito fez acho achei achou meu minha meus minhas teu tua seus suas nosso nossa nossos nossas
+    dele dela deles delas eles elas voce voces lhe lhes me mim te ti nas num numa nuns numas
+    pelos pelas aos estao estava estavam estive esteve sao foram fosse seria sendo sido seja
+    sejam vai vou vamos ir indo bem mal menos tao tanto tanta antes depois agora sempre nunca
+    apenas so ja quase talvez ate desde contra durante apos assim tipo coisa coisas vez vezes
+    sim nem logo enquanto embora caso cada qualquer ne pra pro pras pros
+"""
+
+
+def _fold(word: str) -> str:
+    """Forma sem acento de `word`, so para comparar com as stopwords."""
+    return ''.join(
+        ch for ch in unicodedata.normalize('NFKD', word) if not unicodedata.combining(ch)
+    )
+
+
+_WORDCLOUD_STOPWORDS = frozenset(_fold(w) for w in _WORDCLOUD_STOPWORDS_RAW.split())
+
+# Letras de qualquer alfabeto (com acento), permitindo apostrofo interno: "você", "don't".
+_WORDCLOUD_TOKEN = re.compile(r"[^\W\d_]+(?:'[^\W\d_]+)*")
+
+
 def process_text_for_wordcloud(text: str, max_words: int = 100) -> List[List[Any]]:
     if not text or text.strip() == "":
         return []
 
-    # Usando método básico (sem spaCy) para economizar espaço no servidor
-    import re
-
-    STOPWORDS = {
-        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i', 'it', 'for', 'not', 'on', 'with',
-        'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her',
-        'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up',
-        'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time',
-        'no', 'just', 'him', 'know', 'take', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
-        'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'also', 'back',
-        'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want',
-        'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is', 'was', 'are', 'were', 'been',
-        'has', 'had', 'did', 'does', 'de', 'het', 'een', 'van', 'en', 'op', 'dat', 'die', 'voor',
-        'met', 'te', 'zijn', 'er', 'aan', 'wordt', 'als', 'ook', 'maar', 'door', 'bij', 'naar', 'om',
-        'tot', 'uit', 'werd', 'dan', 'kan', 'heeft', 'niet', 'meer', 'dit', 'deze', 'ze', 'al', 'nog',
-        'wel', 'hij', 'over', 'moet', 'twee', 'geen', 'zoals', 'worden', 'alle', 'veel', 'o', 'a', 'e',
-        'que', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no', 'se', 'na', 'por',
-        'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou',
-        'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela',
-        'até', 'isso', 'ela', 'entre', 'era'
-    }
-    words = re.findall(r'\b[a-zA-Z]+\b', text.lower())
-    filtered = [word for word in words if len(word) > 2 and word not in STOPWORDS]
+    # Sem spaCy (espaco no servidor): tokenizacao por regex + lista fixa de stopwords.
+    words = _WORDCLOUD_TOKEN.findall(text.lower().replace('’', "'"))
+    filtered = []
+    for word in words:
+        if _fold(word) in _WORDCLOUD_STOPWORDS:
+            continue
+        # Possessivo/contracao que nao e stopword ("portal's"): fica so o radical.
+        if "'" in word:
+            word = word.split("'", 1)[0]
+            if _fold(word) in _WORDCLOUD_STOPWORDS:
+                continue
+        if len(word) > 2:
+            filtered.append(word)
 
     frequency = Counter(filtered)
     return [[word, freq] for word, freq in frequency.most_common(max_words)]
