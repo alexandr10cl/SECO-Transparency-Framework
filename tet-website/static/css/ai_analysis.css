@@ -53,12 +53,14 @@
 
 /* ---------- cabecalho da aba ---------- */
 
+/* Grid, nao flex com wrap: com a legenda de conceitos o texto ficou largo o bastante
+   para o flex jogar os controles para a linha de baixo, deixando a coluna da direita
+   vazia. Aqui o texto ocupa o que sobra e os controles ficam sempre a direita. */
 .ai-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     gap: 24px;
-    flex-wrap: wrap;
 }
 
 .ai-header h2 {
@@ -73,6 +75,73 @@
     line-height: 1.6;
 }
 
+/* Legenda de conceitos da aba (Findings / Action Plan): uma linha por termo, resumo da
+   secao AI Analysis de doc.html. Curta de proposito — o link leva a explicacao completa. */
+.ai-concepts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 24px;
+    max-width: 860px;
+    margin: 16px 0 0;
+}
+
+.ai-concepts div {
+    margin: 0;
+}
+
+.ai-concepts dt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin-bottom: 2px;
+}
+
+.ai-concepts dt .material-symbols-outlined {
+    /* !important para vencer o .material-symbols-outlined global de 50px (dashboard.css). */
+    font-size: 17px !important;
+    color: #2563eb;
+}
+
+.ai-concepts dd {
+    margin: 0 0 0 23px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+}
+
+.ai-concepts-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.ai-concepts-link:hover {
+    text-decoration: underline;
+}
+
+.ai-concepts-link .material-symbols-outlined {
+    font-size: 14px !important;
+}
+
+/* Abaixo disso nao cabem texto + controles lado a lado: empilha, controles por baixo. */
+@media (max-width: 1024px) {
+    .ai-header { grid-template-columns: minmax(0, 1fr); }
+    .ai-controls { align-items: flex-start; }
+    .ai-meta { max-width: none; text-align: left; }
+}
+
+@media (max-width: 768px) {
+    .ai-concepts { grid-template-columns: 1fr; }
+}
+
 .ai-controls {
     display: flex;
     flex-direction: column;
@@ -81,10 +150,14 @@
     flex: none;
 }
 
+/* Quebra em vez de nowrap: com o motivo do heatmap ("another UX-Tracking account owns
+   this evaluation") a linha passava de 700px e espremia a coluna do texto. */
 .ai-meta {
+    max-width: 340px;
     font-size: 12.5px;
+    line-height: 1.5;
+    text-align: right;
     color: hsl(var(--muted-foreground));
-    white-space: nowrap;
 }
 
 .ai-actions {
@@ -335,6 +408,16 @@
     width: 320px;
     max-width: 85vw;
     padding: 12px 14px;
+    white-space: pre-line;
+}
+
+/* Tooltip multilinha fora de badge (Priority score no modal): mantem os `\n` de
+   priorityTooltip e abre alinhado pela direita, porque o gatilho e o ultimo stat. */
+.ai-stat-help.ai-help-pre::after {
+    left: auto;
+    right: 0;
+    width: 300px;
+    max-width: 80vw;
     white-space: pre-line;
 }
 

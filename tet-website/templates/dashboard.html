@@ -952,9 +952,36 @@
             <div class="ai-header">
                 <div>
                     <h2>Findings</h2>
-                    <p>Transparency problems identified from the collected data. Every finding is
-                       anchored to a Key Success Criterion of the framework and carries the evidence
-                       that supports it — open "Evidence" on any card to reach the original records.</p>
+                    <p>Possible transparency problems identified from the collected data. Select a
+                       finding to see the Key Success Criterion it is anchored to and the original
+                       records behind it. The AI writes the text; every number is computed by the
+                       platform from the evidence, never estimated by the model.</p>
+                    <dl class="ai-concepts">
+                        <div>
+                            <dt><span class="material-symbols-outlined">report</span>Finding</dt>
+                            <dd>An interpretation of the data, not a measurement: a possible
+                                transparency failure tied to exactly one KSC.</dd>
+                        </div>
+                        <div>
+                            <dt><span class="material-symbols-outlined">fact_check</span>Evidence</dt>
+                            <dd>The collected records behind it: PT scenario, NAV navigation,
+                                DBT doubt, ANS KSC answer, DQ profile. HM heatmaps are context only.</dd>
+                        </div>
+                        <div>
+                            <dt><span class="material-symbols-outlined">group</span>Affected</dt>
+                            <dd>Distinct participants in the evidence, out of the total.
+                                Counts people, not records.</dd>
+                        </div>
+                        <div>
+                            <dt><span class="material-symbols-outlined">verified</span>Confidence</dt>
+                            <dd>How triangulated the evidence is: HIGH = 2+ participants and 2+
+                                evidence types, MEDIUM = one of the two, LOW = neither. Not severity.</dd>
+                        </div>
+                    </dl>
+                    <a class="ai-concepts-link" href="/doc#aianalysis" target="_blank" rel="noopener">
+                        Full explanation in the documentation
+                        <span class="material-symbols-outlined">open_in_new</span>
+                    </a>
                 </div>
                 <div class="ai-controls" data-ai-controls></div>
             </div>
@@ -973,9 +1000,35 @@
             <div class="ai-header">
                 <div>
                     <h2>Action Plan</h2>
-                    <p>What to do about the findings, ordered by a priority the system computes from
-                       the evidence — not estimated by the model. One action can resolve several
-                       findings at once.</p>
+                    <p>What to do about the findings. The queue is a triage: review, edit, approve or
+                       discard each action. Only approved actions enter the plan, and nothing is
+                       applied to the portal automatically.</p>
+                    <dl class="ai-concepts">
+                        <div>
+                            <dt><span class="material-symbols-outlined">bolt</span>Action</dt>
+                            <dd>A concrete recommendation with a Where (page, section or component).
+                                One action can resolve several findings.</dd>
+                        </div>
+                        <div>
+                            <dt><span class="material-symbols-outlined">groups</span>Impact</dt>
+                            <dd>Participants the action would help, out of the total. Higher means
+                                broader reach.</dd>
+                        </div>
+                        <div>
+                            <dt><span class="material-symbols-outlined">sort</span>Priority</dt>
+                            <dd>Impact × weight of the best-supported finding it resolves (HIGH 1.0 ·
+                                MEDIUM 0.6 · LOW 0.3). An order to start from, not severity.</dd>
+                        </div>
+                        <div>
+                            <dt><span class="material-symbols-outlined">assignment_ind</span>Responsible &amp; deadline</dt>
+                            <dd>Filled in by you, never by the AI. Regenerating replaces every
+                                action, so export the CSV first.</dd>
+                        </div>
+                    </dl>
+                    <a class="ai-concepts-link" href="/doc#aianalysis" target="_blank" rel="noopener">
+                        Full explanation in the documentation
+                        <span class="material-symbols-outlined">open_in_new</span>
+                    </a>
                 </div>
                 <div class="ai-controls" data-ai-controls></div>
             </div>

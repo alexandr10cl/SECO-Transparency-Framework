@@ -90,6 +90,11 @@
     var IMPACT_HELP = 'Participants this action would help, out of the total. ' +
         'Higher means broader reach.';
 
+    // Mesmo papel do IMPACT_HELP para o "n/total participants affected" de um finding:
+    // deixa claro que conta pessoas, nao registros (doc.html, "Affected Participants").
+    var AFFECTED_HELP = 'Distinct participants who appear in this finding\'s evidence, ' +
+        'out of the total. Counts people, not records.';
+
     // ---------------------------------------------------------------- helpers
 
     function esc(value) {
@@ -624,6 +629,23 @@
             '→ ' + (m.confidence_band || '?') + '.';
     }
 
+    // Tooltip do badge de prioridade, no mesmo molde de confidenceTooltip: regra geral em
+    // linhas curtas e, no fim, a conta desta action. Os pesos e cortes espelham
+    // metrics._CONFIDENCE_WEIGHT e metrics._PRIORITY_BANDS.
+    function priorityTooltip(action) {
+        var m = action.metrics || {};
+        var weight = m.confidence_weight != null ? m.confidence_weight : '?';
+        var score = m.priority_score != null ? m.priority_score : '?';
+        return 'Priority = impact × confidence weight.\n' +
+            'Weight = best confidence among the\n' +
+            'findings it resolves:\n' +
+            'HIGH 1.0 · MEDIUM 0.6 · LOW 0.3.\n\n' +
+            'HIGH ≥ 0.45 · MEDIUM ≥ 0.20 · LOW below.\n' +
+            'An order to start from, not severity.\n\n' +
+            'This action: ' + (m.impact || '?') + ' × ' + weight + ' = ' + score + '\n' +
+            '→ ' + (action.priority_band || '?') + '.';
+    }
+
     function findingDetailHTML(finding) {
         if (!finding) return '';
         var m = finding.metrics || {};
@@ -638,7 +660,10 @@
                     esc(m.confidence_band) + '</span>' +
             '</div>' +
             '<div class="ai-stats">' +
-                '<span><strong>' + esc(m.affected_participants) + '</strong> participants affected</span>' +
+                '<span class="ai-stat-help" tabindex="0" data-help="' + esc(AFFECTED_HELP) + '">' +
+                    '<strong>' + esc(m.affected_participants) + '</strong> participants affected' +
+                    '<span class="material-symbols-outlined ai-stat-info">info</span>' +
+                '</span>' +
             '</div>' +
             '<p class="ai-observation">' + esc(finding.observation) + '</p>' +
             '<div class="fd-anchors">' +
@@ -734,7 +759,8 @@
                 '<span class="ai-code">' + esc(action.code) + '</span>' +
                 '<h3>' + esc(action.title) + '</h3>' +
                 decisionBadge(action.decision) +
-                '<span class="' + priorityBadgeClass(action.priority_band) + '">PRIORITY: ' +
+                '<span class="' + priorityBadgeClass(action.priority_band) + ' ai-stat-help" tabindex="0"' +
+                    ' data-help="' + esc(priorityTooltip(action)) + '">PRIORITY: ' +
                     esc(action.priority_band) + '</span>' +
             '</header>' +
             '<p class="ai-observation">' + esc(action.description) + '</p>' +
@@ -793,8 +819,10 @@
 
         var high = actions.filter(function (a) { return a.priority_band === 'HIGH'; }).length;
         var rows = actions.map(planItemHTML).join('');
-        var note = data.formulas && data.formulas.priority
-            ? '<p class="plan-note">' + esc(data.formulas.priority) + '</p>' : '';
+        // Fixo em ingles: `data.formulas.priority` vem em portugues (feito para o CLI).
+        var note = '<p class="plan-note">Priority = impact × confidence weight of the ' +
+            'best-supported finding each action resolves. An operational order for where ' +
+            'to start, not a severity score.</p>';
 
         planPanelEl.innerHTML =
             '<h3>Action Plan</h3>' +
@@ -999,7 +1027,10 @@
                 '<div class="ai-modal-stat ai-stat-help" tabindex="0" data-help="' + esc(IMPACT_HELP) + '">' +
                     '<span>Impact <span class="material-symbols-outlined ai-stat-info">info</span></span>' +
                     '<strong>' + esc(m.impact) + '</strong></div>' +
-                '<div class="ai-modal-stat"><span>Priority score</span><strong>' + esc(m.priority_score) + '</strong></div>' +
+                '<div class="ai-modal-stat ai-stat-help ai-help-pre" tabindex="0" data-help="' +
+                    esc(priorityTooltip(action)) + '">' +
+                    '<span>Priority score <span class="material-symbols-outlined ai-stat-info">info</span></span>' +
+                    '<strong>' + esc(m.priority_score) + '</strong></div>' +
             '</div>' +
             '<div class="ai-modal-resolves"><strong>Resolves:</strong> ' + esc((action.resolves || []).join(', ')) + '</div>' +
             '<div class="ai-action-footer">' +
