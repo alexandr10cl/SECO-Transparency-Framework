@@ -145,4 +145,4 @@ Copy `.env.example` for Docker defaults. Key variables:
 | `GEMINI_API_KEY`, `OPENAI_API_KEY` | LLM provider keys for the AI analytical layer (`AI_ANALYSIS=True`). Only the key for the provider a chosen model actually routes to needs to be set — see "Two LLM providers, routed by model" above. |
 
 ## Optional Dependencies
-- spaCy with `en_core_web_sm` model for improved word cloud stopword filtering (has fallback if not installed)
+- None. The word cloud does not use spaCy: `views/api.py::process_text_for_wordcloud` tokenizes with a Unicode regex and filters a fixed EN/PT/NL stopword list, compared accent-insensitively (`_fold`).

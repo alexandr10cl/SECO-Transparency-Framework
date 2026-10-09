@@ -90,6 +90,11 @@
     var IMPACT_HELP = 'Participants this action would help, out of the total. ' +
         'Higher means broader reach.';
 
+    // Mesmo papel do IMPACT_HELP para o "n/total participants affected" de um finding:
+    // deixa claro que conta pessoas, nao registros (doc.html, "Affected Participants").
+    var AFFECTED_HELP = 'Distinct participants who appear in this finding\'s evidence, ' +
+        'out of the total. Counts people, not records.';
+
     // ---------------------------------------------------------------- helpers
 
     function esc(value) {
@@ -115,6 +120,30 @@
         if (!iso) return '—';
         var date = new Date(iso);
         return isNaN(date.getTime()) ? iso : date.toLocaleString();
+    }
+
+    function pad2(n) {
+        return n < 10 ? '0' + n : String(n);
+    }
+
+    // Data local em AAAA-MM-DD — o mesmo formato do <input type="date"> e da API, entao
+    // a comparacao com o prazo e lexicografica e nao sofre com fuso.
+    function todayISO() {
+        var d = new Date();
+        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    }
+
+    function isOverdue(deadline) {
+        return !!deadline && deadline < todayISO();
+    }
+
+    // "2026-10-12" -> "12 Oct 2026". T00:00 forca meia-noite local: new Date("2026-10-12")
+    // seria UTC e, a oeste de Greenwich, viraria o dia anterior.
+    function formatDeadline(iso) {
+        var date = new Date(iso + 'T00:00:00');
+        return isNaN(date.getTime()) ? iso : date.toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'short', year: 'numeric'
+        });
     }
 
     function formatTokens(total) {
@@ -624,6 +653,23 @@
             '→ ' + (m.confidence_band || '?') + '.';
     }
 
+    // Tooltip do badge de prioridade, no mesmo molde de confidenceTooltip: regra geral em
+    // linhas curtas e, no fim, a conta desta action. Os pesos e cortes espelham
+    // metrics._CONFIDENCE_WEIGHT e metrics._PRIORITY_BANDS.
+    function priorityTooltip(action) {
+        var m = action.metrics || {};
+        var weight = m.confidence_weight != null ? m.confidence_weight : '?';
+        var score = m.priority_score != null ? m.priority_score : '?';
+        return 'Priority = impact × confidence weight.\n' +
+            'Weight = best confidence among the\n' +
+            'findings it resolves:\n' +
+            'HIGH 1.0 · MEDIUM 0.6 · LOW 0.3.\n\n' +
+            'HIGH ≥ 0.45 · MEDIUM ≥ 0.20 · LOW below.\n' +
+            'An order to start from, not severity.\n\n' +
+            'This action: ' + (m.impact || '?') + ' × ' + weight + ' = ' + score + '\n' +
+            '→ ' + (action.priority_band || '?') + '.';
+    }
+
     function findingDetailHTML(finding) {
         if (!finding) return '';
         var m = finding.metrics || {};
@@ -638,7 +684,10 @@
                     esc(m.confidence_band) + '</span>' +
             '</div>' +
             '<div class="ai-stats">' +
-                '<span><strong>' + esc(m.affected_participants) + '</strong> participants affected</span>' +
+                '<span class="ai-stat-help" tabindex="0" data-help="' + esc(AFFECTED_HELP) + '">' +
+                    '<strong>' + esc(m.affected_participants) + '</strong> participants affected' +
+                    '<span class="material-symbols-outlined ai-stat-info">info</span>' +
+                '</span>' +
             '</div>' +
             '<p class="ai-observation">' + esc(finding.observation) + '</p>' +
             '<div class="fd-anchors">' +
@@ -710,6 +759,26 @@
         '</div>';
     }
 
+    // Responsavel e prazo: preenchidos so pelo gestor (a IA nunca gera). Editaveis direto
+    // no card — salvam no `change` (saveOwnerField), sem abrir o modal.
+    function ownerRowHTML(action) {
+        var id = esc(action.id);
+        return '<div class="ai-owner-row">' +
+            '<label class="ai-owner-chip' + (action.responsible ? ' is-filled' : '') + '" title="Responsible">' +
+                '<span class="material-symbols-outlined">person</span>' +
+                '<input type="text" maxlength="255" data-ai-owner-field="responsible" data-ai-owner-id="' + id + '"' +
+                    ' value="' + esc(action.responsible || '') + '" placeholder="Assign responsible"' +
+                    ' aria-label="Responsible">' +
+            '</label>' +
+            '<label class="ai-owner-chip' + (action.deadline ? ' is-filled' : '') +
+                (isOverdue(action.deadline) ? ' is-overdue' : '') + '" title="Deadline">' +
+                '<span class="material-symbols-outlined">event</span>' +
+                '<input type="date" data-ai-owner-field="deadline" data-ai-owner-id="' + id + '"' +
+                    ' value="' + esc(action.deadline || '') + '" aria-label="Deadline">' +
+            '</label>' +
+        '</div>';
+    }
+
     function actionCard(action, index, total) {
         var m = action.metrics || {};
         var where = (action.where || []).map(function (place) {
@@ -734,7 +803,8 @@
                 '<span class="ai-code">' + esc(action.code) + '</span>' +
                 '<h3>' + esc(action.title) + '</h3>' +
                 decisionBadge(action.decision) +
-                '<span class="' + priorityBadgeClass(action.priority_band) + '">PRIORITY: ' +
+                '<span class="' + priorityBadgeClass(action.priority_band) + ' ai-stat-help" tabindex="0"' +
+                    ' data-help="' + esc(priorityTooltip(action)) + '">PRIORITY: ' +
                     esc(action.priority_band) + '</span>' +
             '</header>' +
             '<p class="ai-observation">' + esc(action.description) + '</p>' +
@@ -746,6 +816,7 @@
                 '</span>' +
                 (resolves ? '<span>resolves ' + resolves + '</span>' : '') +
             '</div>' +
+            ownerRowHTML(action) +
             actionFooter(action) +
             '</div>' +
             '</article>';
@@ -766,6 +837,23 @@
                     : 'No actions — there are no findings to act on.'));
     }
 
+    function planOwnerHTML(action) {
+        var chips = [];
+        if (action.responsible) {
+            chips.push('<span class="plan-owner-chip"><span class="material-symbols-outlined">person</span>' +
+                esc(action.responsible) + '</span>');
+        }
+        if (action.deadline) {
+            chips.push('<span class="plan-owner-chip' + (isOverdue(action.deadline) ? ' is-overdue' : '') + '">' +
+                '<span class="material-symbols-outlined">event</span>' + esc(formatDeadline(action.deadline)) + '</span>');
+        }
+        if (!chips.length) {
+            chips.push('<span class="plan-owner-chip is-empty">' +
+                '<span class="material-symbols-outlined">person_off</span>Unassigned</span>');
+        }
+        return '<span class="plan-item-owner">' + chips.join('') + '</span>';
+    }
+
     function planItemHTML(action, index) {
         var resolves = (action.resolves || []).join(', ');
         return '<div class="plan-item" data-ai-action-jump="' + esc(action.code) + '">' +
@@ -774,6 +862,7 @@
                 '<span class="plan-item-title">' + esc(action.title) + '</span>' +
                 '<span class="plan-item-chips">' + esc(action.code) +
                     (resolves ? ' · resolves ' + esc(resolves) : '') + '</span>' +
+                planOwnerHTML(action) +
             '</div>' +
             '<span class="' + priorityBadgeClass(action.priority_band) + '">' +
                 esc(action.priority_band) + '</span>' +
@@ -793,8 +882,10 @@
 
         var high = actions.filter(function (a) { return a.priority_band === 'HIGH'; }).length;
         var rows = actions.map(planItemHTML).join('');
-        var note = data.formulas && data.formulas.priority
-            ? '<p class="plan-note">' + esc(data.formulas.priority) + '</p>' : '';
+        // Fixo em ingles: `data.formulas.priority` vem em portugues (feito para o CLI).
+        var note = '<p class="plan-note">Priority = impact × confidence weight of the ' +
+            'best-supported finding each action resolves. An operational order for where ' +
+            'to start, not a severity score.</p>';
 
         planPanelEl.innerHTML =
             '<h3>Action Plan</h3>' +
@@ -822,7 +913,8 @@
         var actions = (lastData.actions || []).filter(function (a) { return a.decision === 'ACCEPTED'; });
         if (!actions.length) return;
 
-        var header = csvRow(['code', 'title', 'description', 'where', 'impact', 'resolves', 'priority_band', 'decision']);
+        var header = csvRow(['code', 'title', 'description', 'where', 'impact', 'resolves', 'priority_band', 'decision',
+            'responsible', 'deadline']);
         var rows = actions.map(function (action) {
             var m = action.metrics || {};
             return csvRow([
@@ -833,7 +925,9 @@
                 m.impact || '',
                 (action.resolves || []).join('; '),
                 action.priority_band,
-                action.decision
+                action.decision,
+                action.responsible,
+                action.deadline
             ]);
         });
 
@@ -967,6 +1061,40 @@
             .catch(function (error) { console.error('ai-analysis:', error); });
     }
 
+    // Salva responsavel/prazo editados direto no card. Re-renderiza so o painel do plano:
+    // um render() completo recriaria a fila e tiraria o foco de quem esta tabulando do
+    // responsavel para o prazo. O proprio campo ja mostra o valor novo.
+    function saveOwnerField(input) {
+        var field = input.dataset.aiOwnerField;
+        var chip = input.closest('.ai-owner-chip');
+        var value = input.value.trim() || null;
+        var payload = {};
+        payload[field] = value;
+
+        chip.classList.remove('is-saved', 'is-error');
+        fetch('/api/ai-analysis/' + evaluationId + '/actions/' + input.dataset.aiOwnerId, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(function (response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(function (data) {
+                lastData = data;
+                renderPlanPanel(data);
+                chip.classList.toggle('is-filled', !!value);
+                if (field === 'deadline') chip.classList.toggle('is-overdue', isOverdue(value));
+                chip.classList.add('is-saved');
+                setTimeout(function () { chip.classList.remove('is-saved'); }, 1200);
+            })
+            .catch(function (error) {
+                chip.classList.add('is-error');
+                console.error('ai-analysis:', error);
+            });
+    }
+
     // ---------------------------------------------------------------- modal de edicao
 
     var editModalEl = null;
@@ -995,11 +1123,23 @@
             '<label class="ai-field">Where' +
                 '<input type="text" data-ai-field="where" value="' + esc((action.where || []).join(', ')) +
                     '" placeholder="e.g. /support, navbar"></label>' +
+            '<div class="ai-field-row">' +
+                '<label class="ai-field">' +
+                    '<span class="ai-field-label"><span class="material-symbols-outlined">person</span>Responsible</span>' +
+                    '<input type="text" maxlength="255" data-ai-field="responsible" value="' +
+                        esc(action.responsible || '') + '" placeholder="Name or team"></label>' +
+                '<label class="ai-field">' +
+                    '<span class="ai-field-label"><span class="material-symbols-outlined">event</span>Deadline</span>' +
+                    '<input type="date" data-ai-field="deadline" value="' + esc(action.deadline || '') + '"></label>' +
+            '</div>' +
             '<div class="ai-modal-stats">' +
                 '<div class="ai-modal-stat ai-stat-help" tabindex="0" data-help="' + esc(IMPACT_HELP) + '">' +
                     '<span>Impact <span class="material-symbols-outlined ai-stat-info">info</span></span>' +
                     '<strong>' + esc(m.impact) + '</strong></div>' +
-                '<div class="ai-modal-stat"><span>Priority score</span><strong>' + esc(m.priority_score) + '</strong></div>' +
+                '<div class="ai-modal-stat ai-stat-help ai-help-pre" tabindex="0" data-help="' +
+                    esc(priorityTooltip(action)) + '">' +
+                    '<span>Priority score <span class="material-symbols-outlined ai-stat-info">info</span></span>' +
+                    '<strong>' + esc(m.priority_score) + '</strong></div>' +
             '</div>' +
             '<div class="ai-modal-resolves"><strong>Resolves:</strong> ' + esc((action.resolves || []).join(', ')) + '</div>' +
             '<div class="ai-action-footer">' +
@@ -1039,7 +1179,9 @@
             body: JSON.stringify({
                 title: body.querySelector('[data-ai-field="title"]').value,
                 description: body.querySelector('[data-ai-field="description"]').value,
-                where: where
+                where: where,
+                responsible: body.querySelector('[data-ai-field="responsible"]').value.trim() || null,
+                deadline: body.querySelector('[data-ai-field="deadline"]').value || null
             })
         })
             .then(function (response) { return response.json(); })
@@ -1257,6 +1399,12 @@
     });
 
     document.addEventListener('change', function (event) {
+        var ownerInput = event.target.closest('[data-ai-owner-field]');
+        if (ownerInput) {
+            saveOwnerField(ownerInput);
+            return;
+        }
+
         var select = event.target.closest('[data-ai-model]');
         if (!select) return;
         selectedModel = select.value;

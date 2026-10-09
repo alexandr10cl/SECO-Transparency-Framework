@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from index import app, db
@@ -507,6 +507,8 @@ def _serialize(analysis: AIAnalysis) -> Dict[str, Any]:
             "priority_band": action_metrics["priority_band"],
             "decision": action.decision.value,
             "manual_rank": action.manual_rank,
+            "responsible": action.responsible,
+            "deadline": action.deadline.isoformat() if action.deadline else None,
         })
 
     # Ordem do plano: manual_rank quando o gestor ja mexeu nas setas, senao prioridade
@@ -576,6 +578,34 @@ class ActionNotFound(Exception):
 
 _DECISION_VALUES = {status.value for status in AIReviewStatus}
 
+# Sentinel para responsible/deadline: nesses campos None/"" significa "limpar", entao
+# "nao enviado" precisa de outro marcador.
+UNSET = object()
+
+_RESPONSIBLE_MAX = 255
+
+
+def _parse_responsible(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("responsible deve ser texto")
+    value = value.strip()
+    if len(value) > _RESPONSIBLE_MAX:
+        raise ValueError(f"responsible excede {_RESPONSIBLE_MAX} caracteres")
+    return value or None
+
+
+def _parse_deadline(value: Any) -> Optional[date]:
+    if value is None or value == "":
+        return None
+    if not isinstance(value, str):
+        raise ValueError("deadline deve ser uma data ISO (AAAA-MM-DD)")
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise ValueError(f"deadline invalida: {value}") from None
+
 
 def _get_action(evaluation_id: int, action_id: int) -> AIAction:
     action = (
@@ -599,13 +629,21 @@ def update_action(
     description: Optional[str] = None,
     where: Optional[List[str]] = None,
     decision: Optional[str] = None,
+    responsible: Any = UNSET,
+    deadline: Any = UNSET,
 ) -> Dict[str, Any]:
-    """Edita titulo/descricao/where e/ou muda a decisao (aprovar/descartar/resetar).
+    """Edita titulo/descricao/where/responsavel/prazo e/ou muda a decisao.
 
-    Campos omitidos (None) ficam como estavam. Devolve o payload completo da tela, ja
-    que uma mudanca aqui pode afetar o `planPanel` (filtro por decision=ACCEPTED).
+    Campos omitidos (None) ficam como estavam — exceto `responsible` e `deadline`, onde
+    None/"" limpa o campo e so UNSET deixa como estava. Devolve o payload completo da
+    tela, ja que uma mudanca aqui pode afetar o `planPanel` (filtro por decision=ACCEPTED).
     """
     action = _get_action(evaluation_id, action_id)
+
+    if responsible is not UNSET:
+        action.responsible = _parse_responsible(responsible)
+    if deadline is not UNSET:
+        action.deadline = _parse_deadline(deadline)
 
     if title is not None:
         action.title = title
