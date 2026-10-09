@@ -20,6 +20,7 @@ import time
 import urllib.robotparser
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Callable
 from urllib.parse import urljoin, urlparse, urldefrag
 
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -198,7 +199,15 @@ def _visitar(page, url: str, cfg: ConfigColeta) -> tuple[PaginaBruta, dict]:
 # Coleta
 # ---------------------------------------------
 
-def coletar(url_inicial: str, cfg: ConfigColeta | None = None) -> ColetaBruta:
+def coletar(
+    url_inicial: str,
+    cfg: ConfigColeta | None = None,
+    on_progress: Callable[[dict], None] | None = None,
+) -> ColetaBruta:
+    """`on_progress`, se dado, recebe `{"visited", "target", "url"}` a cada pagina
+    visitada. `target` e uma estimativa (paginas ja vistas + fila restante, no
+    teto de `max_paginas`) - a fila cresce depois da home, entao ele sobe no
+    comeco e depois estabiliza. Excecoes do callback nunca derrubam a coleta."""
     cfg = cfg or ConfigColeta()
     url_inicial = _normalizar(url_inicial)
     dominio = urlparse(url_inicial).netloc.lower()
@@ -225,6 +234,20 @@ def coletar(url_inicial: str, cfg: ConfigColeta | None = None) -> ColetaBruta:
 
     fila: list[tuple[str, int, int]] = [(url_inicial, 0, 0)]  # (url, prof, prio)
     vistas: set[str] = set()
+
+    def notificar(url_atual: str = "") -> None:
+        if on_progress is None:
+            return
+        visitadas = len(coleta.paginas)
+        pendentes = len({_normalizar(u) for u, _, _ in fila} - vistas)
+        try:
+            on_progress({
+                "visited": visitadas,
+                "target": min(cfg.max_paginas, visitadas + pendentes),
+                "url": url_atual,
+            })
+        except Exception:  # noqa: BLE001 - UI de progresso nunca derruba a coleta
+            pass
 
     with sync_playwright() as p:
         navegador = p.chromium.launch(headless=True)
@@ -253,6 +276,7 @@ def coletar(url_inicial: str, cfg: ConfigColeta | None = None) -> ColetaBruta:
             if url in vistas or not permitido(url):
                 continue
             vistas.add(url)
+            notificar(url)  # antes de visitar: "visitadas" conta so as ja concluidas
 
             bruta, dados = _visitar(page, url, cfg)
             bruta.profundidade = prof
@@ -294,6 +318,10 @@ def coletar(url_inicial: str, cfg: ConfigColeta | None = None) -> ColetaBruta:
 
         contexto.close()
         navegador.close()
+
+    # Fila esvaziou ou bateu no teto: o que foi visitado e o alvo final.
+    fila.clear()
+    notificar()
 
     _avaliar_modo(coleta)
     return coleta

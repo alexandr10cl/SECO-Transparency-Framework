@@ -200,6 +200,8 @@ def api_scenarios(evaluation_id: int):
                 if collection and collection.generated_at else None
             ),
             "error": collection.error_message if collection else None,
+            # {"visited", "target", "url"} da coleta em andamento (None fora dela)
+            "progress": collection.progress if collection else None,
         },
         "scenarios": payload_scenarios,
         "all_approved": bool(payload_scenarios) and all(

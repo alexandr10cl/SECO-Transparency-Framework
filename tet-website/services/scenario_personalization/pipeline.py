@@ -157,6 +157,7 @@ def schedule_evaluation(evaluation_id: int) -> Dict[str, Any]:
         collection.status = StatusCollection.RUNNING
         collection.started_at = datetime.utcnow()
         collection.error_message = None
+        collection.progress = None
         db.session.commit()
 
     _executor.submit(_run_evaluation, evaluation_id)
@@ -203,7 +204,10 @@ def _collect(evaluation_id: int) -> PortalCollection:
     if evaluation is None:
         raise RuntimeError(f"avaliacao {evaluation_id} nao encontrada")
 
-    bruta = coleta.coletar(evaluation.seco_portal_url)
+    bruta = coleta.coletar(
+        evaluation.seco_portal_url,
+        on_progress=_make_collection_progress_logger(evaluation_id),
+    )
     dados_portal = estruturacao.estruturar(bruta)
 
     collection = _get_collection(evaluation_id)
@@ -219,6 +223,28 @@ def _collect(evaluation_id: int) -> PortalCollection:
         evaluation_id, collection.modo_coleta, len(dados_portal["paginas_coletadas"]),
     )
     return collection
+
+
+def _make_collection_progress_logger(evaluation_id: int):
+    """`on_progress` de `coleta.coletar`: grava `{"visited", "target", "url"}` em
+    `PortalCollection.progress` a cada pagina, pra barra de progresso da tela do
+    gestor (polling) - mesmo contrato do logger de cenarios abaixo: um commit
+    pequeno por evento, e uma falha aqui nunca derruba a coleta."""
+    def _on_progress(event: Dict[str, Any]) -> None:
+        try:
+            collection = _get_collection(evaluation_id)
+            if collection is None:
+                return
+            collection.progress = event
+            db.session.commit()
+        except Exception:  # noqa: BLE001
+            db.session.rollback()
+            app.logger.exception(
+                "scenario-personalization: falha ao gravar progresso da coleta (avaliacao %s)",
+                evaluation_id,
+            )
+
+    return _on_progress
 
 
 def _fail_collection(evaluation_id: int, exc: Exception) -> None:

@@ -325,6 +325,108 @@
         });
     }
 
+    // Barra de progresso unica, juntando scraping e personalizacao (tela dedicada
+    // scenario_status.html - opcional, como o stepper). Pesos: a coleta vale
+    // COLLECT_WEIGHT da barra e o resto e dividido igualmente entre as 2 chamadas
+    // de IA (mapeamento + adaptacao) de cada task.
+    //   coleta: collection.progress.visited / .target (estimativa - o alvo sobe
+    //           quando a home revela seus links e depois estabiliza)
+    //   chamadas: um evento "success" no progress_log do cenario = 1 chamada; um
+    //           cenario em estado final conta as 2 (cobre a adaptacao pulada, que
+    //           nao emite "success", e o ERROR)
+    var COLLECT_WEIGHT = 0.4;
+    var CALLS_PER_TASK = 2;
+    var FINAL_STATUSES = ['AWAITING_APPROVAL', 'APPROVED', 'ERROR'];
+
+    function computeProgress(data) {
+        var collection = data.collection || {};
+        var scenarios = data.scenarios || [];
+
+        var collectFrac = 0;
+        if (collection.status === 'DONE') {
+            collectFrac = 1;
+        } else if (collection.progress && collection.progress.target > 0) {
+            collectFrac = Math.min(1, collection.progress.visited / collection.progress.target);
+        }
+
+        var callsDone = 0;
+        scenarios.forEach(function (s) {
+            if (FINAL_STATUSES.indexOf(s.status) !== -1) {
+                callsDone += CALLS_PER_TASK;
+            } else {
+                var successes = (s.progress_log || []).filter(function (e) { return e.event === 'success'; }).length;
+                callsDone += Math.min(CALLS_PER_TASK, successes);
+            }
+        });
+        var callsTotal = CALLS_PER_TASK * scenarios.length;
+        var callsFrac = callsTotal ? callsDone / callsTotal : 0;
+
+        var frac = callsTotal
+            ? COLLECT_WEIGHT * collectFrac + (1 - COLLECT_WEIGHT) * callsFrac
+            : collectFrac;
+
+        return {
+            pct: Math.round(frac * 100),
+            collectionFailed: collection.status === 'ERROR',
+            // coleta rodando mas ainda sem a primeira pagina registrada
+            indeterminate: collection.status !== 'DONE' && collection.status !== 'ERROR' &&
+                !(collection.progress && collection.progress.target > 0)
+        };
+    }
+
+    function describeProgress(data) {
+        var collection = data.collection || {};
+        var scenarios = data.scenarios || [];
+
+        if (collection.status === 'ERROR') {
+            return { text: 'Portal collection failed', detail: '' };
+        }
+        if (collection.status !== 'DONE') {
+            var p = collection.progress;
+            if (p && p.target > 0) {
+                return {
+                    text: 'Collecting portal data — page ' + Math.min(p.visited + 1, p.target) + ' of ~' + p.target,
+                    detail: p.url ? esc(p.url) : ''
+                };
+            }
+            return { text: 'Collecting portal data…', detail: '' };
+        }
+
+        var index = -1;
+        for (var i = 0; i < scenarios.length; i++) {
+            if (scenarios[i].status === 'PENDING' || scenarios[i].status === 'RUNNING') { index = i; break; }
+        }
+        if (index === -1) return { text: 'Done', detail: '' };
+
+        var s = scenarios[index];
+        var events = s.progress_log || [];
+        return {
+            text: 'Personalizing scenario ' + (index + 1) + ' of ' + scenarios.length + ' — ' + s.task_title,
+            detail: events.length ? formatProgressEvent(events[events.length - 1]) : 'Waiting to start…'
+        };
+    }
+
+    function renderProgressBar(data) {
+        var bar = document.getElementById('pipeline-progress');
+        if (!bar) return;
+
+        var progress = computeProgress(data);
+        bar.hidden = !(isPending(data) || progress.collectionFailed);
+        if (bar.hidden) return;
+
+        var info = describeProgress(data);
+        var fill = document.getElementById('pipeline-progress-fill');
+        fill.style.width = progress.pct + '%';
+        fill.classList.toggle('is-indeterminate', progress.indeterminate);
+        fill.classList.toggle('is-error', progress.collectionFailed);
+        document.getElementById('pipeline-progress-pct').textContent = progress.pct + '%';
+        // task_title vem do banco: escapado aqui, e "detail" ja vem escapado
+        // (formatProgressEvent / esc da URL).
+        document.getElementById('pipeline-progress-text').innerHTML = esc(info.text);
+        document.getElementById('pipeline-progress-detail').innerHTML = info.detail;
+        bar.setAttribute('aria-valuenow', progress.pct);
+    }
+
     function isPending(data) {
         return (data.scenarios || []).some(function (s) {
             return s.status === 'PENDING' || s.status === 'RUNNING';
@@ -346,6 +448,7 @@
         renderCollectionInfo(data.collection);
         renderTimingNotice(data);
         renderStepper(data);
+        renderProgressBar(data);
         (data.scenarios || []).forEach(function (s) {
             var panel = document.querySelector('.scenario-panel[data-task-id="' + s.task_id + '"]');
             if (!panel) return;

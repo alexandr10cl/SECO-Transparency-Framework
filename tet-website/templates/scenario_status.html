@@ -61,6 +61,18 @@
         </li>
     </ol>
 
+    <div class="pipeline-progress" id="pipeline-progress" role="progressbar"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden>
+        <div class="pipeline-progress-head">
+            <span id="pipeline-progress-text">Starting…</span>
+            <span id="pipeline-progress-pct">0%</span>
+        </div>
+        <div class="pipeline-progress-track">
+            <div class="pipeline-progress-fill" id="pipeline-progress-fill"></div>
+        </div>
+        <div class="pipeline-progress-detail" id="pipeline-progress-detail"></div>
+    </div>
+
     <div id="collection-info" class="collection-info" hidden></div>
 
     <div class="related-card">

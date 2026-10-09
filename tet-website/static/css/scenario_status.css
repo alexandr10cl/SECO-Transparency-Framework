@@ -123,6 +123,75 @@
     50% { box-shadow: 0 0 0 7px var(--color-primary-light); }
 }
 
+/* Barra de progresso unica (scraping + as 2 chamadas de IA por task) */
+.pipeline-progress {
+    margin: 0 0 var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xs);
+}
+
+.pipeline-progress[hidden] {
+    display: none;
+}
+
+.pipeline-progress-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: var(--space-2);
+}
+
+.pipeline-progress-track {
+    height: 8px;
+    border-radius: 999px;
+    background-color: var(--gray-200);
+    overflow: hidden;
+}
+
+.pipeline-progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background-color: var(--color-primary);
+    transition: width 0.4s ease;
+}
+
+.pipeline-progress-fill.is-error {
+    background-color: var(--color-danger);
+}
+
+/* Coleta iniciada, ainda sem a primeira pagina registrada: listras andando */
+.pipeline-progress-fill.is-indeterminate {
+    width: 100% !important;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.35) 25%, transparent 25%,
+        transparent 50%, rgba(255, 255, 255, 0.35) 50%,
+        rgba(255, 255, 255, 0.35) 75%, transparent 75%
+    );
+    background-size: 24px 24px;
+    animation: pipeline-progress-stripes 1s linear infinite;
+}
+
+.pipeline-progress-detail {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--gray-500);
+    min-height: 1.4em;
+    overflow-wrap: anywhere;
+}
+
+@keyframes pipeline-progress-stripes {
+    from { background-position: 0 0; }
+    to { background-position: 24px 0; }
+}
+
 .scenario-status-footer {
     margin-top: var(--space-6);
     display: flex;

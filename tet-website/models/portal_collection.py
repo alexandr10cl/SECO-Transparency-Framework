@@ -28,6 +28,12 @@ class PortalCollection(db.Model):
     modo_coleta = db.Column(db.String(20), nullable=True)  # "completo" | "degradado"
     motivos_degradacao = db.Column(db.JSON, nullable=True)
 
+    # Progresso da coleta em andamento ({"visited", "target", "url"}), gravado a
+    # cada pagina visitada - a tela do gestor le via polling pra barra de
+    # progresso unica (scenario_approval.js:computeProgress). `target` e uma
+    # estimativa. Zerado a cada nova coleta.
+    progress = db.Column(db.JSON, nullable=True)
+
     error_message = db.Column(db.Text, nullable=True)
     started_at = db.Column(db.DateTime, nullable=True)
     generated_at = db.Column(db.DateTime, nullable=True)
