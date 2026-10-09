@@ -25,13 +25,21 @@ docker compose up -d --build   # builds backend image, runs migrations + seed au
 # 1. Start MySQL only (port 3307)
 docker compose up -d db
 
-# 2. Setup Flask backend
+# 2. Setup Flask backend (venv + pip + Playwright's Chromium + .env) — one script
 cd tet-website
-python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # Linux/Mac
-pip install -r requirements.txt
-cp .env.example .env           # Pre-configured for Docker DB
+powershell -ExecutionPolicy Bypass -File .\setup.ps1   # Windows (add -Dev for pytest)
+# bash setup.sh                                        # Linux/Mac (--dev, --with-deps)
+
+# ...or by hand — note the last step: `pip install` only brings the Python package,
+# the browser used by the portal collection is a separate download:
+#   python -m venv venv && venv\Scripts\activate       # source venv/bin/activate on Linux/Mac
+#   pip install -r requirements.txt
+#   playwright install chromium
+#   cp .env.example .env                               # Pre-configured for Docker DB
+
+# Shortcut for steps 1 + 3 + 4 (db up, migrations, seed, server):
+#   powershell -ExecutionPolicy Bypass -File .\dev-up.ps1     # Windows (-NoServer to skip `python index.py`)
+#   bash dev-up.sh                                            # Linux/Mac (--no-server)
 
 # 3. Initialize database
 set FLASK_APP=index.py         # Windows (export on Linux/Mac)

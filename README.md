@@ -56,16 +56,27 @@ Pronto: MySQL 8 (porta 3307) e backend Flask (porta 5000) no ar, com migrations 
 docker compose up -d db
 
 cd tet-website
-python -m venv venv
-venv\Scripts\activate            # Windows (source venv/bin/activate no Linux/Mac)
-pip install -r requirements.txt
-cp .env.example .env
 
+# venv + dependências + Chromium do Playwright + .env, num passo só
+powershell -ExecutionPolicy Bypass -File .\setup.ps1   # Windows
+# bash setup.sh                                        # Linux/Mac
+
+venv\Scripts\activate            # Windows (source venv/bin/activate no Linux/Mac)
 set FLASK_APP=index.py           # Windows (export no Linux/Mac)
 flask db upgrade
 flask seed
 
 python index.py
+```
+
+> O `pip install` instala só o pacote Python do Playwright; o navegador usado na coleta do portal (personalização de cenários) é um download à parte, e é isso que o script faz. Manualmente: `playwright install chromium`.
+
+**Atalho:** depois do `setup` (uma vez só), o `dev-up` faz todo o resto — sobe o MySQL no Docker, espera ele ficar saudável, roda `flask db upgrade` e `flask seed` e inicia o servidor:
+
+```bash
+cd tet-website
+powershell -ExecutionPolicy Bypass -File .\dev-up.ps1          # Windows (-NoServer prepara o banco sem iniciar o Flask)
+# bash dev-up.sh                                               # Linux/Mac (--no-server)
 ```
 
 Instruções detalhadas e troubleshooting: [`tet-website/README.md`](tet-website/README.md).

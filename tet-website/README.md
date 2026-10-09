@@ -175,7 +175,40 @@ source venv/bin/activate
 
 ```bash
 pip install -r requirements.txt
+playwright install chromium
 ```
+
+O `pip` instala só o pacote Python do Playwright. O navegador que ele controla (usado na coleta do portal, na personalização de cenários) é um download separado — por isso o segundo comando. Rode-o de novo se a versão do `playwright` no `requirements.txt` mudar: cada versão espera uma revisão específica do Chromium.
+
+#### Atalho: passos 3 a 5 com um script
+
+Na pasta `tet-website/`, o script cria o venv (se não existir), instala as dependências, baixa o Chromium e cria o `.env` a partir do `.env.example` (sem sobrescrever um `.env` existente). Pode ser rodado quantas vezes quiser.
+
+```bash
+# Windows (o -ExecutionPolicy Bypass evita o bloqueio padrão de scripts .ps1)
+powershell -ExecutionPolicy Bypass -File .\setup.ps1          # -Dev instala também o pytest
+
+# Linux/Mac
+bash setup.sh                                                  # --dev, --skip-browser, --with-deps
+```
+
+`--with-deps` (Linux) também instala as bibliotecas de sistema do Chromium via apt e exige root/sudo — é o que o `Dockerfile` faz. Depois do script, siga direto para o passo 6.
+
+#### Atalho: banco, migrations, seed e servidor
+
+Os scripts de setup (`setup.ps1` / `setup.sh`) não mexem em Docker nem no banco. Para o resto do fluxo (passos 2, 6 e 7), há o `dev-up.ps1` (Windows) e o `dev-up.sh` (Linux/Mac), equivalentes entre si. Cada um confere os pré-requisitos (venv, `.env`, Docker rodando), sobe o MySQL com `docker compose up -d --wait db`, aplica `flask db upgrade` e `flask seed` e inicia `python index.py`. Podem ser repetidos à vontade: o seed ignora o que já existe e as migrations aplicam só o que falta.
+
+```bash
+# Windows
+powershell -ExecutionPolicy Bypass -File .\dev-up.ps1             # sobe tudo e inicia o servidor
+powershell -ExecutionPolicy Bypass -File .\dev-up.ps1 -NoServer   # só prepara o banco
+
+# Linux/Mac
+bash dev-up.sh                                                     # sobe tudo e inicia o servidor
+bash dev-up.sh --no-server                                         # só prepara o banco
+```
+
+Ao parar o servidor (Ctrl+C) o container do banco continua rodando; `docker compose stop db` o para sem apagar os dados.
 
 #### 5. Configure as variáveis de ambiente
 
@@ -239,6 +272,7 @@ Para utilizar a extensão Chrome com o sistema:
 
 | Sintoma | Causa provável | Solução |
 |---------|----------------|---------|
+| `Executable doesn't exist at ...ms-playwright\chromium_headless_shell-...` / "Looks like Playwright was just installed or updated" na coleta do portal | O pacote Python do Playwright está instalado, mas o Chromium não foi baixado (ou a versão do `playwright` mudou) | `playwright install chromium` dentro do venv, ou rode `setup.ps1` / `setup.sh` |
 | `Can't connect to MySQL server` na porta 3307 | Container do banco não está rodando | `docker compose up -d db` (e aguarde o healthcheck) |
 | Porta 3307 ou 5000 já em uso | Outro serviço/instância ocupando a porta | Pare o serviço conflitante ou ajuste a porta no `docker-compose.yml` |
 | `Error: Can't locate revision identified by '...'` no `flask db upgrade` | Banco criado com a cadeia antiga de migrations | Confira se o schema está atualizado e rode `flask db stamp 4ef2e61f029a` |
