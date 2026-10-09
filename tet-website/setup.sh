@@ -103,8 +103,8 @@ Pronto. Proximos passos (a partir da raiz do repositorio):
   docker compose up -d db          # MySQL na porta 3307
   cd tet-website
   source venv/bin/activate
-  export FLASK_APP=index.py
-  flask db upgrade
-  flask seed
+  flask --app index.py db upgrade
+  flask --app index.py seed
   python index.py                  # http://localhost:5000
+  (ou: bash dev-up.sh  - faz tudo isso de uma vez)
 EOF

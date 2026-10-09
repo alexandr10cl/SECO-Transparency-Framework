@@ -62,13 +62,14 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1   # Windows
 # bash setup.sh                                        # Linux/Mac
 
 venv\Scripts\activate            # Windows (source venv/bin/activate no Linux/Mac)
-set FLASK_APP=index.py           # Windows (export no Linux/Mac)
-flask db upgrade
-flask seed
+flask --app index.py db upgrade
+flask --app index.py seed
 
 python index.py
 ```
 
+> O `--app index.py` vai **antes** do subcomando e dispensa definir `FLASK_APP` (que era `set` no Windows e `export` no Linux/Mac). Sem ele, o Flask não acha o app e responde `No such command 'db'`.
+>
 > O `pip install` instala só o pacote Python do Playwright; o navegador usado na coleta do portal (personalização de cenários) é um download à parte, e é isso que o script faz. Manualmente: `playwright install chromium`.
 
 **Atalho:** depois do `setup` (uma vez só), o `dev-up` faz todo o resto — sobe o MySQL no Docker, espera ele ficar saudável, roda `flask db upgrade` e `flask seed` e inicia o servidor:

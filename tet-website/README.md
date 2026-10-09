@@ -232,18 +232,14 @@ Para desenvolvimento local completo use `DEV_MODE=True` + `UXT_INTEGRATION=False
 #### 6. Crie as tabelas e popule os dados de referência
 
 ```bash
-# Windows
-set FLASK_APP=index.py
-
-# Linux/Mac
-export FLASK_APP=index.py
-
 # Cria as tabelas no banco
-flask db upgrade
+flask --app index.py db upgrade
 
 # Popula guidelines, processos, dimensões, etc.
-flask seed
+flask --app index.py seed
 ```
+
+O `--app index.py` vai **antes** do subcomando e funciona igual no Windows, Linux e Mac — dispensa definir `FLASK_APP` (`set` num sistema, `export` no outro). Se preferir definir a variável, `flask db upgrade` e `flask seed` sem a flag também funcionam.
 
 > **Nota (bancos antigos):** o histórico de migrations foi consolidado numa única baseline (`4ef2e61f029a`). Se você tem um banco criado com a cadeia antiga de migrations, o `flask db upgrade` vai falhar com "Can't locate revision". Remédio: confirme que o schema está atualizado e rode `flask db stamp 4ef2e61f029a`. Bancos novos (Docker) não são afetados.
 
@@ -253,7 +249,7 @@ flask seed
 python index.py
 
 # Ou usando Flask CLI
-flask run --debug
+flask --app index.py run --debug
 ```
 
 O servidor estará disponível em `http://localhost:5000`
@@ -276,7 +272,8 @@ Para utilizar a extensão Chrome com o sistema:
 | `Can't connect to MySQL server` na porta 3307 | Container do banco não está rodando | `docker compose up -d db` (e aguarde o healthcheck) |
 | Porta 3307 ou 5000 já em uso | Outro serviço/instância ocupando a porta | Pare o serviço conflitante ou ajuste a porta no `docker-compose.yml` |
 | `Error: Can't locate revision identified by '...'` no `flask db upgrade` | Banco criado com a cadeia antiga de migrations | Confira se o schema está atualizado e rode `flask db stamp 4ef2e61f029a` |
-| `flask: command not found` ou comando não acha o app | `FLASK_APP` não definido | `set FLASK_APP=index.py` (Windows) / `export FLASK_APP=index.py` (Linux/Mac) |
+| `Error: No such command 'db'` (ou `seed`) | O Flask não sabe qual é o app: faltou `--app` / `FLASK_APP`, ou a flag foi colocada depois do subcomando | `flask --app index.py db upgrade` (a flag vai **antes** do subcomando); ou defina `FLASK_APP=index.py` (`set` no Windows, `export` no Linux/Mac) |
+| `flask: command not found` | venv não está ativado | `venv\Scripts\activate` (Windows) / `source venv/bin/activate` (Linux/Mac) |
 | Banco em estado estranho / quero recomeçar do zero | Volume com dados antigos | `docker compose down -v && docker compose up -d --build` (apaga os dados!) |
 | Cadastro falha reclamando do UX-Tracking | `UXT_INTEGRATION=True` sem o serviço acessível | Use `UXT_INTEGRATION=False` no `.env` para desenvolvimento local |
 | Heatmaps mostram "Integração UX-Tracking desativada" | Comportamento esperado com `UXT_INTEGRATION=False` | Ative a flag se precisar de heatmaps reais |

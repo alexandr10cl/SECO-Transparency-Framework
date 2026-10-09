@@ -80,16 +80,15 @@ if ($composeExit -ne 0) {
 # --- 3 e 4. Migrations e seed ----------------------------------------------------
 
 Set-Location $tetDir
-$env:FLASK_APP = 'index.py'
 
 Write-Step 'Aplicando as migrations (flask db upgrade)'
-& $venvPython -m flask db upgrade
+& $venvPython -m flask --app index.py db upgrade
 if ($LASTEXITCODE -ne 0) {
     Stop-DevUp "flask db upgrade falhou. Veja a mensagem acima e a tabela de Troubleshooting do tet-website/README.md (ex.: banco criado com a cadeia antiga de migrations)."
 }
 
 Write-Step 'Populando os dados de referencia (flask seed)'
-& $venvPython -m flask seed
+& $venvPython -m flask --app index.py seed
 if ($LASTEXITCODE -ne 0) {
     Stop-DevUp 'flask seed falhou. Veja a mensagem acima.'
 }

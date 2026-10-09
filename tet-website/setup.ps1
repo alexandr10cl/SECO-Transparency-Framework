@@ -117,8 +117,8 @@ Write-Host @'
   docker compose up -d db          # MySQL na porta 3307
   cd tet-website
   venv\Scripts\activate
-  set FLASK_APP=index.py
-  flask db upgrade
-  flask seed
+  flask --app index.py db upgrade
+  flask --app index.py seed
   python index.py                  # http://localhost:5000
+  (ou: powershell -ExecutionPolicy Bypass -File .\dev-up.ps1  - faz tudo isso de uma vez)
 '@

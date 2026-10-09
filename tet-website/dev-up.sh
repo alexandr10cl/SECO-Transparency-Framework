@@ -67,14 +67,12 @@ step "Subindo o MySQL (porta 3307) e esperando ele ficar saudavel"
 
 # --- 3 e 4. Migrations e seed ----------------------------------------------------
 
-export FLASK_APP=index.py
-
 step "Aplicando as migrations (flask db upgrade)"
-"$VENV_PY" -m flask db upgrade \
+"$VENV_PY" -m flask --app index.py db upgrade \
   || die "flask db upgrade falhou. Veja a mensagem acima e a tabela de Troubleshooting do tet-website/README.md (ex.: banco criado com a cadeia antiga de migrations)."
 
 step "Populando os dados de referencia (flask seed)"
-"$VENV_PY" -m flask seed || die "flask seed falhou. Veja a mensagem acima."
+"$VENV_PY" -m flask --app index.py seed || die "flask seed falhou. Veja a mensagem acima."
 
 # --- 5. Servidor -----------------------------------------------------------------
 

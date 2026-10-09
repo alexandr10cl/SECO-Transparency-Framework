@@ -41,13 +41,12 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1   # Windows (add -Dev for p
 #   powershell -ExecutionPolicy Bypass -File .\dev-up.ps1     # Windows (-NoServer to skip `python index.py`)
 #   bash dev-up.sh                                            # Linux/Mac (--no-server)
 
-# 3. Initialize database
-set FLASK_APP=index.py         # Windows (export on Linux/Mac)
-flask db upgrade
-flask seed                     # Populate reference data (guidelines, processes, tasks, etc.)
+# 3. Initialize database (--app goes BEFORE the subcommand; no FLASK_APP needed)
+flask --app index.py db upgrade
+flask --app index.py seed      # Populate reference data (guidelines, processes, tasks, etc.)
 
 # 4. Run
-python index.py                # or: flask run --debug
+python index.py                # or: flask --app index.py run --debug
 ```
 
 ## Environment Flags
@@ -65,12 +64,14 @@ All four combinations are valid. For fully local development use `DEV_MODE=True`
 
 ### Flask Backend (tet-website/)
 ```bash
-python index.py                # Run dev server (entry point is index.py, NOT app.py)
-flask run --debug              # Alternative via Flask CLI (set FLASK_APP=index.py first)
-flask db migrate -m "msg"      # Create new migration
-flask db upgrade               # Apply migrations
-flask seed                     # Seed reference data from seed_data.json
+python index.py                          # Run dev server (entry point is index.py, NOT app.py)
+flask --app index.py run --debug         # Alternative via Flask CLI
+flask --app index.py db migrate -m "msg" # Create new migration
+flask --app index.py db upgrade          # Apply migrations
+flask --app index.py seed                # Seed reference data from seed_data.json
 ```
+
+`--app index.py` must come before the subcommand (`flask db upgrade --app index.py` fails with `No such command 'db'`). Setting `FLASK_APP=index.py` in the environment is equivalent — the Dockerfile and the deploy configs do that.
 
 ### Chrome Extension
 Load unpacked extension in Chrome (chrome://extensions/) from `tet-extension/` folder.
