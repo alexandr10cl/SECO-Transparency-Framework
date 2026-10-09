@@ -98,8 +98,11 @@ Cenário-base        ─┤                                       ├─→ 3. P
 - **Obrigatória** antes da liberação.
 - O gestor vê: cenário final, diretriz avaliada, o que foi omitido, o que foi
   removido — e aprova ou rejeita. Rejeitar devolve à etapa 4, que **regenera
-  o cenário do zero** (chamadas 1 e 2 rodam de novo) — não há edição prévia
-  pelo gestor antes de tentar de novo.
+  o cenário do zero** (chamadas 1 e 2 rodam de novo) — não há edição direta do
+  cenário pelo gestor. O comentário opcional da rejeição entra como **feedback
+  do gestor** nos prompts das duas chamadas (últimas 3 rejeições comentadas),
+  para a IA não repetir o problema; ele nunca amplia o que pode ser citado — a
+  validação (etapa 5) segue conferindo tudo.
 
 ### 7. Log de origem
 - Registra: modo de coleta, timestamp, versão do cenário-base, justificativas,
@@ -199,6 +202,15 @@ um campo EXATO do JSON estruturado abaixo que sustente essa correspondência
 marque "corresponde": false e explique o motivo em "motivo" - NÃO invente
 recursos que não estão no JSON.
 
+Os campos "objetivo" e "motivo" são lidos pelo gestor do portal, que não
+conhece a estrutura técnica dos dados. Por isso, escreva-os SEMPRE em English
+(o idioma da interface dele), mesmo que o cenário-base ou o portal estejam em
+outro idioma, e em linguagem simples: diga o que foi ou não foi encontrado no
+portal. NUNCA cite caminhos do JSON, nomes de campo ou índices (como
+"paginas_coletadas[5]") nesses dois campos - o caminho técnico vai SOMENTE em
+"campo_fonte". O campo "texto" continua no idioma do cenário-base e
+"recurso_real" continua exatamente como aparece no portal.
+
 Diretriz de transparência associada a este cenário (inclui os critérios de
 sucesso que as etapas segmentadas devem poder refletir):
 {diretriz}
@@ -248,7 +260,7 @@ omitidos, por isso não tem como inventar recurso.
 | Estruturação sem IA | Preserva a fonte da verdade para a validação |
 | Segmentação do cenário-base é feita pela IA, na Chamada 1 | O cenário-base é armazenado como `title`+`description` corridos, sem segmentação prévia no banco — não há onde mais fazer isso antes da IA |
 | Checagem de conteúdo (etapa 5) por correspondência textual aproximada, não por IA | Mantém o módulo de validação inteiro determinístico — nenhuma IA fica responsável por checar alucinação de outra IA |
-| Rejeição do gestor (etapa 6) regenera o cenário do zero, sem edição prévia | Simplicidade de implementação; evita UI de edição e reprocessamento parcial |
+| Rejeição do gestor (etapa 6) regenera o cenário do zero, sem edição direta; o comentário da rejeição vai como feedback para a IA | Simplicidade de implementação; evita UI de edição e reprocessamento parcial. O feedback evita que a regeneração repita o erro apontado, sem abrir mão da validação determinística |
 | Duas chamadas de IA, não uma | Isola a decisão factual da reescrita criativa |
 | Reescrita ampla, não substituição literal | Cenário precisa soar natural |
 | Rastrear recursos, não trechos de texto | Robusto a qualquer nível de reescrita |

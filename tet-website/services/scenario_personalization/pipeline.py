@@ -38,8 +38,8 @@ from typing import Any, Dict, List, Optional
 
 from index import app, db
 from models import (
-    Evaluation, PersonalizedScenario, PortalCollection, StatusCollection,
-    StatusScenario, Task,
+    Evaluation, PersonalizedScenario, PortalCollection, ScenarioApprovalDecision,
+    StatusCollection, StatusScenario, Task,
 )
 from services.scenario_personalization import coleta, estruturacao, personalizacao, validacao
 from services.scenario_personalization.serializers import guideline_for_task, serialize_guideline
@@ -340,6 +340,26 @@ def _make_progress_logger(evaluation_id: int, task_id: int):
     return _on_progress
 
 
+def _feedback_do_gestor(evaluation_id: int, task_id: int) -> List[str]:
+    """Comentarios das rejeicoes anteriores deste cenario, do mais antigo ao mais
+    novo, ja filtrados/truncados (`personalizacao.selecionar_feedback`).
+
+    O log de aprovacao e append-only e a linha do cenario e reaproveitada a cada
+    regeneracao, entao ele acumula o historico de rejeicoes. O comentario e
+    gravado e comitado em `api_scenario_reject` ANTES de `schedule_scenario`, por
+    isso ja esta no banco quando a geracao comeca. Uma rejeicao sem comentario
+    nao entra (nao ha o que dizer a IA)."""
+    scenario = _get_scenario(evaluation_id, task_id)
+    if scenario is None:
+        return []
+    comentarios = [
+        entry.comment
+        for entry in scenario.approval_log  # ordenado por decided_at (ver o model)
+        if entry.decision == ScenarioApprovalDecision.REJECTED
+    ]
+    return personalizacao.selecionar_feedback(comentarios)
+
+
 def _generate_scenario(evaluation_id: int, task_id: int, model: Optional[str]) -> None:
     """Modulos 3-4 (personalizacao + validacao) de UMA task e persistencia.
 
@@ -372,6 +392,7 @@ def _generate_scenario(evaluation_id: int, task_id: int, model: Optional[str]) -
         dados_portal=collection.dados_portal,
         model=model,
         on_progress=on_progress,
+        feedback_gestor=_feedback_do_gestor(evaluation_id, task_id),
     )
     resultado_final = validacao.montar_resultado_validado(resultado_modulo3, collection.dados_portal)
 
