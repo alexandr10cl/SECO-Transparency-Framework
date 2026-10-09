@@ -82,6 +82,35 @@ def resolver_campo(dados_portal: dict, caminho: str) -> Any:
     return atual
 
 
+_PAGINA_RE = re.compile(r"^paginas_coletadas\[(\d+)\]")
+
+
+def descrever_fonte(caminho: str | None, dados_portal: dict | None) -> Dict[str, Any]:
+    """Traduz um `campo_fonte` ('paginas_coletadas[16].texto') para algo que o
+    gestor reconhece, so para exibicao no log de origem - a validacao continua
+    usando o caminho cru, que segue intacto em `justificativas`.
+
+    Devolve `{"tipo", "titulo", "url"}`. `tipo` e um de: "pagina" (com titulo e
+    url da pagina coletada), "menu", "link", "metadados" ou "portal" (caminho
+    desconhecido, ou pagina que nao existe mais nos dados coletados) - a
+    redacao de cada tipo fica na tela, aqui so a classificacao.
+    """
+    caminho = caminho or ""
+    pagina = _PAGINA_RE.match(caminho)
+    if pagina:
+        dados = resolver_campo(dados_portal or {}, f"paginas_coletadas[{pagina.group(1)}]")
+        if isinstance(dados, dict):
+            url = dados.get("url") or None
+            return {"tipo": "pagina", "titulo": dados.get("titulo") or url, "url": url}
+    elif caminho.startswith("estrutura_navegacao"):
+        return {"tipo": "menu", "titulo": None, "url": None}
+    elif caminho.startswith("recursos_mencionados"):
+        return {"tipo": "link", "titulo": None, "url": None}
+    elif caminho.startswith("metadados"):
+        return {"tipo": "metadados", "titulo": None, "url": None}
+    return {"tipo": "portal", "titulo": None, "url": None}
+
+
 def _confianca(recurso_real: str, valor_campo: Any) -> float:
     """Fracao dos tokens de `recurso_real` que aparecem no campo citado.
 

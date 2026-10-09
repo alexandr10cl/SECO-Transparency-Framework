@@ -184,3 +184,30 @@ def test_montar_resultado_validado_separa_confirmadas_de_removidas_e_junta_o_par
     assert len(resultado["recursos_removidos_validacao"]) == 1
     assert resultado["recursos_removidos_validacao"][0]["recurso"] == "changelog"
     assert "nao existe" in resultado["recursos_removidos_validacao"][0]["motivo"]
+
+
+# --- descrever_fonte: traducao do campo_fonte so para exibicao -----------------
+
+def test_descrever_fonte_pagina_devolve_titulo_e_url():
+    fonte = validacao.descrever_fonte("paginas_coletadas[0].texto", DADOS_PORTAL)
+    assert fonte == {"tipo": "pagina", "titulo": "Docs", "url": "https://exemplo.com/docs"}
+
+
+def test_descrever_fonte_pagina_sem_titulo_cai_na_url():
+    dados = {"paginas_coletadas": [{"url": "https://exemplo.com/x", "titulo": ""}]}
+    assert validacao.descrever_fonte("paginas_coletadas[0]", dados)["titulo"] == "https://exemplo.com/x"
+
+
+def test_descrever_fonte_pagina_inexistente_vira_portal():
+    assert validacao.descrever_fonte("paginas_coletadas[16].texto", DADOS_PORTAL)["tipo"] == "portal"
+
+
+def test_descrever_fonte_outros_tipos():
+    assert validacao.descrever_fonte("estrutura_navegacao.itens_menu[0]", DADOS_PORTAL)["tipo"] == "menu"
+    assert validacao.descrever_fonte("recursos_mencionados[3]", DADOS_PORTAL)["tipo"] == "link"
+    assert validacao.descrever_fonte("metadados.meta_description", DADOS_PORTAL)["tipo"] == "metadados"
+
+
+def test_descrever_fonte_nunca_lanca():
+    assert validacao.descrever_fonte(None, None)["tipo"] == "portal"
+    assert validacao.descrever_fonte("", {})["tipo"] == "portal"

@@ -1828,17 +1828,73 @@
     overflow-y: auto;
 }
 
-.scenario-progress-line {
-    font-family: var(--font-mono, monospace);
+/* Linha do tempo das chamadas de IA (renderTimeline em scenario_approval.js) */
+.ai-log-stage {
+    margin: var(--space-2) 0 var(--space-1);
     font-size: var(--text-xs);
-    color: var(--gray-600);
-    line-height: 1.6;
-    white-space: normal;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
-.scenario-progress-line:last-child {
+.ai-log-stage:first-child {
+    margin-top: 0;
+}
+
+.ai-log-event {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding: 2px 0;
+    font-size: var(--text-xs);
+    color: var(--gray-600);
+    line-height: 1.5;
+}
+
+.ai-log-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--gray-400, #a1a1a6);
+    align-self: center;
+}
+
+.ai-log-event.is-ok .ai-log-dot { background-color: var(--color-success); }
+.ai-log-event.is-warn .ai-log-dot { background-color: var(--color-warning); }
+.ai-log-event.is-error .ai-log-dot { background-color: var(--color-danger); }
+
+.ai-log-text {
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.ai-log-model {
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.ai-log-time {
+    flex: none;
+    color: var(--gray-400, #a1a1a6);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Ao vivo: o evento mais recente ganha destaque e o ponto pulsa */
+.ai-log.is-live .ai-log-event:last-child {
     color: var(--text-primary);
     font-weight: 600;
+}
+
+.ai-log.is-live .ai-log-event:last-child .ai-log-dot {
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+    animation: ai-log-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ai-log-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px var(--color-primary-light); }
+    50% { box-shadow: 0 0 0 6px var(--color-primary-light); }
 }
 
 .scenario-progress-summary {
@@ -1870,10 +1926,93 @@
     margin-bottom: var(--space-1);
 }
 
-.scenario-origin-value {
+/* Pares rotulo/valor do "Generated from" */
+.scenario-facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-1) var(--space-3);
+    margin: 0;
     font-size: var(--text-xs);
+}
+
+.scenario-facts dt {
+    color: var(--gray-500);
+    font-weight: 600;
+}
+
+.scenario-facts dd {
+    margin: 0;
     color: var(--gray-700);
-    margin-bottom: 2px;
+    overflow-wrap: anywhere;
+}
+
+/* Linhas icone + nome + nota (confirmados, omitidos, removidos, historico) */
+.scenario-items {
+    list-style: none;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.scenario-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background-color: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+}
+
+.scenario-item-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    background-color: var(--gray-100);
+    color: var(--gray-500);
+}
+
+.scenario-item-confirmed .scenario-item-icon {
+    background-color: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.scenario-item-omitted .scenario-item-icon {
+    background-color: var(--gray-100);
+    color: var(--gray-500);
+}
+
+.scenario-item-removed .scenario-item-icon {
+    background-color: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.scenario-item-name {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow-wrap: anywhere;
+}
+
+.scenario-item-note {
+    margin-top: 2px;
+    font-size: var(--text-xs);
+    color: var(--gray-500);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.scenario-item-note a {
+    color: var(--color-primary);
 }
 
 /* ============================================

@@ -21,7 +21,9 @@ from models import (
     Evaluation, PersonalizedScenario, PortalCollection, SECO_process,
     ScenarioApprovalDecision, ScenarioApprovalLog, StatusScenario, User,
 )
+from services.scenario_personalization.personalizacao import selecionar_feedback
 from services.scenario_personalization.pipeline import schedule_scenario
+from services.scenario_personalization.validacao import descrever_fonte
 
 
 def _current_user():
@@ -56,7 +58,7 @@ def _serialize_log(entry: ScenarioApprovalLog) -> dict:
     }
 
 
-def _serialize_scenario(scenario: PersonalizedScenario, task, guideline) -> dict:
+def _serialize_scenario(scenario: PersonalizedScenario, task, guideline, dados_portal=None) -> dict:
     return {
         "task_id": scenario.task_id,
         "task_title": task.title if task else scenario.cenario_base_title_snapshot,
@@ -71,7 +73,12 @@ def _serialize_scenario(scenario: PersonalizedScenario, task, guideline) -> dict
         # que o sustenta, e o snapshot dos inputs usados nesta geracao - Task.title/
         # description e Evaluation.seco_portal_description sao editaveis depois, o
         # snapshot e o unico jeito de saber o que foi realmente usado nesta versao.
-        "justificativas": scenario.justificativas or [],
+        # `fonte` (caminho cru no JSON estruturado) segue no payload pra auditoria;
+        # a tela mostra so `fonte_legivel` (pagina/menu/...), que o gestor reconhece.
+        "justificativas": [
+            {**j, "fonte_legivel": descrever_fonte(j.get("fonte"), dados_portal)}
+            for j in (scenario.justificativas or [])
+        ],
         "recursos_confirmados": scenario.recursos_confirmados or [],
         "cenario_base_title_snapshot": scenario.cenario_base_title_snapshot,
         "cenario_base_description_snapshot": scenario.cenario_base_description_snapshot,
@@ -79,6 +86,15 @@ def _serialize_scenario(scenario: PersonalizedScenario, task, guideline) -> dict
         "provider": scenario.provider,
         "model": scenario.model,
         "approval_history": [_serialize_log(e) for e in scenario.approval_log],
+        # Comentarios de rejeicao que alimentaram ESTA versao do cenario (os que
+        # existiam quando ela foi gerada) - mesma selecao do pipeline, pro log de
+        # origem mostrar exatamente o que a IA recebeu.
+        "feedback_used": selecionar_feedback([
+            e.comment for e in scenario.approval_log
+            if e.decision == ScenarioApprovalDecision.REJECTED
+            and scenario.generated_at is not None
+            and e.decided_at is not None and e.decided_at <= scenario.generated_at
+        ]),
         # Progresso da chamada de IA (tentativas, trocas de modelo) - a tela mostra
         # isso ao vivo enquanto RUNNING (via polling) e como resumo quando termina.
         "progress_log": scenario.progress_log or [],
@@ -155,8 +171,9 @@ def api_scenarios(evaluation_id: int):
     )
     scenario_task_ids = {s.task_id for s in scenarios}
 
+    dados_portal = collection.dados_portal if collection else None
     payload_scenarios = [
-        _serialize_scenario(s, *tasks_by_id.get(s.task_id, (None, None)))
+        _serialize_scenario(s, *tasks_by_id.get(s.task_id, (None, None)), dados_portal=dados_portal)
         for s in scenarios
     ]
     # Tasks selecionadas que ainda nao ganharam nem uma linha de PersonalizedScenario
@@ -183,6 +200,7 @@ def api_scenarios(evaluation_id: int):
             "provider": None,
             "model": None,
             "approval_history": [],
+            "feedback_used": [],
             "progress_log": [],
             "ai_duration_s": None,
             "model_switches": None,

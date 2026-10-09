@@ -58,28 +58,87 @@
     // Progresso da chamada de IA (services/ai/provider.py:call_ai, eventos gravados
     // por services/scenario_personalization/pipeline.py:_make_progress_logger). Cada
     // objeto tem "event" + "stage" ("mapeamento"/"adaptacao") + campos especificos.
-    var STAGE_LABEL = { mapeamento: 'Mapping call', adaptacao: 'Adaptation call' };
+    var STAGE_LABEL = { mapeamento: 'Matching resources', adaptacao: 'Writing the scenario' };
+    var STAGE_STEP = { mapeamento: 1, adaptacao: 2 };
 
-    function formatProgressEvent(e) {
-        var stage = STAGE_LABEL[e.stage] || e.stage || '';
-        var prefix = stage ? '[' + esc(stage) + '] ' : '';
+    // Codigo HTTP-ish que o provider devolve (providers/base.py:AIProviderError.code)
+    // em linguagem de gestor; o codigo cru fica entre parenteses, so pra suporte.
+    function describeCode(code) {
+        var n = Number(code);
+        var reason;
+        if (n === 429) reason = 'the AI service is receiving too many requests';
+        else if (n === 500 || n === 502 || n === 503) reason = 'the AI service is temporarily overloaded';
+        else if (n === 504) reason = 'the AI service took too long to respond';
+        else if (n === 401 || n === 403) reason = 'access to the AI service was denied';
+        else if (n === 404) reason = 'the model was not found';
+        else reason = 'the AI service returned an error';
+        return reason + (code ? ' (error ' + esc(code) + ')' : '');
+    }
+
+    function modelName(model) {
+        return '<span class="ai-log-model">' + esc(model) + '</span>';
+    }
+
+    // Um evento de call_ai -> {tone, text}. `tone` pinta o ponto da linha
+    // (info/ok/warn/error); `text` ja vem escapado.
+    function describeEvent(e) {
         switch (e.event) {
             case 'attempt':
-                return prefix + 'Trying ' + esc(e.model) + ' — attempt ' + e.attempt + '/' + e.attempts_max;
+                return e.attempt > 1
+                    ? { tone: 'info', text: 'Trying ' + modelName(e.model) + ' again (attempt ' + e.attempt + ' of ' + e.attempts_max + ')' }
+                    : { tone: 'info', text: 'Asking ' + modelName(e.model) + '…' };
             case 'retry_wait':
-                return prefix + esc(e.model) + ' failed (code ' + esc(e.code) + ') — retrying in ' + e.wait_s + 's';
+                return { tone: 'warn', text: modelName(e.model) + ' didn’t answer — ' + describeCode(e.code) +
+                    '. Trying again in ' + e.wait_s + 's.' };
             case 'model_failed':
-                return prefix + esc(e.model) + ' unavailable after attempt ' + e.attempt +
-                    (e.code ? ' (code ' + esc(e.code) + ')' : '') + ' — moving to the next model';
+                return { tone: 'warn', text: modelName(e.model) + ' couldn’t answer — ' + describeCode(e.code) +
+                    '. Moving on to the next model.' };
             case 'model_switch':
-                return prefix + 'Switched model: ' + esc(e.from) + ' → ' + esc(e.to);
+                return { tone: 'warn', text: 'Switching from ' + modelName(e.from) + ' to ' + modelName(e.to) };
             case 'success':
-                return prefix + esc(e.model) + ' responded on attempt ' + e.attempt;
+                return { tone: 'ok', text: modelName(e.model) + ' answered' +
+                    (e.attempt > 1 ? ' (after ' + e.attempt + ' attempts)' : '') };
             case 'chain_exhausted':
-                return prefix + 'No model responded (tried: ' + (e.chain || []).map(esc).join(', ') + ')';
+                return { tone: 'error', text: 'No model was able to answer (tried: ' +
+                    (e.chain || []).map(modelName).join(', ') + ')' };
             default:
-                return prefix + e.event;
+                return { tone: 'info', text: esc(e.event) };
         }
+    }
+
+    // Uma linha so (barra de progresso, detalhe do que esta rodando agora).
+    function formatProgressEvent(e) {
+        var stage = STAGE_LABEL[e.stage];
+        return (stage ? esc(stage) + ' — ' : '') + describeEvent(e).text;
+    }
+
+    function formatElapsed(seconds) {
+        if (seconds < 60) return seconds + 's';
+        return Math.floor(seconds / 60) + 'm ' + ('0' + (seconds % 60)).slice(-2) + 's';
+    }
+
+    // Linha do tempo agrupada por etapa ("Step 1 of 2 · Matching resources"), com o
+    // tempo de cada evento desde o primeiro. Substitui a lista monoespacada de
+    // "[Mapping call] Trying m — attempt 1/4".
+    function renderTimeline(events, isLive) {
+        var t0 = Date.parse(events[0].at);
+        var lastStage = null;
+        var html = '<div class="ai-log' + (isLive ? ' is-live' : '') + '">';
+        events.forEach(function (e) {
+            if (e.stage && e.stage !== lastStage) {
+                html += '<div class="ai-log-stage">Step ' + (STAGE_STEP[e.stage] || '?') + ' of 2 · ' +
+                    esc(STAGE_LABEL[e.stage] || e.stage) + '</div>';
+                lastStage = e.stage;
+            }
+            var d = describeEvent(e);
+            var t = Date.parse(e.at);
+            html += '<div class="ai-log-event is-' + d.tone + '">' +
+                '<span class="ai-log-dot"></span>' +
+                '<span class="ai-log-text">' + d.text + '</span>' +
+                (isNaN(t0) || isNaN(t) ? '' : '<span class="ai-log-time">' + formatElapsed(Math.round((t - t0) / 1000)) + '</span>') +
+                '</div>';
+        });
+        return html + '</div>';
     }
 
     // Uma chamada de IA por etapa (mapeamento, adaptacao) - cada uma com seu proprio
@@ -109,11 +168,7 @@
         var html = '';
 
         if (isBusy && events.length) {
-            html += '<div class="scenario-progress">' +
-                events.map(function (e) {
-                    return '<div class="scenario-progress-line">' + formatProgressEvent(e) + '</div>';
-                }).join('') +
-                '</div>';
+            html += '<div class="scenario-progress">' + renderTimeline(events, true) + '</div>';
         }
 
         var stageResults = computeStageResults(events);
@@ -121,7 +176,8 @@
             .filter(function (stage) { return stageResults[stage]; })
             .map(function (stage) {
                 var r = stageResults[stage];
-                return esc(STAGE_LABEL[stage]) + ': ' + esc(r.model) + ' (attempt ' + r.attempt + ')';
+                return esc(STAGE_LABEL[stage]) + ': ' + esc(r.model) +
+                    (r.attempt > 1 ? ' (after ' + r.attempt + ' attempts)' : '');
             });
 
         if (modelLines.length) {
@@ -133,20 +189,18 @@
         }
 
         if (s.ai_duration_s !== null && s.ai_duration_s !== undefined) {
-            var switches = (s.model_switches === null || s.model_switches === undefined) ? '—' : s.model_switches;
+            var switches = s.model_switches || 0;
             html += '<p class="scenario-progress-summary">' +
-                'Total time: ' + Number(s.ai_duration_s).toFixed(1) + 's' +
-                ' · Model switches: ' + switches +
+                'Took ' + Number(s.ai_duration_s).toFixed(1) + 's' +
+                (switches ? ' · switched model ' + switches + (switches === 1 ? ' time' : ' times') : '') +
                 '</p>';
         }
 
         if (!isBusy && events.length) {
-            html += '<details class="scenario-details"><summary>AI call log (' + events.length + ' event(s))</summary>' +
-                '<div class="scenario-progress scenario-progress-log">' +
-                events.map(function (e) {
-                    return '<div class="scenario-progress-line">' + formatProgressEvent(e) + '</div>';
-                }).join('') +
-                '</div></details>';
+            html += '<details class="scenario-details"><summary>AI call log (' + events.length +
+                (events.length === 1 ? ' event' : ' events') + ')</summary>' +
+                '<div class="scenario-progress scenario-progress-log">' + renderTimeline(events, false) + '</div>' +
+                '</details>';
         }
 
         return html;
@@ -157,46 +211,89 @@
     // interface separada), so como uma secao retratil a mais no cartao.
     function renderOriginLog(s) {
         var hasContent = (s.justificativas && s.justificativas.length) ||
-            (s.approval_history && s.approval_history.length) || s.cenario_base_title_snapshot;
-        if (!hasContent) return '';
+            (s.approval_history && s.approval_history.length) || s.cenario_base_title_snapshot;        if (!hasContent) return '';
 
-        var html = '<details class="scenario-details scenario-origin-log"><summary>Origin log</summary>';
+        var html = '<details class="scenario-details scenario-origin-log"><summary>Origin log — how this scenario was built</summary>';
 
-        html += '<div class="scenario-origin-block">';
-        html += '<div class="scenario-origin-label">Generated from</div>';
-        html += '<div class="scenario-origin-value">Base scenario: "' + esc(s.task_title) + '"' +
+        var facts = [['Base scenario', '“' + esc(s.task_title) + '”' +
             (s.cenario_base_title_snapshot && s.cenario_base_title_snapshot !== s.task_title
-                ? ' <span class="scenario-meta-inline">(title at generation time: "' + esc(s.cenario_base_title_snapshot) + '")</span>'
-                : '') + '</div>';
+                ? ' <span class="scenario-meta-inline">(was “' + esc(s.cenario_base_title_snapshot) + '” when generated)</span>'
+                : '')]];
         if (s.manager_description_snapshot) {
-            html += '<div class="scenario-origin-value">Portal description used: "' + esc(s.manager_description_snapshot) + '"</div>';
+            facts.push(['Portal description', esc(s.manager_description_snapshot)]);
         }
         if (s.generated_at) {
-            html += '<div class="scenario-origin-value">Generated on ' + formatDate(s.generated_at) +
-                (s.model ? ' using ' + esc(s.model) : '') + '</div>';
+            facts.push(['Generated', formatDate(s.generated_at) + (s.model ? ' · ' + esc(s.model) : '')]);
         }
-        html += '</div>';
+        // O que o gestor escreveu ao rejeitar versoes anteriores e foi passado a IA
+        // nesta geracao (mesma selecao do pipeline - ver feedback_used em views).
+        if (s.feedback_used && s.feedback_used.length) {
+            facts.push(['Your feedback', s.feedback_used.map(function (f) {
+                return '“' + esc(f) + '”';
+            }).join('<br>')]);
+        }
+        html += '<div class="scenario-origin-block">' +
+            '<div class="scenario-origin-label">Generated from</div>' +
+            '<dl class="scenario-facts">' +
+            facts.map(function (f) { return '<dt>' + f[0] + '</dt><dd>' + f[1] + '</dd>'; }).join('') +
+            '</dl></div>';
 
         if (s.justificativas && s.justificativas.length) {
             html += '<div class="scenario-origin-block">' +
-                '<div class="scenario-origin-label">Resources confirmed against the collected data</div>' +
-                renderList(s.justificativas, function (j) {
-                    return '<strong>' + esc(j.recurso) + '</strong> <span class="scenario-meta-inline">— found in ' + esc(j.fonte) + '</span>';
-                }) + '</div>';
+                '<div class="scenario-origin-label">Resources confirmed on the portal</div>' +
+                renderItems('confirmed', s.justificativas.map(function (j) {
+                    return { name: esc(j.recurso), note: describeSource(j.fonte_legivel) };
+                })) + '</div>';
         }
 
         if (s.approval_history && s.approval_history.length) {
             html += '<div class="scenario-origin-block">' +
                 '<div class="scenario-origin-label">Review history</div>' +
-                renderList(s.approval_history, function (h) {
-                    return '<strong>' + esc(DECISION_LABEL[h.decision] || h.decision) + '</strong> by ' +
-                        esc(h.reviewer || '—') + ' on ' + formatDate(h.decided_at) +
-                        (h.comment ? ' — “' + esc(h.comment) + '”' : '');
-                }) + '</div>';
+                renderItems('history', s.approval_history.map(function (h) {
+                    return {
+                        name: esc(DECISION_LABEL[h.decision] || h.decision),
+                        note: 'By ' + esc(h.reviewer || '—') + ' on ' + formatDate(h.decided_at) +
+                            (h.comment ? ' — “' + esc(h.comment) + '”' : '')
+                    };
+                })) + '</div>';
         }
 
         html += '</details>';
         return html;
+    }
+
+    // Linhas com icone + nome + nota, no lugar das listas com <strong> e travessao.
+    // `name` e `note` ja chegam escapados (ou com markup nosso) - ver chamadores.
+    var ITEM_ICON = { confirmed: '✓', omitted: '–', removed: '!', history: '•' };
+
+    function renderItems(kind, rows) {
+        return '<ul class="scenario-items">' + rows.map(function (r) {
+            return '<li class="scenario-item scenario-item-' + kind + '">' +
+                '<span class="scenario-item-icon" aria-hidden="true">' + ITEM_ICON[kind] + '</span>' +
+                '<div><div class="scenario-item-name">' + r.name + '</div>' +
+                (r.note ? '<div class="scenario-item-note">' + r.note + '</div>' : '') +
+                '</div></li>';
+        }).join('') + '</ul>';
+    }
+
+    // `fonte_legivel` vem de validacao.descrever_fonte (backend): so a
+    // classificacao - a redacao fica aqui. O caminho cru (paginas_coletadas[16]...)
+    // nunca e exibido. A URL vem do portal coletado, entao so vira link se for
+    // http(s).
+    function describeSource(src) {
+        if (!src) return 'Found in the collected portal data';
+        switch (src.tipo) {
+            case 'pagina':
+                var label = esc(src.titulo || src.url || 'a page of the portal');
+                if (src.url && /^https?:\/\//i.test(src.url)) {
+                    label = '<a href="' + esc(src.url) + '" target="_blank" rel="noopener">' + label + '</a>';
+                }
+                return 'Found on the page ' + label;
+            case 'menu': return 'Found in the portal’s navigation menu';
+            case 'link': return 'Found among the links on the portal’s pages';
+            case 'metadados': return 'Found in the portal’s metadata';
+            default: return 'Found in the collected portal data';
+        }
     }
 
     function renderScenario(s) {
@@ -223,18 +320,25 @@
 
             if (s.etapas_omitidas && s.etapas_omitidas.length) {
                 html += '<details class="scenario-details"><summary>' +
-                    s.etapas_omitidas.length + ' step(s) omitted — no matching resource on the portal</summary>' +
-                    renderList(s.etapas_omitidas, function (o) {
-                        return '<strong>' + esc(o.etapa) + '</strong> — ' + esc(o.motivo);
-                    }) + '</details>';
+                    s.etapas_omitidas.length + ' step(s) left out — no matching resource on the portal</summary>' +
+                    renderItems('omitted', s.etapas_omitidas.map(function (o) {
+                        return { name: esc(o.etapa), note: esc(o.motivo) };
+                    })) + '</details>';
             }
 
+            // O motivo tecnico (caminho do campo, % de confianca) segue no payload
+            // pra auditoria, mas o gestor ve so o que importa: o conteudo coletado
+            // nao sustentou o recurso.
             if (s.recursos_removidos_validacao && s.recursos_removidos_validacao.length) {
                 html += '<details class="scenario-details"><summary>' +
-                    s.recursos_removidos_validacao.length + ' resource(s) removed during validation</summary>' +
-                    renderList(s.recursos_removidos_validacao, function (r) {
-                        return '<strong>' + esc(r.recurso) + '</strong> — ' + esc(r.motivo);
-                    }) + '</details>';
+                    s.recursos_removidos_validacao.length + ' resource(s) removed after validation</summary>' +
+                    renderItems('removed', s.recursos_removidos_validacao.map(function (r) {
+                        return {
+                            name: esc(r.recurso),
+                            note: 'The content collected from the portal did not support this resource, ' +
+                                'so it was left out of the scenario.'
+                        };
+                    })) + '</details>';
             }
         }
 
@@ -244,7 +348,7 @@
                 '<button type="button" class="scenario-btn scenario-btn-reject" data-action="reject" data-task-id="' + s.task_id + '">Reject &amp; regenerate</button>' +
                 '</div>' +
                 '<div class="scenario-reject-form" data-task-id="' + s.task_id + '" hidden>' +
-                '<textarea class="scenario-reject-comment" placeholder="Optional: why is this scenario being rejected?"></textarea>' +
+                '<textarea class="scenario-reject-comment" placeholder="Optional: what should be different? This is sent to the AI as guidance for the next version."></textarea>' +
                 '<div class="scenario-actions">' +
                 '<button type="button" class="scenario-btn scenario-btn-reject-confirm" data-action="reject-confirm" data-task-id="' + s.task_id + '">Confirm rejection</button>' +
                 '<button type="button" class="scenario-btn scenario-btn-cancel" data-action="reject-cancel" data-task-id="' + s.task_id + '">Cancel</button>' +
